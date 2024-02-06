@@ -1,0 +1,24 @@
+{
+  "name": "package.json",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "apigen": "npx openapi-generator-cli generate -i swagger.json -g typescript-axios -o ./src/api/openapi",
+    "pregenerate-dev-api": "curl -k https://localhost:7292/swagger/v1/swagger.json > swagger.json",
+    "dev": "npm run pregenerate-dev-api && npm run apigen && vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "superagent": "^8.1.2",
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^2.2.0",
+    "naive-ui": "^2.37.3",
+    "sass": "^1.49.8",
+    "vite": "^2.8.0"
+  }
+}
