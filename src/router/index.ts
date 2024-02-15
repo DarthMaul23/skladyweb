@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Warehouse from '../views/Warehouse.vue'
+import Warehouses from '../views/Warehouses.vue'
+import WarehouseDetails from '../views/WarehouseDetails.vue';
 import Login from '../views/Login.vue'
 
 const router = createRouter({
@@ -15,16 +16,24 @@ const router = createRouter({
 		},*/
 		{
 			path: '/',
-			component: Warehouse
+			component: Warehouses
+		},
+		{ path: '/warehouse/:id', component: WarehouseDetails, props: true },
+		{
+			path: '/categories',
+			component: () => import('../views/Categories.vue')
 		},
 		{
 			path: '/banks',
 			component: () => import('../views/Banks.vue')
 		},
-		,
 		{
 			path: '/orders',
 			component: () => import('../views/Orders.vue')
+		},
+		{
+			path: '/offers',
+			component: () => import('../views/Offers.vue')
 		},
 	],
 })

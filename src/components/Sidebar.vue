@@ -11,18 +11,26 @@
     </div>
 
     <h3>Správa skladu</h3>
-    <div class="menu">
+    <div class="menu" >
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
-        <span class="text">Sklad</span>
+        <span class="text">Sklady</span>
       </router-link>
-      <router-link to="/banks" class="button">
-        <span class="material-icons">house</span>
-        <span class="text">Banky</span>
+      <router-link to="/offers" class="button">
+        <span class="material-icons">inbox</span>
+        <span class="text">Nabídky</span>
       </router-link>
       <router-link to="/orders" class="button">
         <span class="material-icons">inbox</span>
         <span class="text">Objednávky</span>
+      </router-link>
+      <router-link to="/categories" class="button">
+        <span class="material-icons">articles</span>
+        <span class="text">Categories</span>
+      </router-link>
+      <router-link to="/banks" class="button">
+        <span class="material-icons">house</span>
+        <span class="text">Banky</span>
       </router-link>
       <router-link to="/team" class="button">
         <span class="material-icons">group</span>

@@ -13,6 +13,7 @@
         placeholder="Heslo"
         class="login-input"
       />
+      <a v-if="error">{{ error }}</a>
       <n-button type="primary" class="login-button" @click="handleLogin"
         >Přihlásit se</n-button
       >
@@ -24,14 +25,15 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { LoginApi, LoginModel } from "../api/openapi/api";
 import { store } from "../store/store";
-import { Configuration } from '../api/openapi/configuration'; // Import the Configuration class
-import { getDefaultApiConfig } from '../utils/utils';
+import { Configuration } from "../api/openapi/configuration"; // Import the Configuration class
+import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
   setup() {
     const router = useRouter();
     const username = ref("");
     const password = ref("");
+    const error = ref(""); // This will hold the error message
 
     const handleLogin = async () => {
       const loginApi = new LoginApi(getDefaultApiConfig());
@@ -48,12 +50,14 @@ export default {
         console.log("Login successful:", response.data);
         store.login({ username: username.value }); // Update the state
         router.push("/"); // Redirect to home
-      } catch (error) {
-        console.error("Login failed:", error);
+      } catch (e) {
+        // Make sure to catch the error correctly
+        console.error("Login failed:", e);
+        error.value = "Nesprávné přihlašovací údaje."; // Set the error message
       }
     };
 
-    return { username, password, handleLogin};
+    return { username, password, handleLogin, error };
   },
 };
 </script>
