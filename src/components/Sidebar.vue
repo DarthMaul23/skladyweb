@@ -25,8 +25,8 @@
         <span class="text">Objednávky</span>
       </router-link>
       <router-link to="/categories" class="button">
-        <span class="material-icons">articles</span>
-        <span class="text">Categories</span>
+        <span class="material-icons">settings</span>
+        <span class="text">Kategorie</span>
       </router-link>
       <router-link to="/banks" class="button">
         <span class="material-icons">house</span>

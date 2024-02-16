@@ -1,127 +1,179 @@
 <template>
-	<main id="banky-page">
-	  <!-- Filter input -->
-	  <div class="filter-container">
-		<n-input
-		  v-model:value="filters.searchQuery"
-		  placeholder="Vyhledat dle jména banky, adresy nebo kontaktní osoby"
-		  @update:value="filterBanks"
-		  class="filter-input"
-		/>
-	  </div>
-  
-	  <!-- Banks Table -->
-	  <n-data-table
-		:columns="columns"
-		:data="filteredBanks"
-		class="banks-table"
-	  >
-		<!-- Custom rendering for 'Status' column -->
-		<template v-slot:status="{ row }">
-		  <n-tag :type="row.status ? 'success' : 'error'">
-			{{ row.status ? 'Order' : 'No Order' }}
-		  </n-tag>
-		</template>
-  
-		<!-- Custom rendering for 'Actions' column -->
-		<template v-slot:action="{ row }">
-		  <n-button @click="goToBankDetail(row.id)">
-			Details
-		  </n-button>
-		</template>
-	  </n-data-table>
-	</main>
-  </template>
-  
+  <main id="categories-page">
+    <div class="actions">
+      <n-button @click="showAddCategoryModal = true" type="success"
+        >Add New Category</n-button
+      >
+    </div>
+    <div class="filter-container">
+      <n-input
+        v-model:value="filters.searchQuery"
+        placeholder="Search by category name"
+        @update:value="filterCategories"
+        class="filter-input"
+      />
+    </div>
+
+    <!-- Categories Table -->
+    <n-data-table :columns="columns" :data="filteredCategories">
+      <template #action="{ row }">
+        <v-btn size="small" @click="prepareCategoryDetails(row)"
+          >Detail</v-btn>
+        <v-btn size="small" text color="red" @click="deleteCategory(row.id)"
+          >Delete</v-btn>
+      </template>
+    </n-data-table>
+
+    <!-- Modal for Adding New Category -->
+    <CustomModal
+      :show="showAddCategoryModal"
+      title="Add New Category"
+      @update:show="showAddCategoryModal = false"
+      @save="addNewCategory"
+    >
+      <template #body>
+        <!-- Form for adding a new category -->
+        <n-form ref="addCategoryForm" :model="newCategoryForm">
+          <n-form-item label="Name" required>
+            <n-input v-model:value="newCategoryForm.name" />
+          </n-form-item>
+          <n-form-item label="Description">
+            <n-input
+              v-model:value="newCategoryForm.description"
+              type="textarea"
+            />
+          </n-form-item>
+        </n-form>
+      </template>
+      <template #footer>
+        <n-button @click="addNewCategory" type="primary">Save</n-button>
+        <n-button @click="showAddCategoryModal = false" type="error"
+          >Close</n-button
+        >
+      </template>
+    </CustomModal>
+
+    <!-- Modal for Category Details -->
+    <CustomModal
+      :show="showCategoryDetailsModal"
+      :title="`Details for ${selectedCategory.name}`"
+      @update:show="showCategoryDetailsModal = false"
+    >
+      <template #body>
+        <p><strong>Name:</strong> {{ selectedCategory.name }}</p>
+        <p><strong>Description:</strong> {{ selectedCategory.description }}</p>
+        <!-- Additional details here -->
+      </template>
+      <template #footer>
+        <n-button @click="showCategoryDetailsModal = false" type="error"
+          >Close</n-button
+        >
+      </template>
+    </CustomModal>
+  </main>
+</template>
   <script>
-  export default {
-	data() {
-	  return {
-		filters: {
-		  searchQuery: "",
-		},
-		columns: [
-		  {
-			title: "No",
-			key: "rowNumber",
-		  },
-		  {
-			title: "Banka",
-			key: "name",
-		  },
-		  {
-			title: "Adresa",
-			key: "address",
-		  },
-		  {
-			title: "Kontaktní osoba",
-			key: "manager",
-		  },
-		  {
-			title: "Status",
-			key: "status",
-		  },
-		  {
-			title: "Akce",
-			key: "action",
-		  },
-		],
-		banks: [
-		  // Sample data
-		  {
-			id: "uuid-1",
-			rowNumber: 1,
-			name: "Bank A",
-			address: "Address A",
-			manager: "Manager A",
-			status: 1,
-		  },
-		  {
-			id: "uuid-2",
-			rowNumber: 2,
-			name: "Bank B",
-			address: "Address B",
-			manager: "Manager B",
-			status: 0,
-		  },
-		  // ... more banks
-		],
-	  };
-	},
-	computed: {
-	  filteredBanks() {
-		const searchQuery = this.filters.searchQuery.toLowerCase();
-		return this.banks.filter((bank) => {
-		  // Ensure that bank.name and bank.address are not undefined
-		  const name = bank.name ? bank.name.toLowerCase() : '';
-		  const address = bank.address ? bank.address.toLowerCase() : '';
-		  return name.includes(searchQuery) || address.includes(searchQuery);
-		});
-	  },
-	},
-	methods: {
-	  filterBanks() {
-		// Filtering is handled by the computed property 'filteredBanks'
-	  },
-	  goToBankDetail(bankId) {
-		// Logic to go to bank detail page, for example using Vue Router
-		this.$router.push({ name: 'BankDetail', params: { bankId: bankId } });
-	  },
-	},
-  };
-  </script>
-  <style scoped>
-  #banky-page {
-	/* Your styles here */
-  }
-  .filter-container {
-	margin-bottom: 20px;
-  }
-  .filter-input {
-	max-width: 500px; /* or any other width */
-  }
-  .banks-table {
-	/* Styles for the table */
-  }
-  </style>
-  
+import { computed, ref } from "vue";
+import CustomModal from "../components/CustomModal.vue";
+
+export default {
+  components: {
+    CustomModal,
+  },
+  setup() {
+    const filters = ref({ searchQuery: "" });
+    const categories = ref([
+      {
+        id: "1",
+        name: "Technology",
+        creatorId: "1001",
+        createdAt: new Date("2021-01-01").toISOString(),
+        description: "All about the latest in technology",
+      },
+      {
+        id: "2",
+        name: "Sports",
+        creatorId: "1002",
+        createdAt: new Date("2021-02-01").toISOString(),
+        description: "Covering the world of sports and fitness",
+      },
+      {
+        id: "3",
+        name: "Food",
+        creatorId: "1003",
+        createdAt: new Date("2021-03-01").toISOString(),
+        description: "Delicious recipes and restaurant reviews",
+      },
+      {
+        id: "4",
+        name: "Travel",
+        creatorId: "1004",
+        createdAt: new Date("2021-04-01").toISOString(),
+        description: "Discover new destinations and travel tips",
+      },
+      {
+        id: "5",
+        name: "Fashion",
+        creatorId: "1005",
+        createdAt: new Date("2021-05-01").toISOString(),
+        description: "The latest trends and fashion news",
+      },
+    ]);
+    const showAddCategoryModal = ref(false);
+    const showCategoryDetailsModal = ref(false);
+    const selectedCategory = ref({});
+    const newCategoryForm = ref({ name: "", description: "" });
+
+    const columns = [
+      { title: "Name", key: "name" },
+      { 
+        title: 'Actions', 
+        key: 'action', 
+        render: (row) => {}, // This is optional for customization but necessary if the action slot doesn't work
+      },
+    ];
+
+    const filteredCategories = computed(() => {
+      return categories.value.filter((category) =>
+        category.name
+          .toLowerCase()
+          .includes(filters.value.searchQuery.toLowerCase())
+      );
+    });
+
+    function prepareCategoryDetails(category) {
+      selectedCategory.value = category;
+      showCategoryDetailsModal.value = true;
+    }
+
+    function addNewCategory() {
+      // Implement adding new category logic
+      // Push new category to categories array and reset form
+      categories.value.push({
+        ...newCategoryForm.value,
+        id: Date.now().toString(),
+      }); // Example
+      newCategoryForm.value = { name: "", description: "" };
+      showAddCategoryModal.value = false;
+    }
+
+    function deleteCategory(id) {
+      const index = categories.value.findIndex((c) => c.id === id);
+      if (index > -1) categories.value.splice(index, 1);
+    }
+
+    return {
+      filters,
+      filteredCategories,
+      showAddCategoryModal,
+      showCategoryDetailsModal,
+      selectedCategory,
+      newCategoryForm,
+      columns,
+      prepareCategoryDetails,
+      addNewCategory,
+      deleteCategory,
+    };
+  },
+};
+</script>
