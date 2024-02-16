@@ -1,6 +1,6 @@
 <template>
   <main id="warehouses-page">
-    <div class="actions">
+    <div class="actions" v-if="!showDetails">
       <n-button @click="showModal = true">Add New Warehouse</n-button>
     </div>
     <div v-if="!showDetails">
@@ -24,7 +24,6 @@
       <h2>{{ selectedWarehouse.name }} - Details</h2>
       <!-- Additional warehouse details and item management here -->
     </div>
-
     <!-- Custom Modal for Adding New Warehouse -->
     <CustomModal
       :show="showModal"
@@ -63,10 +62,10 @@
     </CustomModal>
   </main>
 </template>
-
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref } from "vue";
+import { ref, computed, h } from "vue";
+import { NButton } from "naive-ui";
 
 export default {
   components: { CustomModal },
@@ -84,7 +83,33 @@ export default {
       { title: "Name", key: "name" },
       { title: "Location", key: "location" },
       // Ensure 'action' matches the slot name in the template
-      { title: "Actions", key: "action", render: (row) => {} },
+      {
+        title: "Actions",
+        key: "action",
+        render: (row, index) => {
+          return h("div", [
+            h(
+              NButton,
+              {
+                onClick: () => showWarehouseDetails(row),
+                size: "small",
+                type: "success",
+              },
+              "Detail"
+            ),
+            h(
+              NButton,
+              {
+                onClick: () => deleteCategory(row.id),
+                size: "small",
+                style: "margin-left: 8px;",
+                type: "error",
+              },
+              "Delete"
+            ),
+          ]);
+        },
+      },
     ];
 
     const showDetails = ref(false);
@@ -131,6 +156,7 @@ export default {
     };
 
     const showWarehouseDetails = (warehouse) => {
+      console.log(warehouse);
       selectedWarehouse.value = warehouse;
       showDetails.value = true;
     };
