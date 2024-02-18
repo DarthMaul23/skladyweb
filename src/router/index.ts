@@ -18,7 +18,7 @@ const router = createRouter({
 			path: '/',
 			component: Warehouses
 		},
-		{ path: '/warehouse/:id', component: WarehouseDetails, props: true },
+		{ path: '/warehouse/:id', name: 'WarehouseDetails', component: WarehouseDetails, props: true },
 		{
 			path: '/categories',
 			component: () => import('../views/Categories.vue')

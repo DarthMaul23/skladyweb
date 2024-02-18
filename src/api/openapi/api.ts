@@ -88,6 +88,38 @@ export interface LoginModel {
 /**
  * 
  * @export
+ * @interface NewOfferObject
+ */
+export interface NewOfferObject {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewOfferObject
+     */
+    'id'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface NewWarehouseModel
+ */
+export interface NewWarehouseModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewWarehouseModel
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewWarehouseModel
+     */
+    'location'?: string | null;
+}
+/**
+ * 
+ * @export
  * @interface Organization
  */
 export interface Organization {
@@ -190,6 +222,215 @@ export interface Warehouse {
      */
     'organization'?: Organization;
 }
+/**
+ * 
+ * @export
+ * @interface WarehouseModel
+ */
+export interface WarehouseModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof WarehouseModel
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof WarehouseModel
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof WarehouseModel
+     */
+    'location'?: string | null;
+}
+
+/**
+ * ItemApi - axios parameter creator
+ * @export
+ */
+export const ItemApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {Item} [item] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemAddOrUpdateItemPost: async (warehouseId?: string, item?: Item, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Item/AddOrUpdateItem`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (warehouseId !== undefined) {
+                localVarQueryParameter['warehouseId'] = warehouseId;
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(item, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemGetWarehouseItemsPost: async (warehouseId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Item/GetWarehouseItems`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (warehouseId !== undefined) {
+                localVarQueryParameter['warehouseId'] = warehouseId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ItemApi - functional programming interface
+ * @export
+ */
+export const ItemApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ItemApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {Item} [item] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async itemAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.itemAddOrUpdateItemPost(warehouseId, item, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['ItemApi.itemAddOrUpdateItemPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async itemGetWarehouseItemsPost(warehouseId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetWarehouseItemsPost(warehouseId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['ItemApi.itemGetWarehouseItemsPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ItemApi - factory interface
+ * @export
+ */
+export const ItemApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ItemApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {Item} [item] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.itemAddOrUpdateItemPost(warehouseId, item, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [warehouseId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemGetWarehouseItemsPost(warehouseId?: string, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.itemGetWarehouseItemsPost(warehouseId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ItemApi - object-oriented interface
+ * @export
+ * @class ItemApi
+ * @extends {BaseAPI}
+ */
+export class ItemApi extends BaseAPI {
+    /**
+     * 
+     * @param {string} [warehouseId] 
+     * @param {Item} [item] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ItemApi
+     */
+    public itemAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: RawAxiosRequestConfig) {
+        return ItemApiFp(this.configuration).itemAddOrUpdateItemPost(warehouseId, item, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [warehouseId] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ItemApi
+     */
+    public itemGetWarehouseItemsPost(warehouseId?: string, options?: RawAxiosRequestConfig) {
+        return ItemApiFp(this.configuration).itemGetWarehouseItemsPost(warehouseId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * LoginApi - axios parameter creator
@@ -293,6 +534,174 @@ export class LoginApi extends BaseAPI {
      */
     public loginPost(loginModel?: LoginModel, options?: RawAxiosRequestConfig) {
         return LoginApiFp(this.configuration).loginPost(loginModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * OfferApi - axios parameter creator
+ * @export
+ */
+export const OfferApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {NewOfferObject} [newOfferObject] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerCreateOfferPost: async (newOfferObject?: NewOfferObject, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Offer/CreateOffer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(newOfferObject, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerGetOffersGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Offer/GetOffers`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * OfferApi - functional programming interface
+ * @export
+ */
+export const OfferApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = OfferApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {NewOfferObject} [newOfferObject] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async offerCreateOfferPost(newOfferObject?: NewOfferObject, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerCreateOfferPost(newOfferObject, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OfferApi.offerCreateOfferPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async offerGetOffersGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerGetOffersGet(options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OfferApi.offerGetOffersGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * OfferApi - factory interface
+ * @export
+ */
+export const OfferApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = OfferApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {NewOfferObject} [newOfferObject] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerCreateOfferPost(newOfferObject?: NewOfferObject, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.offerCreateOfferPost(newOfferObject, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerGetOffersGet(options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.offerGetOffersGet(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * OfferApi - object-oriented interface
+ * @export
+ * @class OfferApi
+ * @extends {BaseAPI}
+ */
+export class OfferApi extends BaseAPI {
+    /**
+     * 
+     * @param {NewOfferObject} [newOfferObject] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OfferApi
+     */
+    public offerCreateOfferPost(newOfferObject?: NewOfferObject, options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerCreateOfferPost(newOfferObject, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OfferApi
+     */
+    public offerGetOffersGet(options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerGetOffersGet(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -413,13 +822,12 @@ export const WarehouseApiAxiosParamCreator = function (configuration?: Configura
     return {
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {Item} [item] 
+         * @param {NewWarehouseModel} [newWarehouseModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        warehouseAddOrUpdateItemPost: async (warehouseId?: string, item?: Item, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Warehouse/AddOrUpdateItem`;
+        warehouseCreateWarehousePost: async (newWarehouseModel?: NewWarehouseModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Warehouse/CreateWarehouse`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -434,10 +842,6 @@ export const WarehouseApiAxiosParamCreator = function (configuration?: Configura
             // authentication Bearer required
             await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
 
-            if (warehouseId !== undefined) {
-                localVarQueryParameter['warehouseId'] = warehouseId;
-            }
-
 
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -445,7 +849,7 @@ export const WarehouseApiAxiosParamCreator = function (configuration?: Configura
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(item, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(newWarehouseModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -484,6 +888,42 @@ export const WarehouseApiAxiosParamCreator = function (configuration?: Configura
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {WarehouseModel} [warehouseModel] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        warehouseUpdateWarehousePost: async (warehouseModel?: WarehouseModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Warehouse/UpdateWarehouse`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(warehouseModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -496,15 +936,14 @@ export const WarehouseApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {Item} [item] 
+         * @param {NewWarehouseModel} [newWarehouseModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async warehouseAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.warehouseAddOrUpdateItemPost(warehouseId, item, options);
+        async warehouseCreateWarehousePost(newWarehouseModel?: NewWarehouseModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.warehouseCreateWarehousePost(newWarehouseModel, options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['WarehouseApi.warehouseAddOrUpdateItemPost']?.[index]?.url;
+            const operationBasePath = operationServerMap['WarehouseApi.warehouseCreateWarehousePost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
         /**
@@ -516,6 +955,18 @@ export const WarehouseApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.warehouseGetWarehousesGet(options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['WarehouseApi.warehouseGetWarehousesGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {WarehouseModel} [warehouseModel] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async warehouseUpdateWarehousePost(warehouseModel?: WarehouseModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.warehouseUpdateWarehousePost(warehouseModel, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['WarehouseApi.warehouseUpdateWarehousePost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
     }
@@ -530,13 +981,12 @@ export const WarehouseApiFactory = function (configuration?: Configuration, base
     return {
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {Item} [item] 
+         * @param {NewWarehouseModel} [newWarehouseModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        warehouseAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: any): AxiosPromise<ResponseObject> {
-            return localVarFp.warehouseAddOrUpdateItemPost(warehouseId, item, options).then((request) => request(axios, basePath));
+        warehouseCreateWarehousePost(newWarehouseModel?: NewWarehouseModel, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.warehouseCreateWarehousePost(newWarehouseModel, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -545,6 +995,15 @@ export const WarehouseApiFactory = function (configuration?: Configuration, base
          */
         warehouseGetWarehousesGet(options?: any): AxiosPromise<ResponseObject> {
             return localVarFp.warehouseGetWarehousesGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {WarehouseModel} [warehouseModel] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        warehouseUpdateWarehousePost(warehouseModel?: WarehouseModel, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.warehouseUpdateWarehousePost(warehouseModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -558,14 +1017,13 @@ export const WarehouseApiFactory = function (configuration?: Configuration, base
 export class WarehouseApi extends BaseAPI {
     /**
      * 
-     * @param {string} [warehouseId] 
-     * @param {Item} [item] 
+     * @param {NewWarehouseModel} [newWarehouseModel] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof WarehouseApi
      */
-    public warehouseAddOrUpdateItemPost(warehouseId?: string, item?: Item, options?: RawAxiosRequestConfig) {
-        return WarehouseApiFp(this.configuration).warehouseAddOrUpdateItemPost(warehouseId, item, options).then((request) => request(this.axios, this.basePath));
+    public warehouseCreateWarehousePost(newWarehouseModel?: NewWarehouseModel, options?: RawAxiosRequestConfig) {
+        return WarehouseApiFp(this.configuration).warehouseCreateWarehousePost(newWarehouseModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -576,6 +1034,17 @@ export class WarehouseApi extends BaseAPI {
      */
     public warehouseGetWarehousesGet(options?: RawAxiosRequestConfig) {
         return WarehouseApiFp(this.configuration).warehouseGetWarehousesGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {WarehouseModel} [warehouseModel] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WarehouseApi
+     */
+    public warehouseUpdateWarehousePost(warehouseModel?: WarehouseModel, options?: RawAxiosRequestConfig) {
+        return WarehouseApiFp(this.configuration).warehouseUpdateWarehousePost(warehouseModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -1,7 +1,7 @@
 <template>
   <main id="warehouses-page">
     <div class="actions" v-if="!showDetails">
-      <n-button @click="showModal = true">Add New Warehouse</n-button>
+      <n-button @click="showModal = true">Přidat nový sklad</n-button>
     </div>
     <div v-if="!showDetails">
       <n-data-table :columns="columns" :data="warehouses">
@@ -64,20 +64,21 @@
 </template>
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, h } from "vue";
+import { ref, computed, h, onMounted } from "vue";
+import { useRouter } from 'vue-router';
 import { NButton } from "naive-ui";
+import { WarehouseApi } from "../api/openapi/api";
+import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
   components: { CustomModal },
   setup() {
+    const router = useRouter();
+    const warehouseApi = new WarehouseApi(getDefaultApiConfig());
     const showModal = ref(false);
     const newWarehouse = ref({ name: "", location: "" });
     const validationErrors = ref({});
-    const warehouses = ref([
-      // Sample data; replace with actual data loading logic
-      { id: "1", name: "Warehouse A", location: "Location A" },
-      { id: "2", name: "Warehouse B", location: "Location B" },
-    ]);
+    const warehouses = ref([]);
 
     const columns = [
       { title: "Name", key: "name" },
@@ -112,6 +113,23 @@ export default {
       },
     ];
 
+    onMounted(() => {
+      fetchWarehouses();
+    });
+
+    const fetchWarehouses = async () => {
+      try {
+        let token = localStorage.getItem("authToken");
+        const response = await warehouseApi.warehouseGetWarehousesGet({
+          headers: { Authorization: `Bearer ${token}` },
+        }); // Adjust this call to your actual API method
+        warehouses.value = response.data.result; // Adjust according to the response structure
+        console.log(warehouses.value);
+      } catch (error) {
+        console.error("Failed to fetch warehouses:", error);
+      }
+    };
+
     const showDetails = ref(false);
     const selectedWarehouse = ref(null);
 
@@ -120,14 +138,26 @@ export default {
       if (!visible) resetForm();
     };
 
-    const addWarehouse = () => {
+    const addWarehouse = async () => {
       if (validateForm()) {
-        warehouses.value.push({
-          ...newWarehouse.value,
-          id: Date.now().toString(),
-        });
-        showModal.value = false;
-        resetForm();
+        try {
+          let token = localStorage.getItem("authToken");
+          // Note: First argument is the newWarehouse model, followed by options for headers
+          const response = await warehouseApi.warehouseCreateWarehousePost(
+            newWarehouse.value, // The new warehouse data to be sent as the request body
+            {
+              headers: { Authorization: `Bearer ${token}` }, // Options including headers
+            }
+          );
+          console.log("Warehouse added successfully", response.data);
+          showModal.value = false;
+          resetForm();
+          // Refresh the warehouses list
+          fetchWarehouses();
+        } catch (error) {
+          console.error("Failed to add warehouse:", error);
+          // Handle error appropriately
+        }
       }
     };
 
@@ -158,7 +188,8 @@ export default {
     const showWarehouseDetails = (warehouse) => {
       console.log(warehouse);
       selectedWarehouse.value = warehouse;
-      showDetails.value = true;
+      //showDetails.value = true;
+      router.push({ name: 'WarehouseDetails', params: { id: warehouse.id } });
     };
 
     const backToList = () => {
