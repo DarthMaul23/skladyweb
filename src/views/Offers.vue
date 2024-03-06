@@ -63,7 +63,11 @@
   </main>
 </template>
   <script>
-import CustomModal from "../components/CustomModal.vue"; // Ensure this path is correct
+import CustomModal from "../components/CustomModal.vue";
+import { ref, computed, h, onMounted } from "vue";
+import { useRouter } from 'vue-router';
+import { NButton } from "naive-ui";
+ // Ensure this path is correct
 export default {
   components: {
     CustomModal,
@@ -73,13 +77,39 @@ export default {
       filters: {
         searchQuery: "",
       },
-      columns: [
-        { title: "No", key: "rowNumber" },
-        { title: "Offer Name", key: "name" },
-        { title: "Address", key: "address" },
-        { title: "Contact Person", key: "contact" },
-        { title: "Actions", key: "action" },
-      ],
+	  columns :[
+      { title: "Nabídka", key: "name" },
+      { title: "Location", key: "location" },
+	  { title: "Location", key: "location" },
+      // Ensure 'action' matches the slot name in the template
+      {
+        title: "Actions",
+        key: "action",
+        render: (row, index) => {
+          return h("div", [
+            h(
+              NButton,
+              {
+                onClick: () => showWarehouseDetails(row),
+                size: "small",
+                type: "success",
+              },
+              "Detail"
+            ),
+            h(
+              NButton,
+              {
+                onClick: () => deleteCategory(row.id),
+                size: "small",
+                style: "margin-left: 8px;",
+                type: "error",
+              },
+              "Delete"
+            ),
+          ]);
+        },
+      },
+    ],
       offers: [
         // Sample data
         {

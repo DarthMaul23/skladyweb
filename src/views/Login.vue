@@ -47,8 +47,6 @@ export default {
       try {
         // Pass the loginModel directly to the loginPost method
         const response = await loginApi.loginPost(loginModel);
-        console.log("Login successful:", response.data);
-        console.log(response.data.token);
         localStorage.setItem('authToken', response.data.token);
         store.login({ username: username.value});
         router.push("/"); // Redirect to home

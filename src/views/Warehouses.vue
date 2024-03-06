@@ -124,7 +124,6 @@ export default {
           headers: { Authorization: `Bearer ${token}` },
         }); // Adjust this call to your actual API method
         warehouses.value = response.data.result; // Adjust according to the response structure
-        console.log(warehouses.value);
       } catch (error) {
         console.error("Failed to fetch warehouses:", error);
       }
@@ -149,7 +148,6 @@ export default {
               headers: { Authorization: `Bearer ${token}` }, // Options including headers
             }
           );
-          console.log("Warehouse added successfully", response.data);
           showModal.value = false;
           resetForm();
           // Refresh the warehouses list

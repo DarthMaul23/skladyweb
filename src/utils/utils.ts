@@ -5,8 +5,6 @@ export function getDefaultApiConfig(useToken = true) {
   const config = new Configuration();
   const token = localStorage.getItem('authToken'); // Synchronously getting the token
 
-  console.log(token);
-
   if (useToken && token) {
     config.accessToken = token;
   }

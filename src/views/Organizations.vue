@@ -46,7 +46,7 @@
 			key: "rowNumber",
 		  },
 		  {
-			title: "Banka",
+			title: "Organizace",
 			key: "name",
 		  },
 		  {

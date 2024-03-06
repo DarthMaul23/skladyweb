@@ -28,9 +28,9 @@
         <span class="material-icons">settings</span>
         <span class="text">Kategorie</span>
       </router-link>
-      <router-link to="/banks" class="button">
+      <router-link to="/Organizations" class="button">
         <span class="material-icons">house</span>
-        <span class="text">Banky</span>
+        <span class="text">Organizace</span>
       </router-link>
       <router-link to="/team" class="button">
         <span class="material-icons">group</span>
