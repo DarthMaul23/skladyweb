@@ -9,6 +9,12 @@
       <n-button color="green" @click="showAddItemModal = true"
         >+ Naskladnit položku</n-button
       >
+      <n-button
+        v-if="isSelectedAnyItem"
+        color="green"
+        @click="openCreateOfferModal()"
+        >Vytvořit nabídku</n-button
+      >
     </div>
     <div class="scrollable-content">
       <div
@@ -76,7 +82,82 @@
       </template>
       <template #footer>
         <n-button @click="addItem" class="save-button">Naskladnit</n-button>
-        <n-button @click="closeModal" class="close-button">Zavřít</n-button>
+        <n-button @click="showAddItemModal = false" class="close-button"
+          >Zavřít</n-button
+        >
+      </template>
+    </CustomModal>
+    <!--Modal for creation of new offer-->
+    <!-- CustomModal for Offer Creation -->
+    <CustomModal
+      :show="showCreateOfferModal"
+      title="Vytvořit nabídku"
+      :header-bg-color="'green'"
+      :modal-width="'80%'"
+      :modal-height="'auto'"
+      @update:show="showCreateOfferModal = $event"
+    >
+      <template #body>
+        <div class="form-group">
+          <!-- Organization selection -->
+          <n-form-item label="Organizace:" required>
+            <n-select
+              v-model:value="selectedOrganization"
+              :options="organizationOptions"
+              placeholder="Vyberte organizaci"
+              @update:value="addOrganization"
+            />
+          </n-form-item>
+          <!-- Display selected organizations and their items -->
+          <div class="selected-organizations">
+            <div
+              v-for="(organization, orgIndex) in selectedOrganizations"
+              :key="organization.value"
+              class="organization-card"
+            >
+              <div class="organization-header">
+                <span>{{ organization.label }}</span>
+                <n-button
+                  icon="trash"
+                  color="red"
+                  @click="removeOrganization(orgIndex)"
+                  ><span class="material-icons">delete</span></n-button
+                >
+              </div>
+              <div class="organization-items">
+                <div
+                  v-for="(item, itemIndex) in selectedItems"
+                  :key="itemIndex"
+                  class="selected-item"
+                >
+                  <span>{{ item.description }} - Množství: </span>
+                  <n-input-number
+                    :value="item.selectedQuantity"
+                    @update:value="
+                      (quantity) =>
+                        updateItemQuantity(item, itemIndex, quantity)
+                    "
+                  />
+                  <n-button
+                    icon="trash"
+                    type="error"
+                    color="red"
+                    @click="removeItemFromOfferCreation(itemIndex)"
+                    ><span class="material-icons">delete</span></n-button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <n-button @click="createOffer" class="save-button"
+          >Vytvořit nabídku</n-button
+        >
+        <n-button @click="showCreateOfferModal = false" class="close-button"
+          >Zavřít</n-button
+        >
       </template>
     </CustomModal>
   </main>
@@ -84,7 +165,7 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, onMounted, h } from "vue";
+import { ref, onMounted, h, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   NButton,
@@ -119,12 +200,26 @@ export default {
     const message = useMessage(); // Correctly initialized
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
+    const showCreateOfferModal = ref(false);
     const newItem = ref({ name: "", description: "", quantity: 0, unit: "kg" });
     const validationErrors = ref({});
     const items = ref([]);
     const expandedRowKeys = ref(["Chleba"]);
     const warehouseDetails = ref({});
     const categoriesOptions = ref([]);
+    const selectedItems = ref([]);
+
+    const organizationOptions = ref([
+      { label: "Organization A", value: "orgA" },
+      { label: "Organization B", value: "orgB" },
+      { label: "Organization C", value: "orgC" },
+      { label: "Organization D", value: "orgD" },
+      { label: "Organization E", value: "orgE" },
+      { label: "Organization F", value: "orgF" },
+      { label: "Organization G", value: "orgG" },
+    ]); // Add actual organization options
+
+    const selectedOrganizations = ref([]);
 
     const itemMasterColumns = [
       { title: "Name", key: "name" },
@@ -139,6 +234,26 @@ export default {
     const itemChildColumns = [
       { title: "Položka", key: "description" },
       { title: "Množství", key: "quantity" },
+      {
+        title: "Actions",
+        key: "action",
+        render: (row) => {
+          const isSelected = selectedItems.value.some(
+            (item) => item.id === row.id
+          );
+          return h(
+            NButton,
+            {
+              size: "small",
+              type: isSelected ? "error" : "success",
+              onClick: () => {
+                isSelected ? deselectItem(row) : selectItem(row);
+              },
+            },
+            () => (isSelected ? "Zrušit výber" : "Vybrat")
+          );
+        },
+      },
     ];
 
     const unitOptions = [
@@ -189,6 +304,13 @@ export default {
       return categoriesOptions; // return the new array to be used elsewhere
     };
 
+    const getQuanitity = (item) => {
+      console.log(item);
+      var quantity = item.unit / selectedOrganizations.length;
+
+      return 5; // return the new array to be used elsewhere
+    };
+
     const addItem = async () => {
       const token = localStorage.getItem("authToken");
       if (token && newItem.value.name && newItem.value.quantity != null) {
@@ -213,6 +335,11 @@ export default {
       } else {
         message.warning("Vyplntě prosím všechna pole");
       }
+    };
+
+    const openCreateOfferModal = () => {
+      console.log("chello");
+      showCreateOfferModal.value = true;
     };
 
     const closeModal = () => {
@@ -241,6 +368,32 @@ export default {
       return item ? item.items : [];
     };
 
+    const selectItem = (item) => {
+      //selectedItems.value.push(item);
+      // Open modal for selecting quantity, for simplicity, let's just prompt
+      const quantity = window.prompt(
+        `Select quantity for ${item.description}`,
+        "1"
+      );
+      if (quantity) {
+        item.selectedQuantity = parseInt(quantity, 10);
+        // Add item with selected quantity
+        selectedItems.value.push({
+          ...item,
+          selectedQuantity: item.selectedQuantity,
+        });
+      }
+    };
+
+    const deselectItem = (item) => {
+      const index = selectedItems.value.findIndex(
+        (selected) => selected.id === item.id
+      );
+      if (index > -1) {
+        selectedItems.value.splice(index, 1);
+      }
+    };
+
     const validateForm = () => {
       // Function to validate the new item form inputs
     };
@@ -260,6 +413,89 @@ export default {
       );
     };
 
+    const addOrganization = (value) => {
+      // Add organization to selectedOrganizations...
+      const selectedOrg = organizationOptions.value.find(
+        (org) => org.value === value
+      );
+      if (selectedOrg && !selectedOrganizations.value.includes(selectedOrg)) {
+        selectedOrganizations.value.push(selectedOrg);
+      }
+    };
+
+    const removeItemFromOfferCreation = (index) => {
+      selectedItems.value.splice(index, 1);
+    };
+
+    const removeOrganization = (index) => {
+      // Remove organization from selectedOrganizations...
+      selectedOrganizations.value.splice(index, 1);
+    };
+
+    const isSelectedAnyItem = computed(() => {
+      return selectedItems.value.length > 0;
+    });
+
+    const updateItemQuantity = (item, itemIndex, newQuantity) => {
+      // Update the item quantity
+      item.quantity = newQuantity;
+
+      // Further actions like redistributing quantities among other items
+      // can go here...
+
+      // Force update if needed due to Vue's reactivity caveats with arrays
+      selectedItems.value[itemIndex] = { ...item };
+
+      // Optionally, if you're dealing with quantities across multiple organizations
+      distributeQuantities(); // Some function to handle redistribution
+    };
+
+    const distributeQuantities = () => {
+      // Loop through each item
+      selectedItems.value.forEach((item, itemIndex) => {
+        // Total quantity to distribute
+        let totalQuantity = item.selectedQuantity;
+
+        // Count organizations that haven't had their quantity manually set for this item
+        let orgsToDistribute = selectedOrganizations.value.length;
+
+        // Subtract quantities already set manually and reduce orgsToDistribute accordingly
+        selectedOrganizations.value.forEach((org, orgIndex) => {
+          if (
+            item.manualQuantities &&
+            item.manualQuantities[orgIndex] !== undefined
+          ) {
+            totalQuantity -= item.manualQuantities[orgIndex];
+            orgsToDistribute--;
+          }
+        });
+
+        // New quantity per organization, avoid division by zero
+        const quantityPerOrg =
+          orgsToDistribute > 0 ? totalQuantity / orgsToDistribute : 0;
+
+        // Assign this equally divided quantity to all organizations for this item
+        selectedOrganizations.value.forEach((org, orgIndex) => {
+          // If manual quantity for this org and item hasn't been set, distribute evenly
+          if (
+            !item.manualQuantities ||
+            item.manualQuantities[orgIndex] === undefined
+          ) {
+            // Initialize the item's quantity distribution if it doesn't exist
+            if (!item.quantitiesPerOrg) item.quantitiesPerOrg = [];
+            item.quantitiesPerOrg[orgIndex] = quantityPerOrg;
+          } // If there's a manual quantity, it's already accounted for, so we don't change it here
+        });
+
+        // Update the item with new distributed quantities (to trigger reactivity)
+        selectedItems.value[itemIndex] = { ...item };
+      });
+
+      // Since we potentially modified objects deeply, ensure Vue reacts to changes
+      selectedItems.value = [...selectedItems.value];
+      console.log(selectedItems.value);
+    };
+
     return {
       showDetails,
       showAddItemModal,
@@ -272,11 +508,25 @@ export default {
       itemChildColumns,
       unitOptions,
       categoriesOptions,
+      showCreateOfferModal,
+      selectedItems,
+      organizationOptions,
+      selectedOrganizations,
+      isSelectedAnyItem,
+      updateItemQuantity,
+      selectItem,
+      deselectItem,
       getCategoriesOfItems,
       findChildItemsByName,
+      addOrganization,
+      removeOrganization,
+      removeItemFromOfferCreation,
+      distributeQuantities,
+      getQuanitity,
       rowKey,
       childRowKey,
       addItem,
+      openCreateOfferModal,
       closeModal,
       backToList,
       toggleExpand,
@@ -327,5 +577,26 @@ export default {
     100vh - 220px
   ); /* Adjust based on your header and action bar height */
   overflow-y: auto;
+}
+
+.organization-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #f8f8f8;
+}
+
+.organization-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>
