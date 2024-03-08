@@ -34,11 +34,11 @@
       },
       modalWidth: {
         type: String,
-        default: '50%',
+        default: '80%',
       },
       modalHeight: {
         type: String,
-        default: 'auto',
+        default: '80%',
       },
       actionSave: Function,
       actionClose: Function,
@@ -74,7 +74,8 @@
     background: white;
     border-radius: 5px;
     width: var(--modal-width, 50%);
-    max-width: 600px;
+    min-width: 90%; 
+    min-height: 80%;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;

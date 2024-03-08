@@ -94,7 +94,7 @@
       title="Vytvořit nabídku"
       :header-bg-color="'green'"
       :modal-width="'80%'"
-      :modal-height="'auto'"
+      :modal-height="'80%'"
       @update:show="showCreateOfferModal = $event"
     >
       <template #body>
@@ -119,7 +119,7 @@
                 <span>{{ organization.label }}</span>
                 <n-button
                   icon="trash"
-                  color="red"
+                  color="#f5222d"
                   @click="removeOrganization(orgIndex)"
                   ><span class="material-icons">delete</span></n-button
                 >
@@ -132,7 +132,7 @@
                 >
                   <span>{{ item.description }} - Množství: </span>
                   <n-input-number
-                    :value="item.selectedQuantity"
+                    :value="item.quantitiesPerOrg[0]"
                     @update:value="
                       (quantity) =>
                         updateItemQuantity(item, itemIndex, quantity)
@@ -141,7 +141,7 @@
                   <n-button
                     icon="trash"
                     type="error"
-                    color="red"
+                    color="#f5222d"
                     @click="removeItemFromOfferCreation(itemIndex)"
                     ><span class="material-icons">delete</span></n-button
                   >
@@ -421,10 +421,12 @@ export default {
       if (selectedOrg && !selectedOrganizations.value.includes(selectedOrg)) {
         selectedOrganizations.value.push(selectedOrg);
       }
+      distributeQuantities();
     };
 
     const removeItemFromOfferCreation = (index) => {
       selectedItems.value.splice(index, 1);
+      distributeQuantities(); 
     };
 
     const removeOrganization = (index) => {
@@ -442,6 +444,7 @@ export default {
 
       // Further actions like redistributing quantities among other items
       // can go here...
+      console.log(item.quantity);
 
       // Force update if needed due to Vue's reactivity caveats with arrays
       selectedItems.value[itemIndex] = { ...item };
@@ -536,7 +539,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .warehouse-details {
   margin-bottom: 20px;
@@ -574,17 +576,27 @@ export default {
 
 .scrollable-content {
   max-height: calc(
-    100vh - 220px
+    200vh - 220px
   ); /* Adjust based on your header and action bar height */
   overflow-y: auto;
 }
 
+.selected-organizations {
+    max-height: 800px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+    background-color: #f8f8f8;
+    padding: 10px; /* Optional: adds some padding inside the scrollable area */
+  }
+
 .organization-card {
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 1rem;
   margin-bottom: 1rem;
   background-color: #f8f8f8;
+  padding-bottom: 5px;
 }
 
 .organization-header {
@@ -592,11 +604,18 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  background-color: green;
+  font-weight: bold;
+  color: white;
+  padding-left:20px;
+  padding-right:10px;
 }
 
 .selected-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-left: 10px;padding-top: 10px;
+  padding-right: 5px;
 }
 </style>
