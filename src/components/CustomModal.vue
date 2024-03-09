@@ -56,26 +56,26 @@
     },
   };
   </script>
-  
   <style scoped>
   .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    right: 0; /* Ensure full horizontal coverage */
+    bottom: 0; /* Ensure full vertical coverage */
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000; /* Ensure it's above other content */
   }
   
   .modal-container {
     background: white;
     border-radius: 5px;
-    width: var(--modal-width, 50%);
-    min-width: 90%; 
-    min-height: 80%;
+    width: var(--modal-width, 80%);
+    max-width: calc(100% - 40px); /* Ensure it doesn't touch the window edges */
+    max-height: calc(100% - 40px); /* Control max height to not touch window edges */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
@@ -89,6 +89,7 @@
   .modal-body {
     padding: 20px;
     overflow-y: auto;
+    max-height: calc(100vh - 160px); /* Adjust based on header/footer height */
   }
   
   .modal-footer {
@@ -97,7 +98,6 @@
     border-top: 1px solid #eee;
   }
   
-  /* Additional styles for buttons */
   button {
     cursor: pointer;
     padding: 10px 20px;
@@ -115,4 +115,5 @@
     background-color: #dc3545;
   }
   </style>
+  
   

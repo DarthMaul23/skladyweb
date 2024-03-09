@@ -24,7 +24,7 @@ import { NMessageProvider } from "naive-ui";
   --dark: #06732e;
   --dark-alt: #ffffff;
   --light: #f1f5f9;
-  --sidebar-width: 300px;
+  --sidebar-width: 200px;
 }
 
 * {

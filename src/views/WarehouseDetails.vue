@@ -109,10 +109,12 @@
             />
           </n-form-item>
           <!-- Display selected organizations and their items -->
-          <div class="selected-organizations">
+          <div
+            class="selected-organizations"
+          >
             <div
               v-for="(organization, orgIndex) in selectedOrganizations"
-              :key="organization.value"
+              :key="orgIndex"
               class="organization-card"
             >
               <div class="organization-header">
@@ -121,30 +123,42 @@
                   icon="trash"
                   color="#f5222d"
                   @click="removeOrganization(orgIndex)"
-                  ><span class="material-icons">delete</span></n-button
                 >
+                  <span class="material-icons">delete</span>
+                </n-button>
               </div>
               <div class="organization-items">
                 <div
-                  v-for="(item, itemIndex) in selectedItems"
+                  v-for="(item, itemIndex) in offerItems"
                   :key="itemIndex"
                   class="selected-item"
                 >
-                  <span>{{ item.description }} - Množství: </span>
+                  <span>{{ item.description }} - Množství:</span>
                   <n-input-number
-                    :value="item.quantitiesPerOrg[0]"
-                    @update:value="
-                      (quantity) =>
-                        updateItemQuantity(item, itemIndex, quantity)
+                    :value="
+                      item.quantitiesPerOrg &&
+                      item.quantitiesPerOrg.length > orgIndex
+                        ? item.quantitiesPerOrg[orgIndex]
+                        : 0
                     "
+                    @update:value="
+                      (newQuantity) =>
+                        updateOfferItemQuantity(
+                          orgIndex,
+                          itemIndex,
+                          newQuantity
+                        )
+                    "
+                    :min="0"
                   />
                   <n-button
                     icon="trash"
                     type="error"
                     color="#f5222d"
                     @click="removeItemFromOfferCreation(itemIndex)"
-                    ><span class="material-icons">delete</span></n-button
                   >
+                    <span class="material-icons">delete</span>
+                  </n-button>
                 </div>
               </div>
             </div>
@@ -208,6 +222,7 @@ export default {
     const warehouseDetails = ref({});
     const categoriesOptions = ref([]);
     const selectedItems = ref([]);
+    const offerItems = ref([]);
 
     const organizationOptions = ref([
       { label: "Organization A", value: "orgA" },
@@ -338,7 +353,8 @@ export default {
     };
 
     const openCreateOfferModal = () => {
-      console.log("chello");
+      offerItems.value = JSON.parse(JSON.stringify(selectedItems.value)); // Deep copy selected items
+      distributeQuantitiesToOfferItems(); // Distribute quantities for the copied items
       showCreateOfferModal.value = true;
     };
 
@@ -421,17 +437,18 @@ export default {
       if (selectedOrg && !selectedOrganizations.value.includes(selectedOrg)) {
         selectedOrganizations.value.push(selectedOrg);
       }
-      distributeQuantities();
+      distributeQuantitiesToOfferItems();
     };
 
     const removeItemFromOfferCreation = (index) => {
       selectedItems.value.splice(index, 1);
-      distributeQuantities(); 
+      distributeQuantities();
     };
 
     const removeOrganization = (index) => {
       // Remove organization from selectedOrganizations...
       selectedOrganizations.value.splice(index, 1);
+      distributeQuantitiesToOfferItems();
     };
 
     const isSelectedAnyItem = computed(() => {
@@ -451,6 +468,25 @@ export default {
 
       // Optionally, if you're dealing with quantities across multiple organizations
       distributeQuantities(); // Some function to handle redistribution
+    };
+
+    const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
+      if (
+        offerItems.value[itemIndex] &&
+        offerItems.value[itemIndex].quantitiesPerOrg
+      ) {
+        offerItems.value[itemIndex].quantitiesPerOrg[orgIndex] = newQuantity;
+        // Trigger Vue reactivity for nested changes
+        offerItems.value = [...offerItems.value];
+      }
+    };
+
+    const distributeQuantitiesToOfferItems = () => {
+      const totalQuantityPerItem = offerItems.value.map((item) => ({
+        ...item,
+        quantity: item.selectedQuantity / selectedOrganizations.value.length,
+      }));
+      offerItems.value = totalQuantityPerItem;
     };
 
     const distributeQuantities = () => {
@@ -516,6 +552,7 @@ export default {
       organizationOptions,
       selectedOrganizations,
       isSelectedAnyItem,
+      offerItems,
       updateItemQuantity,
       selectItem,
       deselectItem,
@@ -530,10 +567,12 @@ export default {
       childRowKey,
       addItem,
       openCreateOfferModal,
+      distributeQuantitiesToOfferItems,
       closeModal,
       backToList,
       toggleExpand,
       loadWarehouseDetails,
+      updateOfferItemQuantity,
       validateForm,
     };
   },
@@ -575,21 +614,20 @@ export default {
 }
 
 .scrollable-content {
-  max-height: calc(
-    200vh - 220px
-  ); /* Adjust based on your header and action bar height */
+  max-height: calc(70% - 220px); /* Adjust based on your header and action bar height */
   overflow-y: auto;
 }
 
 .selected-organizations {
-    max-height: 800px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border: 1px solid #ccc;
-    margin-bottom: 1rem;
-    background-color: #f8f8f8;
-    padding: 10px; /* Optional: adds some padding inside the scrollable area */
-  }
+  height: 80vh;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  background-color: #f8f8f8;
+  padding: 10px; /* Optional: adds some padding inside the scrollable area */
+}
 
 .organization-card {
   border: 1px solid #ccc;
@@ -607,15 +645,16 @@ export default {
   background-color: green;
   font-weight: bold;
   color: white;
-  padding-left:20px;
-  padding-right:10px;
+  padding-left: 20px;
+  padding-right: 10px;
 }
 
 .selected-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 10px;padding-top: 10px;
+  padding-left: 10px;
+  padding-top: 10px;
   padding-right: 5px;
 }
 </style>
