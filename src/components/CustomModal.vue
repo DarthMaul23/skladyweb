@@ -88,8 +88,7 @@
   
   .modal-body {
     padding: 20px;
-    overflow-y: auto;
-    max-height: calc(100vh - 160px); /* Adjust based on header/footer height */
+    max-height: calc(100vh - 60px); /* Adjust based on header/footer height */
   }
   
   .modal-footer {

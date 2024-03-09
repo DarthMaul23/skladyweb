@@ -48,7 +48,8 @@ button {
 
 .app {
   display: flex;
-
+  min-height: 100vh; /* Ensure it takes at least the full height of the viewport */
+  overflow: hidden; /* Hide overflow to prevent extra scrolling from nested elements */
   main {
     flex: 1 1 0;
     padding: 2rem;

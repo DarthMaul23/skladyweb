@@ -109,16 +109,14 @@
             />
           </n-form-item>
           <!-- Display selected organizations and their items -->
-          <div
-            class="selected-organizations"
-          >
+          <div class="selected-organizations">
             <div
-              v-for="(organization, orgIndex) in selectedOrganizations"
+              v-for="(organization, orgIndex) in offerData"
               :key="orgIndex"
               class="organization-card"
             >
               <div class="organization-header">
-                <span>{{ organization.label }}</span>
+                <span>{{ organization.organization }}</span>
                 <n-button
                   icon="trash"
                   color="#f5222d"
@@ -129,18 +127,13 @@
               </div>
               <div class="organization-items">
                 <div
-                  v-for="(item, itemIndex) in offerItems"
+                  v-for="(item, itemIndex) in organization.items"
                   :key="itemIndex"
                   class="selected-item"
                 >
                   <span>{{ item.description }} - Množství:</span>
                   <n-input-number
-                    :value="
-                      item.quantitiesPerOrg &&
-                      item.quantitiesPerOrg.length > orgIndex
-                        ? item.quantitiesPerOrg[orgIndex]
-                        : 0
-                    "
+                    :value="item.quantity"
                     @update:value="
                       (newQuantity) =>
                         updateOfferItemQuantity(
@@ -166,7 +159,7 @@
         </div>
       </template>
       <template #footer>
-        <n-button @click="createOffer" class="save-button"
+        <n-button @click="createOffer()" class="save-button"
           >Vytvořit nabídku</n-button
         >
         <n-button @click="showCreateOfferModal = false" class="close-button"
@@ -223,6 +216,7 @@ export default {
     const categoriesOptions = ref([]);
     const selectedItems = ref([]);
     const offerItems = ref([]);
+    const offerData = ref([]);
 
     const organizationOptions = ref([
       { label: "Organization A", value: "orgA" },
@@ -320,7 +314,7 @@ export default {
     };
 
     const getQuanitity = (item) => {
-      console.log(item);
+      //console.log(item);
       var quantity = item.unit / selectedOrganizations.length;
 
       return 5; // return the new array to be used elsewhere
@@ -373,14 +367,14 @@ export default {
       } else {
         expandedRowKeys.value.push(key); // Otherwise, expand it
       }
-      console.log(expandedRowKeys.value);
+      //console.log(expandedRowKeys.value);
       findChildItemsByName(row.name);
     };
 
     const findChildItemsByName = (name) => {
-      console.log(name);
+      //console.log(name);
       const item = items.value.find((item) => item.name === name);
-      console.log(item);
+      //console.log(item);
       return item ? item.items : [];
     };
 
@@ -438,10 +432,14 @@ export default {
         selectedOrganizations.value.push(selectedOrg);
       }
       distributeQuantitiesToOfferItems();
+      prepareOfferData();
     };
 
     const removeItemFromOfferCreation = (index) => {
+      //console.log(selectedItems);
       selectedItems.value.splice(index, 1);
+      //console.log(selectedItems);
+      prepareOfferData();
       distributeQuantities();
     };
 
@@ -449,6 +447,7 @@ export default {
       // Remove organization from selectedOrganizations...
       selectedOrganizations.value.splice(index, 1);
       distributeQuantitiesToOfferItems();
+      prepareOfferData();
     };
 
     const isSelectedAnyItem = computed(() => {
@@ -461,7 +460,7 @@ export default {
 
       // Further actions like redistributing quantities among other items
       // can go here...
-      console.log(item.quantity);
+      // console.log(item.quantity);
 
       // Force update if needed due to Vue's reactivity caveats with arrays
       selectedItems.value[itemIndex] = { ...item };
@@ -532,7 +531,44 @@ export default {
 
       // Since we potentially modified objects deeply, ensure Vue reacts to changes
       selectedItems.value = [...selectedItems.value];
-      console.log(selectedItems.value);
+      //console.log(selectedItems.value);
+    };
+
+    const prepareOfferData = () => {
+      // This will hold the final structured data
+      offerData.value = [];
+      selectedOrganizations.value.forEach((organization) => {
+        // Create a new object for each organization with its details and an empty array for its items
+        let orgOffer = {
+          organization: organization.label,
+          items: [],
+        };
+
+        // Loop through each of the selected items
+        offerItems.value.forEach((item) => {
+          // Calculate the quantity per organization (you can modify this logic as needed)
+          let quantityPerOrg =
+            item.selectedQuantity / selectedOrganizations.value.length;
+
+          // Create a new item object including the distributed quantity
+          let itemOffer = {
+            id: item.id,
+            description: item.description,
+            quantity: quantityPerOrg,
+          };
+          // Add this item under the current organization
+          orgOffer.items.push(itemOffer);
+        });
+
+        // Add the organization with its items to the offerData array
+        offerData.value.push(orgOffer);
+      });
+
+      console.log(offerData.value); // Log the structured data or handle it as needed
+    };
+
+    const createOffer = () => {
+      console.log(offerData.value);
     };
 
     return {
@@ -553,6 +589,7 @@ export default {
       selectedOrganizations,
       isSelectedAnyItem,
       offerItems,
+      offerData,
       updateItemQuantity,
       selectItem,
       deselectItem,
@@ -574,11 +611,19 @@ export default {
       loadWarehouseDetails,
       updateOfferItemQuantity,
       validateForm,
+      createOffer,
+      prepareOfferData,
     };
   },
 };
 </script>
 <style scoped>
+#warehousedetail-page {
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh; /* Prevent it from exceeding the viewport height */
+  overflow: auto; /* Allow scrolling within this container if content overflows */
+}
 .warehouse-details {
   margin-bottom: 20px;
 }
@@ -614,12 +659,14 @@ export default {
 }
 
 .scrollable-content {
-  max-height: calc(70% - 220px); /* Adjust based on your header and action bar height */
+  max-height: calc(
+    70% - 220px
+  ); /* Adjust based on your header and action bar height */
   overflow-y: auto;
 }
 
 .selected-organizations {
-  height: 80vh;
+  height: 65vh;
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
