@@ -2,7 +2,7 @@
   <main id="warehousedetail-page">
     <n-button color="green" @click="backToList">Zpět na seznam skladů</n-button>
     <div class="warehouse-details">
-      <h2>{{ warehouseDetails.name }} - Details</h2>
+      <h2>Sklad: {{ warehouseDetails.name }}</h2>
       <!-- Here you can insert additional details or management sections for your warehouse -->
     </div>
     <div class="actions">
@@ -148,7 +148,7 @@
                     icon="trash"
                     type="error"
                     color="#f5222d"
-                    @click="removeItemFromOfferCreation(itemIndex)"
+                    @click="removeItemFromOfferCreation(orgIndex, itemIndex)"
                   >
                     <span class="material-icons">delete</span>
                   </n-button>
@@ -435,17 +435,27 @@ export default {
       prepareOfferData();
     };
 
-    const removeItemFromOfferCreation = (index) => {
-      //console.log(selectedItems);
-      selectedItems.value.splice(index, 1);
-      //console.log(selectedItems);
-      prepareOfferData();
-      distributeQuantities();
+    const removeItemFromOfferCreation = (orgIndex, itemIndex) => {
+      if (
+        offerData.value[orgIndex] &&
+        offerData.value[orgIndex].items[itemIndex]
+      ) {
+        // Remove the item from the specific organization's items array
+        offerData.value[orgIndex].items.splice(itemIndex, 1);
+
+        // If you want to remove the organization itself when it has no items left, you can do:
+        if (offerData.value[orgIndex].items.length === 0) {
+          offerData.value.splice(orgIndex, 1);
+        }
+      }
+      //distributeQuantities();
     };
 
     const removeOrganization = (index) => {
       // Remove organization from selectedOrganizations...
       selectedOrganizations.value.splice(index, 1);
+      offerData.value.splice(index, 1);
+      redistributeQuantitiesInOfferData();
       distributeQuantitiesToOfferItems();
       prepareOfferData();
     };
@@ -471,13 +481,14 @@ export default {
 
     const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
       if (
-        offerItems.value[itemIndex] &&
-        offerItems.value[itemIndex].quantitiesPerOrg
+        offerData.value[orgIndex] &&
+        offerData.value[orgIndex].items[itemIndex].quantity
       ) {
-        offerItems.value[itemIndex].quantitiesPerOrg[orgIndex] = newQuantity;
+        offerData.value[orgIndex].items[itemIndex].quantity = newQuantity;
         // Trigger Vue reactivity for nested changes
-        offerItems.value = [...offerItems.value];
+        offerData.value = [...offerData.value];
       }
+      console.log(offerData.value);
     };
 
     const distributeQuantitiesToOfferItems = () => {
@@ -535,36 +546,86 @@ export default {
     };
 
     const prepareOfferData = () => {
-      // This will hold the final structured data
-      offerData.value = [];
+      // Reset offerData if you want to rebuild it from scratch each time this function is called
+      // offerData.value = [];
+
       selectedOrganizations.value.forEach((organization) => {
-        // Create a new object for each organization with its details and an empty array for its items
-        let orgOffer = {
-          organization: organization.label,
-          items: [],
-        };
+        // Find if the organization already exists in offerData
+        let orgOfferIndex = offerData.value.findIndex(
+          (orgOffer) => orgOffer.organization === organization.label
+        );
 
-        // Loop through each of the selected items
-        offerItems.value.forEach((item) => {
-          // Calculate the quantity per organization (you can modify this logic as needed)
-          let quantityPerOrg =
-            item.selectedQuantity / selectedOrganizations.value.length;
-
-          // Create a new item object including the distributed quantity
-          let itemOffer = {
-            id: item.id,
-            description: item.description,
-            quantity: quantityPerOrg,
+        // If the organization does not exist, create a new one
+        if (orgOfferIndex === -1) {
+          let orgOffer = {
+            organization: organization.label,
+            items: [],
           };
-          // Add this item under the current organization
-          orgOffer.items.push(itemOffer);
+
+          // Loop through each of the selected items to populate new orgOffer
+          offerItems.value.forEach((item) => {
+            let quantityPerOrg =
+              item.selectedQuantity / selectedOrganizations.value.length;
+            let itemOffer = {
+              id: item.id,
+              description: item.description,
+              quantity: quantityPerOrg,
+            };
+            orgOffer.items.push(itemOffer);
+          });
+
+          // Add the new organization offer to offerData
+          offerData.value.push(orgOffer);
+        } else {
+          // If the organization already exists, update its items
+          let orgOffer = offerData.value[orgOfferIndex];
+          orgOffer.items = offerItems.value.map((item) => {
+            let quantityPerOrg =
+              item.selectedQuantity / selectedOrganizations.value.length;
+            return {
+              id: item.id,
+              description: item.description,
+              quantity: quantityPerOrg,
+            };
+          });
+        }
+      });
+    };
+
+    const redistributeQuantitiesInOfferData = () => {
+      // Iterate over each organization in the offerData
+      offerData.value.forEach((orgOffer) => {
+        // For each organization, iterate over its items
+        orgOffer.items.forEach((itemOffer) => {
+          // Find the corresponding item from the offerItems
+          const correspondingItem = offerItems.value.find(
+            (item) => item.id === itemOffer.id
+          );
+
+          if (correspondingItem) {
+            // Recalculate the quantity per organization based on the updated selectedQuantity
+            let quantityPerOrg =
+              correspondingItem.selectedQuantity /
+              selectedOrganizations.value.length;
+
+            // Update the item's quantity in the orgOffer
+            itemOffer.quantity = quantityPerOrg;
+          }
         });
 
-        // Add the organization with its items to the offerData array
-        offerData.value.push(orgOffer);
+        // Remove items that no longer exist in offerItems (if any)
+        orgOffer.items = orgOffer.items.filter((itemOffer) =>
+          offerItems.value.some((item) => item.id === itemOffer.id)
+        );
       });
 
-      console.log(offerData.value); // Log the structured data or handle it as needed
+      // Remove any organizations that no longer have any items
+      offerData.value = offerData.value.filter(
+        (orgOffer) => orgOffer.items.length > 0
+      );
+
+      // Log the updated offerData structure
+      console.log(offerData.value);
     };
 
     const createOffer = () => {

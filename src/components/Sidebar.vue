@@ -41,19 +41,6 @@
         <span class="text">Dodavatelé</span>
       </router-link>
     </div>
-
-    <div class="flex"></div>
-
-    <div class="menu">
-      <router-link to="/settings" class="button">
-        <span class="material-icons">settings</span>
-        <span class="text">Nastavení</span>
-      </router-link>
-      <button class="button" @click="Logout">
-        <span class="material-icons">logout</span>
-        <span class="text">Odhlásit se</span>
-      </button>
-    </div>
   </aside>
 </template>
 
@@ -87,7 +74,7 @@ aside {
 
   width: calc(2rem + 32px);
   overflow: hidden;
-  min-height: 100vh;
+  min-height: calc(100% - 60px);
   padding: 1rem;
 
   transition: 0.2s ease-in-out;
