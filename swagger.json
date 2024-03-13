@@ -281,7 +281,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Offer"
+                    "$ref": "#/components/schemas/OfferGroup"
                   }
                 }
               },
@@ -289,7 +289,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Offer"
+                    "$ref": "#/components/schemas/OfferGroup"
                   }
                 }
               },
@@ -297,7 +297,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Offer"
+                    "$ref": "#/components/schemas/OfferGroup"
                   }
                 }
               }
@@ -841,6 +841,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "units": {
+            "type": "string",
+            "nullable": true
+          },
           "warehouse": {
             "$ref": "#/components/schemas/Warehouse"
           }
@@ -875,6 +879,10 @@
           "quantity": {
             "type": "integer",
             "format": "int32"
+          },
+          "units": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -111,6 +111,12 @@ export interface Item {
     'quantity'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof Item
+     */
+    'units'?: string | null;
+    /**
+     * 
      * @type {Warehouse}
      * @memberof Item
      */
@@ -159,6 +165,12 @@ export interface NewItem {
      * @memberof NewItem
      */
     'quantity'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewItem
+     */
+    'units'?: string | null;
 }
 /**
  * 
@@ -1217,7 +1229,7 @@ export const OfferApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async offerGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Offer>>> {
+        async offerGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<OfferGroup>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.offerGet(options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['OfferApi.offerGet']?.[index]?.url;
@@ -1287,7 +1299,7 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerGet(options?: any): AxiosPromise<Array<Offer>> {
+        offerGet(options?: any): AxiosPromise<Array<OfferGroup>> {
             return localVarFp.offerGet(options).then((request) => request(axios, basePath));
         },
         /**

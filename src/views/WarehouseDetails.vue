@@ -51,6 +51,11 @@
             <n-select
               v-model:value="newItem.name"
               :options="categoriesOptions"
+              filterable
+              tag
+              allow-create
+              @create="handleCreate"
+              placeholder="Vyber nebo vytvoř novou kategorii"
             />
             <div v-if="validationErrors.name" class="error-msg">
               {{ validationErrors.name }}
@@ -210,7 +215,7 @@ export default {
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
     const showCreateOfferModal = ref(false);
-    const newItem = ref({ name: "", description: "", quantity: 0, unit: "kg" });
+    const newItem = ref({ name: "", description: "", quantity: 0, units: "kg" });
     const validationErrors = ref({});
     const items = ref([]);
     const expandedRowKeys = ref(["Chleba"]);
@@ -279,6 +284,28 @@ export default {
         value: "ks",
       },
     ];
+
+    const handleCreate = (value) => {
+        console.log("Creating new item category");
+      // Check if the newly entered value already exists in the options
+      const existingOption = categoriesOptions.value.find(
+        (option) => option.value.toLowerCase() === value.toLowerCase()
+      );
+
+      if (existingOption) {
+        // If it exists, just set the v-model value to the existing option's value
+        newItem.value.name = existingOption.value;
+        console.log(newItem.value);
+      } else {
+        // If it doesn't exist, create a new option and update v-model
+        const newOption = { label: value, value };
+        categoriesOptions.value.push(newOption);
+        newItem.value.name = value; // This sets the select input to use the newly added value
+        console.log(newItem.value);
+      }
+      console.log(categoriesOptions.value);
+      console.log(newItem.value);
+    };
 
     const rowKey = (row) => row.name;
     const childRowKey = (child) => child.name;
@@ -715,6 +742,7 @@ export default {
       validateForm,
       createOffer,
       prepareOfferData,
+      handleCreate,
     };
   },
 };

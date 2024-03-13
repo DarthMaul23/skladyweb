@@ -1,6 +1,5 @@
 <template>
   <main id="offers-page">
-    <!-- Filter input -->
     <div class="filter-container">
       <n-input
         v-model:value="filters.searchQuery"
@@ -12,7 +11,6 @@
 
     <n-button @click="showAddOfferModal">Add New Offer</n-button>
 
-    <!-- Offers Table -->
     <n-data-table
       :columns="columns"
       :data="filteredOffers"
@@ -22,19 +20,16 @@
         <n-button @click="prepareOfferDetails(row)">Details</n-button>
       </template>
     </n-data-table>
+
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
-      :headerBgColor="'green'"
-      :headerTitleColor="'white'"
-      :modalWidth="'1200px'"
-      :modalHeight="'400px'"
+      :header-bg-color="'green'"
+      :modal-width="'1200px'"
+      :modal-height="'400px'"
       @update:show="isModalVisible = $event"
-      @save="addOffer"
-      @close="closeModal"
     >
       <template #body>
-        <!-- Form for Adding a New Offer -->
         <div v-if="showAddModal">
           <n-form @submit.prevent="addOffer">
             <n-form-item label="Offer Name">
@@ -53,182 +48,130 @@
         </div>
       </template>
       <template #footer>
-        <button class="modal-close-button" @click="closeModal">Close</button>
-        <button class="modal-add-button" v-if="showAddModal" @click="addOffer">
-          Add Offer
-        </button>
-        <!-- Include other buttons or actions as needed -->
+        <n-button @click="closeModal" class="modal-close-button"
+          >Close</n-button
+        >
+        <n-button v-if="showAddModal" @click="addOffer" class="modal-add-button"
+          >Add Offer</n-button
+        >
       </template>
     </custom-modal>
   </main>
 </template>
-  <script>
+
+<script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, h, onMounted } from "vue";
-import { useRouter } from 'vue-router';
-import { NButton } from "naive-ui";
- // Ensure this path is correct
+import { ref, computed, onMounted } from "vue";
+import { NButton, NInput, NDataTable, NFormItem, NForm } from "naive-ui";
+import { OfferApi } from "../api/openapi/api";
+import { getDefaultApiConfig } from "../utils/utils";
+
 export default {
   components: {
     CustomModal,
+    NButton,
+    NInput,
+    NDataTable,
+    NFormItem,
+    NForm,
   },
-  data() {
-    return {
-      filters: {
-        searchQuery: "",
-      },
-	  columns :[
-      { title: "Nabídka", key: "name" },
-      { title: "Location", key: "location" },
-	  { title: "Location", key: "location" },
-      // Ensure 'action' matches the slot name in the template
-      {
-        title: "Actions",
-        key: "action",
-        render: (row, index) => {
-          return h("div", [
-            h(
-              NButton,
-              {
-                onClick: () => showWarehouseDetails(row),
-                size: "small",
-                type: "success",
-              },
-              "Detail"
-            ),
-            h(
-              NButton,
-              {
-                onClick: () => deleteCategory(row.id),
-                size: "small",
-                style: "margin-left: 8px;",
-                type: "error",
-              },
-              "Delete"
-            ),
-          ]);
-        },
-      },
-    ],
-      offers: [
-        // Sample data
-        {
-          id: "uuid-1",
-          rowNumber: 1,
-          name: "Offer A",
-          address: "Address A",
-          contact: "Contact A",
-        },
-        {
-          id: "uuid-2",
-          rowNumber: 2,
-          name: "Offer B",
-          address: "Address B",
-          contact: "Contact B",
-        },
-        // ... more offers
-      ],
-      newOffer: { name: "", address: "", contact: "" }, // Reset for new offer creation
-      showModal: false,
-      showAddModal: false,
-      showDetailsModal: false,
-      selectedOffer: {},
-      newOffer: {}, // For new offer creation
-      isModalVisible: false, // Added to control the visibility of the modal
-      modalTitle: "", // Dynamic title based on the action
-    };
-  },
-  computed: {
-    filteredOffers() {
-      const searchQuery = this.filters.searchQuery.toLowerCase();
-      return this.offers.filter((offer) => {
-        const name = offer.name ? offer.name.toLowerCase() : "";
-        const address = offer.address ? offer.address.toLowerCase() : "";
-        const contact = offer.contact ? offer.contact.toLowerCase() : "";
+  setup() {
+    const offerApi = new OfferApi(getDefaultApiConfig());
+    const filters = ref({ searchQuery: "" });
+    const offers = ref([]);
+    const isModalVisible = ref(false);
+    const modalTitle = ref("");
+    const showAddModal = ref(false);
+    const newOffer = ref({ name: "", address: "", contact: "" });
+
+    const filteredOffers = computed(() => {
+      return offers.value.filter((offer) => {
         return (
-          name.includes(searchQuery) ||
-          address.includes(searchQuery) ||
-          contact.includes(searchQuery)
+          offer.name
+            .toLowerCase()
+            .includes(filters.value.searchQuery.toLowerCase()) ||
+          offer.address
+            .toLowerCase()
+            .includes(filters.value.searchQuery.toLowerCase()) ||
+          offer.contact
+            .toLowerCase()
+            .includes(filters.value.searchQuery.toLowerCase())
         );
       });
-    },
-  },
-  methods: {
-    filterOffers() {
-      // Filtering logic can be enhanced if needed
-    },
-    addOffer() {
-      // Implement the logic to add the new offer
-      // For demonstration, we're directly adding to the offers array
-      const newId = `uuid-${this.offers.length + 1}`;
-      const newOfferToAdd = {
-        ...this.newOffer,
-        id: newId,
-        rowNumber: this.offers.length + 1,
-      };
-      this.offers.push(newOfferToAdd);
-      console.log(this.offers);
-      this.closeModal(); // Close the modal after adding
-      this.newOffer = { name: "", address: "", contact: "" }; // Reset form
-    },
-    showAddOfferModal() {
-      this.isModalVisible = true;
-      this.modalTitle = "Add New Offer"; // Set title for the add new offer modal
-      this.showAddModal = true;
-      this.showDetailsModal = false;
-    },
-    prepareOfferDetails(offer) {
-      this.selectedOffer = offer;
-      this.isModalVisible = true;
-      this.modalTitle = "Offer Details"; // Set title for the offer details modal
-      this.showDetailsModal = true;
-      this.showAddModal = false;
-    },
-    closeModal() {
-      this.isModalVisible = false;
-    },
+    });
+
+    const loadOffers = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response = await offerApi.offerGet({
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Check if the direct response data is an array
+          if (Array.isArray(response.data)) {
+            offers.value = response.data; // Directly use the array from response.data
+          } else {
+            console.error("Received data is not an array:", response.data);
+            offers.value = []; // Reset to empty array if data is not as expected
+          }
+        } catch (error) {
+          console.error("Failed to load offers:", error);
+          offers.value = []; // Reset to empty array in case of error
+        }
+        console.log(offers.value);
+      }
+    };
+
+    onMounted(loadOffers);
+
+    const showAddOfferModal = () => {
+      isModalVisible.value = true;
+      modalTitle.value = "Add New Offer";
+      showAddModal.value = true;
+    };
+
+    const addOffer = () => {
+      // Your logic to add an offer
+      // For this example, we'll just add it to the offers list
+      const newId = `uuid-${offers.value.length + 1}`; // Simulate new ID, replace with actual ID from your backend
+      offers.value.push({ ...newOffer.value, id: newId });
+      closeModal(); // Reset and close the modal
+    };
+
+    const closeModal = () => {
+      isModalVisible.value = false;
+      newOffer.value = { name: "", address: "", contact: "" }; // Reset the form
+      showAddModal.value = false; // Hide add offer form
+    };
+
+    return {
+      filters,
+      offers,
+      filteredOffers,
+      isModalVisible,
+      modalTitle,
+      showAddModal,
+      newOffer,
+      showAddOfferModal,
+      addOffer,
+      closeModal,
+      columns: [
+        { title: "Nabídka", key: "title" },
+        { title: "Popis", key: "description" },
+        { title: "Vytvořil", key: "userId" },
+        {
+          title: "Actions",
+          key: "action",
+          render: (row) =>
+            h(NButton, { onClick: () => prepareOfferDetails(row) }, "Details"),
+        },
+        // You can define other columns as needed
+      ],
+    };
   },
 };
 </script>
-  
-  <style scoped>
-#offers-page {
-  /* Styling for the offers page */
-}
-.filter-container {
-  margin-bottom: 20px;
-}
-.filter-input {
-  max-width: 500px;
-}
-.offers-table {
-  /* Styling for the table */
-}
-.modal-close-button {
-  background-color: red; /* Red background for the close button */
-  color: white; /* White text color */
-  padding: 10px 20px;
-  margin-right: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
 
-.modal-close-button:hover {
-  opacity: 0.8;
-}
-
-.modal-add-button {
-  background-color: green; /* Green background for the add button */
-  color: white; /* White text color */
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.modal-add-button:hover {
-  opacity: 0.8;
-}
+<style scoped>
+/* Your CSS styles here */
 </style>
-  
