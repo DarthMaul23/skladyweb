@@ -104,6 +104,19 @@
     >
       <template #body>
         <div class="form-group">
+            <n-form-item label="Nabídka:">
+            <n-input
+              v-model:value="offerInformations.title"
+              placeholder="Popis položky"
+            />
+          </n-form-item>
+
+          <n-form-item label="Popis:">
+            <n-input
+              v-model:value="offerInformations.description"
+              placeholder="Popis položky"
+            />
+          </n-form-item>
           <!-- Organization selection -->
           <n-form-item label="Organizace:" required>
             <n-select
@@ -116,7 +129,7 @@
           <!-- Display selected organizations and their items -->
           <div class="selected-organizations">
             <div
-              v-for="(organization, orgIndex) in offerData"
+              v-for="(organization, orgIndex) in offerData.organizations"
               :key="orgIndex"
               class="organization-card"
             >
@@ -223,7 +236,8 @@ export default {
     const categoriesOptions = ref([]);
     const selectedItems = ref([]);
     const offerItems = ref([]);
-    const offerData = ref([]);
+    const offerInformations = ref({title: "", description: ""});
+    const offerData = ref({title: "", description: "", organizations: []});
 
     const organizationOptions = ref([
       /*
@@ -490,15 +504,15 @@ export default {
 
     const removeItemFromOfferCreation = (orgIndex, itemIndex) => {
       if (
-        offerData.value[orgIndex] &&
-        offerData.value[orgIndex].items[itemIndex]
+        offerData.value.organizations[orgIndex] &&
+        offerData.value.organizations[orgIndex].items[itemIndex]
       ) {
         // Remove the item from the specific organization's items array
-        offerData.value[orgIndex].items.splice(itemIndex, 1);
+        offerData.value.organizations[orgIndex].items.splice(itemIndex, 1);
 
         // If you want to remove the organization itself when it has no items left, you can do:
-        if (offerData.value[orgIndex].items.length === 0) {
-          offerData.value.splice(orgIndex, 1);
+        if (offerData.value.organizations[orgIndex].items.length === 0) {
+          offerData.value.organizations.splice(orgIndex, 1);
         }
       }
       //distributeQuantities();
@@ -507,7 +521,7 @@ export default {
     const removeOrganization = (index) => {
       // Remove organization from selectedOrganizations...
       selectedOrganizations.value.splice(index, 1);
-      offerData.value.splice(index, 1);
+      offerData.value.organizations.splice(index, 1);
       redistributeQuantitiesInOfferData();
       distributeQuantitiesToOfferItems();
       prepareOfferData();
@@ -534,14 +548,14 @@ export default {
 
     const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
       if (
-        offerData.value[orgIndex] &&
-        offerData.value[orgIndex].items[itemIndex].quantity
+        offerData.value.organizations[orgIndex] &&
+        offerData.value.organizations[orgIndex].items[itemIndex].quantity
       ) {
-        offerData.value[orgIndex].items[itemIndex].quantity = newQuantity;
+        offerData.value.organizations[orgIndex].items[itemIndex].quantity = newQuantity;
         // Trigger Vue reactivity for nested changes
-        offerData.value = [...offerData.value];
+        offerData.value.organizations = [...offerData.value.organizations];
       }
-      console.log(offerData.value);
+      console.log(offerData.value.organizations);
     };
 
     const distributeQuantitiesToOfferItems = () => {
@@ -604,7 +618,7 @@ export default {
 
       selectedOrganizations.value.forEach((organization) => {
         // Find if the organization already exists in offerData
-        let orgOfferIndex = offerData.value.findIndex(
+        let orgOfferIndex = offerData.value.organizations.findIndex(
           (orgOffer) => orgOffer.organization === organization.label
         );
 
@@ -629,10 +643,10 @@ export default {
           });
 
           // Add the new organization offer to offerData
-          offerData.value.push(orgOffer);
+          offerData.value.organizations.push(orgOffer);
         } else {
           // If the organization already exists, update its items
-          let orgOffer = offerData.value[orgOfferIndex];
+          let orgOffer = offerData.value.organizations[orgOfferIndex];
           orgOffer.items = offerItems.value.map((item) => {
             let quantityPerOrg =
               item.selectedQuantity / selectedOrganizations.value.length;
@@ -648,7 +662,7 @@ export default {
 
     const redistributeQuantitiesInOfferData = () => {
       // Iterate over each organization in the offerData
-      offerData.value.forEach((orgOffer) => {
+      offerData.value.organizations.forEach((orgOffer) => {
         // For each organization, iterate over its items
         orgOffer.items.forEach((itemOffer) => {
           // Find the corresponding item from the offerItems
@@ -674,16 +688,18 @@ export default {
       });
 
       // Remove any organizations that no longer have any items
-      offerData.value = offerData.value.filter(
+      offerData.value.organizations = offerData.value.organizations.filter(
         (orgOffer) => orgOffer.items.length > 0
       );
     };
 
     const createOffer = async () => {
       const token = localStorage.getItem("authToken");
-      if (token && offerData.value.length > 0) {
+      if (token && offerData.value.organizations.length > 0) {
         // Ensure mandatory fields are filled
         try {
+            offerData.value.title = offerInformations.value.title;
+            offerData.value.description = offerInformations.value.description;
           console.log(offerData.value);
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
@@ -718,6 +734,7 @@ export default {
       isSelectedAnyItem,
       offerItems,
       offerData,
+      offerInformations,
       updateItemQuantity,
       selectItem,
       deselectItem,

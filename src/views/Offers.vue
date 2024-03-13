@@ -3,13 +3,13 @@
     <div class="filter-container">
       <n-input
         v-model:value="filters.searchQuery"
-        placeholder="Search by Offer Name, Address, or Contact Person"
+        placeholder="Nabídka, popis...."
         @update:value="filterOffers"
         class="filter-input"
       />
     </div>
 
-    <n-button @click="showAddOfferModal">Add New Offer</n-button>
+    <n-button @click="showAddOfferModal">Vytvořit nabídku</n-button>
 
     <n-data-table
       :columns="columns"
@@ -46,6 +46,29 @@
             </n-form-item>
           </n-form>
         </div>
+        <div v-if="showDetailModal">
+          <p><strong>ID:</strong> {{ selectedOfferDetails.offerGroup.id }}</p>
+          <p><strong>Title:</strong> {{ selectedOfferDetails.title }}</p>
+          <p>
+            <strong>Description:</strong> {{ selectedOfferDetails.description }}
+          </p>
+          <p>
+            <strong>Date Created:</strong>
+            {{ selectedOfferDetails.offerGroup.dateCreated }}
+          </p>
+          <p>
+            <strong>User ID:</strong>
+            {{ selectedOfferDetails.offerGroup.userId }}
+          </p>
+          <div v-for="organizations in selectedOfferDetails.offers">
+            {{ organizations.organization.name }}
+            <n-data-table
+              :columns="itemColumns"
+              :data="organizations.items"
+              class="item-table"
+            ></n-data-table>
+          </div>
+        </div>
       </template>
       <template #footer>
         <n-button @click="closeModal" class="modal-close-button"
@@ -61,7 +84,7 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, h } from "vue";
 import { NButton, NInput, NDataTable, NFormItem, NForm } from "naive-ui";
 import { OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
@@ -82,18 +105,28 @@ export default {
     const isModalVisible = ref(false);
     const modalTitle = ref("");
     const showAddModal = ref(false);
+    const showDetailModal = ref(false);
     const newOffer = ref({ name: "", address: "", contact: "" });
+    const selectedOfferDetails = ref({});
+    const itemColumns = [
+      { title: "Kategorie", key: "name" },
+      { title: "Položka", key: "description" },
+      { title: "Množství", key: "quantity" },
+      { title: "Jednotky", key: "unit" },
+      // Add other columns as needed
+    ];
 
     const filteredOffers = computed(() => {
       return offers.value.filter((offer) => {
+        console.log(offer);
         return (
-          offer.name
+          offer.title
             .toLowerCase()
             .includes(filters.value.searchQuery.toLowerCase()) ||
-          offer.address
+          offer.description
             .toLowerCase()
             .includes(filters.value.searchQuery.toLowerCase()) ||
-          offer.contact
+          offer.userId
             .toLowerCase()
             .includes(filters.value.searchQuery.toLowerCase())
         );
@@ -132,9 +165,7 @@ export default {
 
     const addOffer = () => {
       // Your logic to add an offer
-      // For this example, we'll just add it to the offers list
-      const newId = `uuid-${offers.value.length + 1}`; // Simulate new ID, replace with actual ID from your backend
-      offers.value.push({ ...newOffer.value, id: newId });
+      // For this example, we'll just add it to the offers lis
       closeModal(); // Reset and close the modal
     };
 
@@ -144,26 +175,48 @@ export default {
       showAddModal.value = false; // Hide add offer form
     };
 
+    const prepareOfferDetails = async (offer) => {
+      // Set the selected offer details to be displayed in the modal
+      const token = localStorage.getItem("authToken");
+      const data = await offerApi.offerIdGet(offer.id, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(data.data);
+      selectedOfferDetails.value = data.data; // Store the selected offer details
+      // Update the modal title to reflect that this is about viewing offer details
+      modalTitle.value = `Detail nabídky: ${offer.title}`;
+
+      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
+      showDetailModal.value = true;
+
+      // Finally, making the modal visible
+      isModalVisible.value = true;
+    };
+
     return {
       filters,
       offers,
       filteredOffers,
+      selectedOfferDetails,
       isModalVisible,
       modalTitle,
+      itemColumns,
       showAddModal,
+      showDetailModal,
       newOffer,
       showAddOfferModal,
       addOffer,
       closeModal,
+      prepareOfferDetails,
       columns: [
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
         { title: "Vytvořil", key: "userId" },
         {
-          title: "Actions",
+          title: "Detail",
           key: "action",
           render: (row) =>
-            h(NButton, { onClick: () => prepareOfferDetails(row) }, "Details"),
+            h(NButton, { onClick: () => prepareOfferDetails(row) }, "Detail"),
         },
         // You can define other columns as needed
       ],

@@ -81,11 +81,11 @@ export default {
     const warehouses = ref([]);
 
     const columns = [
-      { title: "Name", key: "name" },
-      { title: "Location", key: "location" },
+      { title: "Sklad", key: "name" },
+      { title: "Lokalita", key: "location" },
       // Ensure 'action' matches the slot name in the template
       {
-        title: "Actions",
+        title: "Akce",
         key: "action",
         render: (row, index) => {
           return h("div", [
@@ -106,7 +106,7 @@ export default {
                 style: "margin-left: 8px;",
                 type: "error",
               },
-              "Delete"
+              "Smazat"
             ),
           ]);
         },

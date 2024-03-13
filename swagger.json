@@ -388,24 +388,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Offer"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Offer"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Offer"
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       }
@@ -972,10 +955,6 @@
             "type": "string",
             "format": "uuid"
           },
-          "offerId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -992,8 +971,12 @@
             "type": "string",
             "nullable": true
           },
-          "offer": {
-            "$ref": "#/components/schemas/Offer"
+          "offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Offer"
+            },
+            "nullable": true
           },
           "user": {
             "$ref": "#/components/schemas/User"
