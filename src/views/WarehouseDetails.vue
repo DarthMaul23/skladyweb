@@ -185,7 +185,7 @@ import {
   NSelect,
   NSpace,
 } from "naive-ui";
-import { ItemApi } from "../api/openapi/api";
+import { ItemApi, OrganizationApi, OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
@@ -204,6 +204,8 @@ export default {
     const router = useRouter();
     const route = useRoute(); // Correctly initialized
     const itemApi = new ItemApi(getDefaultApiConfig());
+    const organizationApi = new OrganizationApi(getDefaultApiConfig());
+    const offerApi = new OfferApi(getDefaultApiConfig());
     const message = useMessage(); // Correctly initialized
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
@@ -219,6 +221,7 @@ export default {
     const offerData = ref([]);
 
     const organizationOptions = ref([
+      /*
       { label: "Organization A", value: "orgA" },
       { label: "Organization B", value: "orgB" },
       { label: "Organization C", value: "orgC" },
@@ -226,6 +229,7 @@ export default {
       { label: "Organization E", value: "orgE" },
       { label: "Organization F", value: "orgF" },
       { label: "Organization G", value: "orgG" },
+      */
     ]); // Add actual organization options
 
     const selectedOrganizations = ref([]);
@@ -281,6 +285,7 @@ export default {
 
     onMounted(() => {
       loadWarehouseDetails();
+      loadOrganizations();
     });
 
     const loadWarehouseDetails = async () => {
@@ -299,6 +304,27 @@ export default {
         } catch (error) {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
+        }
+      } else {
+        router.push("/login");
+      }
+    };
+
+    const loadOrganizations = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response = await organizationApi.organizationOrganizationsGet({
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Map response data to organizationOptions
+          organizationOptions.value = response.data.result.map((org) => ({
+            label: org.name,
+            value: org.id,
+          }));
+        } catch (error) {
+          console.error("Failed to load Organizations:", error);
+          message.error("Failed to load Organizations");
         }
       } else {
         router.push("/login");
@@ -558,6 +584,7 @@ export default {
         // If the organization does not exist, create a new one
         if (orgOfferIndex === -1) {
           let orgOffer = {
+            OrganizationId: organization.value,
             organization: organization.label,
             items: [],
           };
@@ -623,13 +650,26 @@ export default {
       offerData.value = offerData.value.filter(
         (orgOffer) => orgOffer.items.length > 0
       );
-
-      // Log the updated offerData structure
-      console.log(offerData.value);
     };
 
-    const createOffer = () => {
-      console.log(offerData.value);
+    const createOffer = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token && offerData.value.length > 0) {
+        // Ensure mandatory fields are filled
+        try {
+          console.log(offerData.value);
+          const response = await offerApi.offerPost(offerData.value, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          message.success("Nabídka byla úspěšně vytvořena");
+          loadWarehouseDetails(); // Refresh warehouse details
+        } catch (error) {
+          console.error("Failed to create offer:", error);
+          message.error("Vyskytla se chyba. Nabídku se nepodařilo vytvořit.");
+        }
+      } else {
+        message.warning("Vyplntě prosím všechna pole");
+      }
     };
 
     return {
@@ -662,6 +702,7 @@ export default {
       distributeQuantities,
       getQuanitity,
       rowKey,
+      loadOrganizations,
       childRowKey,
       addItem,
       openCreateOfferModal,

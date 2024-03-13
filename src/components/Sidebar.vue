@@ -9,8 +9,6 @@
         <span class="material-icons">keyboard_double_arrow_right</span>
       </button>
     </div>
-
-    <h3>Správa skladu</h3>
     <div class="menu" >
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
@@ -46,21 +44,13 @@
 
 <script setup>
 import { ref } from "vue";
-import { store } from '../store/store';
-import { useRouter } from "vue-router";
-import logoURL from "../assets/logo.png";
 
 const is_expanded = ref(localStorage.getItem("is_expanded") === "true");
-const router = useRouter(); // Using useRouter hook
 
 const ToggleMenu = () => {
   is_expanded.value = !is_expanded.value;
   localStorage.setItem("is_expanded", is_expanded.value);
-};
-
-const Logout = () => {
-  store.logout();
-  router.push("/login"); // Using router from useRouter
+  console.log(localStorage.getItem("is_expanded"));
 };
 </script>
 

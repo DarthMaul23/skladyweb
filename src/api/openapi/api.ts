@@ -163,6 +163,31 @@ export interface NewItem {
 /**
  * 
  * @export
+ * @interface NewOfferModel
+ */
+export interface NewOfferModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewOfferModel
+     */
+    'organizationId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewOfferModel
+     */
+    'organization'?: string | null;
+    /**
+     * 
+     * @type {Array<OfferItemModel>}
+     * @memberof NewOfferModel
+     */
+    'items'?: Array<OfferItemModel> | null;
+}
+/**
+ * 
+ * @export
  * @interface NewWarehouseModel
  */
 export interface NewWarehouseModel {
@@ -196,13 +221,13 @@ export interface Offer {
      * @type {string}
      * @memberof Offer
      */
-    'title'?: string | null;
+    'organizationId'?: string;
     /**
      * 
      * @type {string}
      * @memberof Offer
      */
-    'description'?: string | null;
+    'offerGroupId'?: string;
     /**
      * 
      * @type {string}
@@ -217,16 +242,83 @@ export interface Offer {
     'validUntil'?: string | null;
     /**
      * 
-     * @type {Array<OfferOrganization>}
+     * @type {boolean}
      * @memberof Offer
      */
-    'offerOrganizations'?: Array<OfferOrganization> | null;
+    'isDelivery'?: boolean;
+    /**
+     * 
+     * @type {OfferGroup}
+     * @memberof Offer
+     */
+    'offerGroup'?: OfferGroup;
     /**
      * 
      * @type {Array<OfferItem>}
      * @memberof Offer
      */
     'offerItems'?: Array<OfferItem> | null;
+    /**
+     * 
+     * @type {Organization}
+     * @memberof Offer
+     */
+    'organization'?: Organization;
+}
+/**
+ * 
+ * @export
+ * @interface OfferGroup
+ */
+export interface OfferGroup {
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'offerId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'userId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'dateCreated'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'title'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferGroup
+     */
+    'description'?: string | null;
+    /**
+     * 
+     * @type {Offer}
+     * @memberof OfferGroup
+     */
+    'offer'?: Offer;
+    /**
+     * 
+     * @type {User}
+     * @memberof OfferGroup
+     */
+    'user'?: User;
 }
 /**
  * 
@@ -234,6 +326,12 @@ export interface Offer {
  * @interface OfferItem
  */
 export interface OfferItem {
+    /**
+     * 
+     * @type {string}
+     * @memberof OfferItem
+     */
+    'id'?: string;
     /**
      * 
      * @type {string}
@@ -251,7 +349,7 @@ export interface OfferItem {
      * @type {number}
      * @memberof OfferItem
      */
-    'quantityPerOrganization'?: number;
+    'quantity'?: number;
     /**
      * 
      * @type {Offer}
@@ -268,33 +366,27 @@ export interface OfferItem {
 /**
  * 
  * @export
- * @interface OfferOrganization
+ * @interface OfferItemModel
  */
-export interface OfferOrganization {
+export interface OfferItemModel {
     /**
      * 
      * @type {string}
-     * @memberof OfferOrganization
+     * @memberof OfferItemModel
      */
-    'offerId'?: string;
+    'id'?: string;
     /**
      * 
      * @type {string}
-     * @memberof OfferOrganization
+     * @memberof OfferItemModel
      */
-    'organizationId'?: string;
+    'description'?: string | null;
     /**
      * 
-     * @type {Offer}
-     * @memberof OfferOrganization
+     * @type {number}
+     * @memberof OfferItemModel
      */
-    'offer'?: Offer;
-    /**
-     * 
-     * @type {Organization}
-     * @memberof OfferOrganization
-     */
-    'organization'?: Organization;
+    'quantity'?: number;
 }
 /**
  * 
@@ -449,6 +541,43 @@ export interface ResponseObject {
      * @memberof ResponseObject
      */
     'result'?: any | null;
+}
+/**
+ * 
+ * @export
+ * @interface User
+ */
+export interface User {
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    'email': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    'password': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    'firstName': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    'lastName': string;
 }
 /**
  * 
@@ -1000,11 +1129,11 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * 
          * @param {string} id 
-         * @param {Offer} [offer] 
+         * @param {OfferGroup} [offerGroup] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerIdPut: async (id: string, offer?: Offer, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        offerIdPut: async (id: string, offerGroup?: OfferGroup, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('offerIdPut', 'id', id)
             const localVarPath = `/Offer/{id}`
@@ -1030,7 +1159,7 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(offer, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(offerGroup, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1039,11 +1168,11 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {Offer} [offer] 
+         * @param {Array<NewOfferModel>} [newOfferModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerPost: async (offer?: Offer, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        offerPost: async (newOfferModel?: Array<NewOfferModel>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Offer`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1066,7 +1195,7 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(offer, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(newOfferModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1121,24 +1250,24 @@ export const OfferApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} id 
-         * @param {Offer} [offer] 
+         * @param {OfferGroup} [offerGroup] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async offerIdPut(id: string, offer?: Offer, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.offerIdPut(id, offer, options);
+        async offerIdPut(id: string, offerGroup?: OfferGroup, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerIdPut(id, offerGroup, options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['OfferApi.offerIdPut']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
         /**
          * 
-         * @param {Offer} [offer] 
+         * @param {Array<NewOfferModel>} [newOfferModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async offerPost(offer?: Offer, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Offer>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.offerPost(offer, options);
+        async offerPost(newOfferModel?: Array<NewOfferModel>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Offer>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerPost(newOfferModel, options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['OfferApi.offerPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
@@ -1182,21 +1311,21 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
         /**
          * 
          * @param {string} id 
-         * @param {Offer} [offer] 
+         * @param {OfferGroup} [offerGroup] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerIdPut(id: string, offer?: Offer, options?: any): AxiosPromise<void> {
-            return localVarFp.offerIdPut(id, offer, options).then((request) => request(axios, basePath));
+        offerIdPut(id: string, offerGroup?: OfferGroup, options?: any): AxiosPromise<void> {
+            return localVarFp.offerIdPut(id, offerGroup, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @param {Offer} [offer] 
+         * @param {Array<NewOfferModel>} [newOfferModel] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerPost(offer?: Offer, options?: any): AxiosPromise<Offer> {
-            return localVarFp.offerPost(offer, options).then((request) => request(axios, basePath));
+        offerPost(newOfferModel?: Array<NewOfferModel>, options?: any): AxiosPromise<Array<Offer>> {
+            return localVarFp.offerPost(newOfferModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1243,24 +1372,24 @@ export class OfferApi extends BaseAPI {
     /**
      * 
      * @param {string} id 
-     * @param {Offer} [offer] 
+     * @param {OfferGroup} [offerGroup] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OfferApi
      */
-    public offerIdPut(id: string, offer?: Offer, options?: RawAxiosRequestConfig) {
-        return OfferApiFp(this.configuration).offerIdPut(id, offer, options).then((request) => request(this.axios, this.basePath));
+    public offerIdPut(id: string, offerGroup?: OfferGroup, options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerIdPut(id, offerGroup, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {Offer} [offer] 
+     * @param {Array<NewOfferModel>} [newOfferModel] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OfferApi
      */
-    public offerPost(offer?: Offer, options?: RawAxiosRequestConfig) {
-        return OfferApiFp(this.configuration).offerPost(offer, options).then((request) => request(this.axios, this.basePath));
+    public offerPost(newOfferModel?: Array<NewOfferModel>, options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerPost(newOfferModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1640,6 +1769,106 @@ export class OrderApi extends BaseAPI {
      */
     public orderPost(createOrderModel?: CreateOrderModel, options?: RawAxiosRequestConfig) {
         return OrderApiFp(this.configuration).orderPost(createOrderModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * OrganizationApi - axios parameter creator
+ * @export
+ */
+export const OrganizationApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationOrganizationsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Organization/Organizations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * OrganizationApi - functional programming interface
+ * @export
+ */
+export const OrganizationApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = OrganizationApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async organizationOrganizationsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.organizationOrganizationsGet(options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OrganizationApi.organizationOrganizationsGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * OrganizationApi - factory interface
+ * @export
+ */
+export const OrganizationApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = OrganizationApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationOrganizationsGet(options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.organizationOrganizationsGet(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * OrganizationApi - object-oriented interface
+ * @export
+ * @class OrganizationApi
+ * @extends {BaseAPI}
+ */
+export class OrganizationApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrganizationApi
+     */
+    public organizationOrganizationsGet(options?: RawAxiosRequestConfig) {
+        return OrganizationApiFp(this.configuration).organizationOrganizationsGet(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

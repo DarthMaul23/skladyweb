@@ -213,17 +213,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewOfferModel"
+                }
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewOfferModel"
+                }
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewOfferModel"
+                }
               }
             }
           }
@@ -234,17 +243,26 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Offer"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Offer"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Offer"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Offer"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Offer"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Offer"
+                  }
                 }
               }
             }
@@ -309,17 +327,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "$ref": "#/components/schemas/OfferGroup"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "$ref": "#/components/schemas/OfferGroup"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Offer"
+                "$ref": "#/components/schemas/OfferGroup"
               }
             }
           }
@@ -580,6 +598,35 @@
         }
       }
     },
+    "/Organization/Organizations": {
+      "get": {
+        "tags": [
+          "Organization"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/User/{id}": {
       "get": {
         "tags": [
@@ -832,6 +879,27 @@
         },
         "additionalProperties": false
       },
+      "NewOfferModel": {
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organization": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferItemModel"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "NewWarehouseModel": {
         "type": "object",
         "properties": {
@@ -853,13 +921,13 @@
             "type": "string",
             "format": "uuid"
           },
-          "title": {
+          "organizationId": {
             "type": "string",
-            "nullable": true
+            "format": "uuid"
           },
-          "description": {
+          "offerGroupId": {
             "type": "string",
-            "nullable": true
+            "format": "uuid"
           },
           "createdOn": {
             "type": "string",
@@ -870,12 +938,11 @@
             "format": "date-time",
             "nullable": true
           },
-          "offerOrganizations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OfferOrganization"
-            },
-            "nullable": true
+          "isDelivery": {
+            "type": "boolean"
+          },
+          "offerGroup": {
+            "$ref": "#/components/schemas/OfferGroup"
           },
           "offerItems": {
             "type": "array",
@@ -883,6 +950,45 @@
               "$ref": "#/components/schemas/OfferItem"
             },
             "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OfferGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
           }
         },
         "additionalProperties": false
@@ -890,6 +996,10 @@
       "OfferItem": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
           "offerId": {
             "type": "string",
             "format": "uuid"
@@ -898,7 +1008,7 @@
             "type": "string",
             "format": "uuid"
           },
-          "quantityPerOrganization": {
+          "quantity": {
             "type": "integer",
             "format": "int32"
           },
@@ -911,22 +1021,20 @@
         },
         "additionalProperties": false
       },
-      "OfferOrganization": {
+      "OfferItemModel": {
         "type": "object",
         "properties": {
-          "offerId": {
+          "id": {
             "type": "string",
             "format": "uuid"
           },
-          "organizationId": {
+          "description": {
             "type": "string",
-            "format": "uuid"
+            "nullable": true
           },
-          "offer": {
-            "$ref": "#/components/schemas/Offer"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
+          "quantity": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -1037,6 +1145,38 @@
           },
           "result": {
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "User": {
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "firstName": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "minLength": 1,
+            "type": "string"
           }
         },
         "additionalProperties": false
