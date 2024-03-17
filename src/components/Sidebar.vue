@@ -18,6 +18,11 @@
         <span class="material-icons">inbox</span>
         <span class="text">Nabídky</span>
       </router-link>
+      <!--Tohle je odkaz pro organiazci NE ADMINA!-->
+      <router-link to="/offersfororganization" class="button">
+        <span class="material-icons">inbox</span>
+        <span class="text">OFFERS PRO ORG</span>
+      </router-link>
       <router-link to="/orders" class="button">
         <span class="material-icons">inbox</span>
         <span class="text">Objednávky</span>

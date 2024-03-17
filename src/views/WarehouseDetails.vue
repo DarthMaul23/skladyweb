@@ -49,12 +49,26 @@
         <div class="form-group">
           <n-form-item label="Kategorie:" required>
             <n-select
-              v-model:value="newItem.name"
+              v-model:value="newItem.categoryName"
               :options="categoriesOptions"
               filterable
               tag
               allow-create
-              @create="handleCreate"
+              @create="handleCreateCategory"
+              placeholder="Vyber nebo vytvoř novou kategorii"
+            />
+            <div v-if="validationErrors.name" class="error-msg">
+              {{ validationErrors.name }}
+            </div>
+          </n-form-item>
+          <n-form-item label="Podkategorie:" required>
+            <n-select
+              v-model:value="newItem.subcategoryName"
+              :options="subcategoriesOptions"
+              filterable
+              tag
+              allow-create
+              @create="handleCreateSubcategory"
               placeholder="Vyber nebo vytvoř novou kategorii"
             />
             <div v-if="validationErrors.name" class="error-msg">
@@ -104,7 +118,7 @@
     >
       <template #body>
         <div class="form-group">
-            <n-form-item label="Nabídka:">
+          <n-form-item label="Nabídka:">
             <n-input
               v-model:value="offerInformations.title"
               placeholder="Popis položky"
@@ -228,16 +242,25 @@ export default {
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
     const showCreateOfferModal = ref(false);
-    const newItem = ref({ name: "", description: "", quantity: 0, units: "kg" });
+    const newItem = ref({
+      categoryName: "",
+      subcategoryName: "",
+      name: "",
+      description: "",
+      quantity: 0,
+      units: "kg",
+    });
     const validationErrors = ref({});
     const items = ref([]);
+    const organizationCategoriesAndSubcategories = ref([]);
     const expandedRowKeys = ref(["Chleba"]);
     const warehouseDetails = ref({});
     const categoriesOptions = ref([]);
+    const subcategoriesOptions = ref([]);
     const selectedItems = ref([]);
     const offerItems = ref([]);
-    const offerInformations = ref({title: "", description: ""});
-    const offerData = ref({title: "", description: "", organizations: []});
+    const offerInformations = ref({ title: "", description: "" });
+    const offerData = ref({ title: "", description: "", organizations: [] });
 
     const organizationOptions = ref([
       /*
@@ -299,8 +322,8 @@ export default {
       },
     ];
 
-    const handleCreate = (value) => {
-        console.log("Creating new item category");
+    const handleCreateCategory = (value) => {
+      console.log("Creating new item category");
       // Check if the newly entered value already exists in the options
       const existingOption = categoriesOptions.value.find(
         (option) => option.value.toLowerCase() === value.toLowerCase()
@@ -308,17 +331,41 @@ export default {
 
       if (existingOption) {
         // If it exists, just set the v-model value to the existing option's value
-        newItem.value.name = existingOption.value;
-        console.log(newItem.value);
+        newItem.value.categoryName = existingOption.value;
       } else {
         // If it doesn't exist, create a new option and update v-model
         const newOption = { label: value, value };
         categoriesOptions.value.push(newOption);
-        newItem.value.name = value; // This sets the select input to use the newly added value
-        console.log(newItem.value);
+        newItem.value.categoryName = value; // This sets the select input to use the newly added value
       }
-      console.log(categoriesOptions.value);
-      console.log(newItem.value);
+
+      subcategoriesOptions.value = [];
+
+      console.log(organizationCategoriesAndSubcategories.value);
+
+      /*
+      subcategoriesOptions.value = organizationCategoriesAndSubcategories.value.find(
+        (items) => items. === value.toLowerCase()
+      );
+      */
+    };
+
+    const handleCreateSubcategory = (value) => {
+      console.log("Creating new item subcategory");
+      // Check if the newly entered value already exists in the options
+      const existingOption = subcategoriesOptions.value.find(
+        (option) => option.value.toLowerCase() === value.toLowerCase()
+      );
+
+      if (existingOption) {
+        // If it exists, just set the v-model value to the existing option's value
+        newItem.value.subcategoryName = existingOption.value;
+      } else {
+        // If it doesn't exist, create a new option and update v-model
+        const newOption = { label: value, value };
+        subcategoriesOptions.value.push(newOption);
+        newItem.value.subcategoryName = value; // This sets the select input to use the newly added value
+      }
     };
 
     const rowKey = (row) => row.name;
@@ -326,6 +373,7 @@ export default {
 
     onMounted(() => {
       loadWarehouseDetails();
+      loadOrganizationCategoriesAndSubcategories();
       loadOrganizations();
     });
 
@@ -345,6 +393,24 @@ export default {
         } catch (error) {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
+        }
+      } else {
+        router.push("/login");
+      }
+    };
+
+    const loadOrganizationCategoriesAndSubcategories = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response =
+            await itemApi.itemGetOrganizationCategoriesAndSubCategoriesPost({
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          organizationCategoriesAndSubcategories.value = response.data.result;
+        } catch (error) {
+          console.error("Failed to load organization categories & subcategories:", error);
+          message.error("Failed to load  categories & subcategories");
         }
       } else {
         router.push("/login");
@@ -380,6 +446,14 @@ export default {
       return categoriesOptions; // return the new array to be used elsewhere
     };
 
+    const getSubcategoriesOfItems = (items) => {
+      subcategoriesOptions.value = items.map((item) => ({
+        label: item.name,
+        value: item.name,
+      }));
+      return categoriesOptions; // return the new array to be used elsewhere
+    };
+
     const getQuanitity = (item) => {
       //console.log(item);
       var quantity = item.unit / selectedOrganizations.length;
@@ -389,7 +463,12 @@ export default {
 
     const addItem = async () => {
       const token = localStorage.getItem("authToken");
-      if (token && newItem.value.name && newItem.value.quantity != null) {
+      if (
+        token &&
+        newItem.value.categoryName &&
+        newItem.value.subcategoryName &&
+        newItem.value.quantity != null
+      ) {
         // Ensure mandatory fields are filled
         try {
           const response = await itemApi.itemAddNewItemPost(
@@ -449,7 +528,7 @@ export default {
       //selectedItems.value.push(item);
       // Open modal for selecting quantity, for simplicity, let's just prompt
       const quantity = window.prompt(
-        `Select quantity for ${item.description}`,
+        `Vyberte množství pro ${item.description}`,
         "1"
       );
       if (quantity) {
@@ -551,7 +630,8 @@ export default {
         offerData.value.organizations[orgIndex] &&
         offerData.value.organizations[orgIndex].items[itemIndex].quantity
       ) {
-        offerData.value.organizations[orgIndex].items[itemIndex].quantity = newQuantity;
+        offerData.value.organizations[orgIndex].items[itemIndex].quantity =
+          newQuantity;
         // Trigger Vue reactivity for nested changes
         offerData.value.organizations = [...offerData.value.organizations];
       }
@@ -698,8 +778,8 @@ export default {
       if (token && offerData.value.organizations.length > 0) {
         // Ensure mandatory fields are filled
         try {
-            offerData.value.title = offerInformations.value.title;
-            offerData.value.description = offerInformations.value.description;
+          offerData.value.title = offerInformations.value.title;
+          offerData.value.description = offerInformations.value.description;
           console.log(offerData.value);
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
@@ -727,6 +807,7 @@ export default {
       itemChildColumns,
       unitOptions,
       categoriesOptions,
+      subcategoriesOptions,
       showCreateOfferModal,
       selectedItems,
       organizationOptions,
@@ -739,6 +820,7 @@ export default {
       selectItem,
       deselectItem,
       getCategoriesOfItems,
+      getSubcategoriesOfItems,
       findChildItemsByName,
       addOrganization,
       removeOrganization,
@@ -759,7 +841,10 @@ export default {
       validateForm,
       createOffer,
       prepareOfferData,
-      handleCreate,
+      handleCreateCategory,
+      handleCreateSubcategory,
+      loadOrganizationCategoriesAndSubcategories,
+      organizationCategoriesAndSubcategories,
     };
   },
 };

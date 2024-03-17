@@ -45,6 +45,35 @@
         }
       }
     },
+    "/Item/GetOrganizationCategoriesAndSubCategories": {
+      "post": {
+        "tags": [
+          "Item"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Item/AddNewItem": {
       "post": {
         "tags": [
@@ -213,26 +242,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NewOfferModel"
-                }
+                "$ref": "#/components/schemas/NewOfferModel"
               }
             },
             "text/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NewOfferModel"
-                }
+                "$ref": "#/components/schemas/NewOfferModel"
               }
             },
             "application/*+json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/NewOfferModel"
-                }
+                "$ref": "#/components/schemas/NewOfferModel"
               }
             }
           }
@@ -370,6 +390,42 @@
           }
         }
       },
+      "get": {
+        "tags": [
+          "Offer"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Offer/OrganizationOffers": {
+      "get": {
+        "tags": [
+          "Offer"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Offer/OrganzationOfferGroupDetail/{id}": {
       "get": {
         "tags": [
           "Offer"
@@ -762,6 +818,32 @@
   },
   "components": {
     "schemas": {
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateOrderItemModel": {
         "type": "object",
         "properties": {
@@ -812,6 +894,14 @@
             "type": "string",
             "format": "uuid"
           },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "name": {
             "type": "string",
             "nullable": true
@@ -827,6 +917,12 @@
           "units": {
             "type": "string",
             "nullable": true
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "subcategory": {
+            "$ref": "#/components/schemas/Subcategory"
           },
           "warehouse": {
             "$ref": "#/components/schemas/Warehouse"
@@ -851,6 +947,14 @@
       "NewItem": {
         "type": "object",
         "properties": {
+          "categoryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "subcategoryName": {
+            "type": "string",
+            "nullable": true
+          },
           "name": {
             "type": "string",
             "nullable": true
@@ -871,6 +975,27 @@
         "additionalProperties": false
       },
       "NewOfferModel": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "organizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewOfferOrganizationsModel"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewOfferOrganizationsModel": {
         "type": "object",
         "properties": {
           "organizationId": {
@@ -1136,6 +1261,32 @@
           },
           "result": {
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Subcategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
