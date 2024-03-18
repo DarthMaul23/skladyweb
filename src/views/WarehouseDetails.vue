@@ -219,6 +219,7 @@ import {
 } from "naive-ui";
 import { ItemApi, OrganizationApi, OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
+import { watch } from "vue";
 
 export default {
   components: {
@@ -322,6 +323,30 @@ export default {
       },
     ];
 
+    watch(
+      () => newItem.value.categoryName,
+      (newCategoryId) => {
+        if (newCategoryId) {
+          const selectedCategory =
+            organizationCategoriesAndSubcategories.value.find(
+              (cat) => cat.category.id === newCategoryId
+            );
+          if (selectedCategory && selectedCategory.subcategories) {
+            subcategoriesOptions.value = selectedCategory.subcategories.map(
+              (sub) => ({
+                value: sub.id,
+                label: sub.name,
+              })
+            );
+          } else {
+            subcategoriesOptions.value = [];
+          }
+        } else {
+          subcategoriesOptions.value = [];
+        }
+      }
+    );
+
     const handleCreateCategory = (value) => {
       console.log("Creating new item category");
       // Check if the newly entered value already exists in the options
@@ -408,9 +433,18 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             });
           organizationCategoriesAndSubcategories.value = response.data.result;
+
+          // Map the categories for the selection
+          categoriesOptions.value = response.data.result.map((cat) => ({
+            value: cat.category.id,
+            label: cat.category.name,
+          }));
         } catch (error) {
-          console.error("Failed to load organization categories & subcategories:", error);
-          message.error("Failed to load  categories & subcategories");
+          console.error(
+            "Failed to load organization categories & subcategories:",
+            error
+          );
+          message.error("Failed to load categories & subcategories");
         }
       } else {
         router.push("/login");
