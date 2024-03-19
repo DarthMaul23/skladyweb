@@ -88,7 +88,10 @@
           </n-space>
           <n-space align="center">
             <n-form-item label="Množství:" required>
-              <n-input-number v-model:value="newItemToBeStored.quantity" min="1" />
+              <n-input-number
+                v-model:value="newItemToBeStored.quantity"
+                min="1"
+              />
               <div v-if="validationErrors.quantity" class="error-msg">
                 {{ validationErrors.quantity }}
               </div>
@@ -100,8 +103,6 @@
                 size="small"
               />
             </n-form-item>
-          </n-space>
-          <n-space align="center">
             <n-form-item label="Možnosti hmotnosti palety:" required>
               <n-select
                 v-model:value="newItemToBeStored.paletaOption"
@@ -109,33 +110,45 @@
               />
             </n-form-item>
 
-            <n-form-item label="Počet jednotek:" required>
+            <n-form-item label="Počet palet:" required>
               <n-input-number v-model:value="newItemToBeStored.count" min="1" />
               <div v-if="validationErrors.count" class="error-msg">
                 {{ validationErrors.count }}
               </div>
             </n-form-item>
+            <n-button @click="addToListForStorageCreation" class="save-button"
+          >Přidat k naskladnění</n-button
+        >
           </n-space>
         </div>
         <div v-if="listOfNewItemsToBeStored.length > 0">
-          <h3>Seznam položek k uložení:</h3>
-          <ul>
-            <li v-for="(item, index) in listOfNewItemsToBeStored" :key="index">
-              {{ item.name }} - {{ item.quantity }} {{ item.unit }} ({{
-                item.categoryName
-              }}
-              > {{ item.subcategoryName }})
-              <n-button size="small" @click="removeItemFromStorageCreation(index)"
-                >Odstranit</n-button
+          <h3>Seznam položek k naskladnění ({{listOfNewItemsToBeStored.length}} položek):</h3>
+          <div class="items-container">
+            <div
+              v-for="(item, index) in listOfNewItemsToBeStored"
+              :key="index"
+              class="item-card"
+            >
+              <div class="item-content">
+                <h4>{{ item.description }}</h4>
+                <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
+                <p>
+                  Kategorie: {{ item.categoryName }} >
+                  {{ item.subcategoryName }}
+                </p>
+              </div>
+              <n-button
+                size="small"
+                class="remove-button"
+                @click="removeItemFromStorageCreation(index)"
               >
-            </li>
-          </ul>
+                <span class="material-icons">delete_outline</span>
+              </n-button>
+            </div>
+          </div>
         </div>
       </template>
       <template #footer>
-        <n-button @click="addToListForStorageCreation" class="add-button"
-          >Přidat do seznamu</n-button
-        >
         <n-button
           v-if="listOfNewItemsToBeStored.length > 0"
           @click="storeItems"
@@ -900,42 +913,51 @@ export default {
       }
     };
 
-    // Method to add item to the list
+    // Method to add items to the list based on the 'count' property
     const addToListForStorageCreation = () => {
-    // Validate that all necessary fields have been filled out
-    if (newItemToBeStored.value.categoryName && newItemToBeStored.value.subcategoryName &&
-        newItemToBeStored.value.description && newItemToBeStored.value.quantity > 0 &&
-        newItemToBeStored.value.unit) { // Ensure this field is 'unit', not 'units'
+      // Validate that all necessary fields have been filled out
+      if (
+        newItemToBeStored.value.categoryName &&
+        newItemToBeStored.value.subcategoryName &&
+        newItemToBeStored.value.description &&
+        newItemToBeStored.value.quantity > 0 &&
+        newItemToBeStored.value.unit &&
+        newItemToBeStored.value.count > 0
+      ) {
+        // Make sure count and other fields are validated
 
-        const itemToAdd = {
+        // Loop based on the 'count' value
+        for (let i = 0; i < newItemToBeStored.value.count; i++) {
+          let quantity =
+            newItemToBeStored.value.paletaOption == "palety"
+              ? newItemToBeStored.value.quantity / newItemToBeStored.value.count
+              : newItemToBeStored.value.quantity;
+
+          const itemToAdd = {
             categoryName: newItemToBeStored.value.categoryName,
             subcategoryName: newItemToBeStored.value.subcategoryName,
-            description: newItemToBeStored.value.description,
-            quantity: newItemToBeStored.value.quantity,
-            unit: newItemToBeStored.value.unit, // This should match your model
+            description:
+              newItemToBeStored.value.description +
+              (newItemToBeStored.value.count > 1 ? ` (Položka č. ${i + 1})` : ""), // Add part number if count > 1
+            quantity: quantity,
+            unit: newItemToBeStored.value.unit,
             paletaOption: newItemToBeStored.value.paletaOption,
-            count: newItemToBeStored.value.count,
-        };
+          };
 
-        console.log(itemToAdd.Value);
-
-        listOfNewItemsToBeStored.value.push(itemToAdd);
+          // Add the new item to the list
+          listOfNewItemsToBeStored.value.push(itemToAdd);
+        }
 
         // Reset newItemToBeStored after adding
-        newItemToBeStored.value = {
-            categoryName: "",
-            subcategoryName: "",
-            description: "",
-            quantity: 1,
-            unit: "", // This should match your initial state
-            paletaOption: "",
-            count: 1,
-        };
-    } else {
+        /* Object.keys(newItemToBeStored.value).forEach((key) => {
+          newItemToBeStored.value[key] =
+            key === "quantity" || key === "count" ? 1 : "";
+        });
+        */
+      } else {
         message.warning("Please fill in all the fields.");
-    }
-};
-
+      }
+    };
 
     // Method to remove item from the list
     const removeItemFromStorageCreation = (index) => {
@@ -951,7 +973,7 @@ export default {
           // You need to adjust this according to your API's requirements
           const response = await itemApi.storeMultipleItems(
             listOfNewItemsToBeStored.value,
-            { headers: { Authorization: `Bearer ${token}` }}
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           message.success("Všechny položky byly úspěšně naskladněny");
           listOfNewItemsToBeStored.value = []; // Clear the list after storing
@@ -965,7 +987,6 @@ export default {
         router.push("/login");
       }
     };
-
 
     return {
       showDetails,
@@ -1021,7 +1042,7 @@ export default {
       loadOrganizationCategoriesAndSubcategories,
       organizationCategoriesAndSubcategories,
       addToListForStorageCreation,
-      removeItemFromStorageCreation
+      removeItemFromStorageCreation,
     };
   },
 };
@@ -1112,5 +1133,49 @@ export default {
   padding-left: 10px;
   padding-top: 10px;
   padding-right: 5px;
+}
+
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* space between cards */
+  max-height: 300px; /* Adjust based on your preference */
+  overflow-y: auto; /* Enables vertical scrolling */
+  padding-right: 5px; /* To avoid content being too tight to the scrollbar */
+  margin-bottom: 20px; /* Extra space at the bottom, if needed */
+}
+
+
+.item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow for depth */
+}
+
+.item-content h4 {
+  margin: 0;
+  color: #333; /* darker text for better readability */
+}
+
+.item-content p {
+  margin: 5px 0;
+  color: #666; /* slightly lighter text for less emphasis */
+}
+
+.remove-button {
+  background-color: red;
+  color: white;
+  border: none; /* Remove border */
+}
+
+.remove-button:hover {
+  background-color: rgb(245, 45, 45);
+  color: white;
+  border: none; /* Remove border */
 }
 </style>
