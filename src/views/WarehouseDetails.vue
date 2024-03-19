@@ -124,27 +124,18 @@
         <div v-if="listOfNewItemsToBeStored.length > 0">
           <h3>Seznam položek k naskladnění ({{listOfNewItemsToBeStored.length}} položek):</h3>
           <div class="items-container">
-            <div
-              v-for="(item, index) in listOfNewItemsToBeStored"
-              :key="index"
-              class="item-card"
-            >
-              <div class="item-content">
-                <h4>{{ item.description }}</h4>
-                <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
-                <p>
-                  Kategorie: {{ item.categoryName }} >
-                  {{ item.subcategoryName }}
-                </p>
-              </div>
-              <n-button
-                size="small"
-                class="remove-button"
-                @click="removeItemFromStorageCreation(index)"
-              >
-                <span class="material-icons">delete_outline</span>
-              </n-button>
-            </div>
+           <div v-for="(item, index) in listOfNewItemsToBeStored" :key="index" class="item-card">
+    <div class="item-header">
+        <h4>{{ item.description }}</h4>
+        <n-button size="small" class="remove-button" @click="removeItemFromStorageCreation(index)">
+            <span class="material-icons">delete_outline</span>
+        </n-button>
+    </div>
+    <div class="item-content">
+        <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
+        <p>Kategorie: {{ item.categoryName }} > {{ item.subcategoryName }}</p>
+    </div>
+</div>
           </div>
         </div>
       </template>
@@ -1136,8 +1127,6 @@ export default {
 }
 
 .items-container {
-  display: flex;
-  flex-direction: column;
   gap: 10px; /* space between cards */
   max-height: 300px; /* Adjust based on your preference */
   overflow-y: auto; /* Enables vertical scrolling */
@@ -1147,14 +1136,28 @@ export default {
 
 
 .item-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: white;
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow for depth */
+    background-color: rgb(253, 253, 253);
+    border-radius: 10px;
+    overflow: hidden; /* Ensures the header's rounded corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow for depth */
+    margin-bottom: 10px;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: green;
+    color: white;
+    padding: 10px;
+}
+
+.item-header h4 {
+    margin: 0; /* Removes default margin */
+}
+
+.item-content {
+    padding: 10px;
 }
 
 .item-content h4 {
