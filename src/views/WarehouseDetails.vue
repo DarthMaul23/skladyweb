@@ -47,60 +47,101 @@
     >
       <template #body>
         <div class="form-group">
-          <n-form-item label="Kategorie:" required>
-            <n-select
-              v-model:value="newItem.categoryName"
-              :options="categoriesOptions"
-              filterable
-              tag
-              allow-create
-              @create="handleCreateCategory"
-              placeholder="Vyber nebo vytvoř novou kategorii"
-            />
-            <div v-if="validationErrors.name" class="error-msg">
-              {{ validationErrors.name }}
-            </div>
-          </n-form-item>
-          <n-form-item label="Podkategorie:" required>
-            <n-select
-              v-model:value="newItem.subcategoryName"
-              :options="subcategoriesOptions"
-              filterable
-              tag
-              allow-create
-              @create="handleCreateSubcategory"
-              placeholder="Vyber nebo vytvoř novou kategorii"
-            />
-            <div v-if="validationErrors.name" class="error-msg">
-              {{ validationErrors.name }}
-            </div>
-          </n-form-item>
-          <n-form-item label="Položka:">
-            <n-input
-              v-model:value="newItem.description"
-              placeholder="Popis položky"
-            />
-            <div v-if="validationErrors.description" class="error-msg">
-              {{ validationErrors.description }}
-            </div>
-          </n-form-item>
+          <n-space align="center">
+            <n-form-item label="Kategorie:" required>
+              <n-select
+                v-model:value="newItemToBeStored.categoryName"
+                :options="categoriesOptions"
+                filterable
+                tag
+                allow-create
+                @create="handleCreateCategory"
+                placeholder="Vyber nebo vytvoř novou kategorii"
+              />
+              <div v-if="validationErrors.categoryName" class="error-msg">
+                {{ validationErrors.categoryName }}
+              </div>
+            </n-form-item>
+            <n-form-item label="Podkategorie:" required>
+              <n-select
+                v-model:value="newItemToBeStored.subcategoryName"
+                :options="subcategoriesOptions"
+                filterable
+                tag
+                allow-create
+                @create="handleCreateSubcategory"
+                placeholder="Vyber nebo vytvoř novou kategorii"
+              />
+              <div v-if="validationErrors.subcategoryName" class="error-msg">
+                {{ validationErrors.subcategoryName }}
+              </div>
+            </n-form-item>
+            <n-form-item label="Položka:">
+              <n-input
+                v-model:value="newItemToBeStored.description"
+                placeholder="Popis položky"
+              />
+              <div v-if="validationErrors.description" class="error-msg">
+                {{ validationErrors.description }}
+              </div>
+            </n-form-item>
+          </n-space>
           <n-space align="center">
             <n-form-item label="Množství:" required>
-              <n-input-number v-model:value="newItem.quantity" />
+              <n-input-number v-model:value="newItemToBeStored.quantity" min="1" />
               <div v-if="validationErrors.quantity" class="error-msg">
                 {{ validationErrors.quantity }}
               </div>
             </n-form-item>
             <n-form-item label="Jednotky:" required>
               <n-select
-                v-model:value="newItem.unit"
+                v-model:value="newItemToBeStored.unit"
                 :options="unitOptions"
-              /> </n-form-item
-          ></n-space>
+                size="small"
+              />
+            </n-form-item>
+          </n-space>
+          <n-space align="center">
+            <n-form-item label="Možnosti hmotnosti palety:" required>
+              <n-select
+                v-model:value="newItemToBeStored.paletaOption"
+                :options="paletaOptions"
+              />
+            </n-form-item>
+
+            <n-form-item label="Počet jednotek:" required>
+              <n-input-number v-model:value="newItemToBeStored.count" min="1" />
+              <div v-if="validationErrors.count" class="error-msg">
+                {{ validationErrors.count }}
+              </div>
+            </n-form-item>
+          </n-space>
+        </div>
+        <div v-if="listOfNewItemsToBeStored.length > 0">
+          <h3>Seznam položek k uložení:</h3>
+          <ul>
+            <li v-for="(item, index) in listOfNewItemsToBeStored" :key="index">
+              {{ item.name }} - {{ item.quantity }} {{ item.unit }} ({{
+                item.categoryName
+              }}
+              > {{ item.subcategoryName }})
+              <n-button size="small" @click="removeItemFromStorageCreation(index)"
+                >Odstranit</n-button
+              >
+            </li>
+          </ul>
         </div>
       </template>
       <template #footer>
-        <n-button @click="addItem" class="save-button">Naskladnit</n-button>
+        <n-button @click="addToListForStorageCreation" class="add-button"
+          >Přidat do seznamu</n-button
+        >
+        <n-button
+          v-if="listOfNewItemsToBeStored.length > 0"
+          @click="storeItems"
+          class="save-button"
+          >Naskladnit vše</n-button
+        >
         <n-button @click="showAddItemModal = false" class="close-button"
           >Zavřít</n-button
         >
@@ -248,9 +289,23 @@ export default {
       subcategoryName: "",
       name: "",
       description: "",
-      quantity: 0,
+      quantity: 1,
+      paletaOption: "",
+      count: 1,
       units: "kg",
     });
+
+    const newItemToBeStored = ref({
+      categoryName: "",
+      subcategoryName: "",
+      name: "",
+      description: "",
+      quantity: 1,
+      units: "",
+    });
+
+    const listOfNewItemsToBeStored = ref([]);
+
     const validationErrors = ref({});
     const items = ref([]);
     const organizationCategoriesAndSubcategories = ref([]);
@@ -263,17 +318,7 @@ export default {
     const offerInformations = ref({ title: "", description: "" });
     const offerData = ref({ title: "", description: "", organizations: [] });
 
-    const organizationOptions = ref([
-      /*
-      { label: "Organization A", value: "orgA" },
-      { label: "Organization B", value: "orgB" },
-      { label: "Organization C", value: "orgC" },
-      { label: "Organization D", value: "orgD" },
-      { label: "Organization E", value: "orgE" },
-      { label: "Organization F", value: "orgF" },
-      { label: "Organization G", value: "orgG" },
-      */
-    ]); // Add actual organization options
+    const organizationOptions = ref([]);
 
     const selectedOrganizations = ref([]);
 
@@ -309,6 +354,7 @@ export default {
             () => (isSelected ? "Zrušit výber" : "Vybrat")
           );
         },
+        maxWidth: 100,
       },
     ];
 
@@ -320,6 +366,17 @@ export default {
       {
         label: "Kusy",
         value: "ks",
+      },
+    ];
+
+    const paletaOptions = [
+      {
+        label: "Jedné Palety",
+        value: "paleta",
+      },
+      {
+        label: "Všech Palet",
+        value: "palety",
       },
     ];
 
@@ -505,6 +562,7 @@ export default {
       ) {
         // Ensure mandatory fields are filled
         try {
+          console.log(newItem.value);
           const response = await itemApi.itemAddNewItemPost(
             route.params.id,
             newItem.value,
@@ -515,7 +573,20 @@ export default {
           message.success("Položka byla úspěšně naskladněna");
           warehouseDetails.value = response.data.result.warehouse; // Adjust according to your API response
           items.value = response.data.result.items; // Adjust according to your API response
+
+          console.log(newItem.value);
+
           showAddItemModal.value = false;
+          newItem.value = {
+            categoryName: "",
+            subcategoryName: "",
+            name: "",
+            description: "",
+            quantity: 1,
+            paletaOption: "",
+            count: 1,
+            units: "kg",
+          };
           loadWarehouseDetails(); // Refresh warehouse details
         } catch (error) {
           console.error("Failed to add item:", error);
@@ -829,8 +900,77 @@ export default {
       }
     };
 
+    // Method to add item to the list
+    const addToListForStorageCreation = () => {
+    // Validate that all necessary fields have been filled out
+    if (newItemToBeStored.value.categoryName && newItemToBeStored.value.subcategoryName &&
+        newItemToBeStored.value.description && newItemToBeStored.value.quantity > 0 &&
+        newItemToBeStored.value.unit) { // Ensure this field is 'unit', not 'units'
+
+        const itemToAdd = {
+            categoryName: newItemToBeStored.value.categoryName,
+            subcategoryName: newItemToBeStored.value.subcategoryName,
+            description: newItemToBeStored.value.description,
+            quantity: newItemToBeStored.value.quantity,
+            unit: newItemToBeStored.value.unit, // This should match your model
+            paletaOption: newItemToBeStored.value.paletaOption,
+            count: newItemToBeStored.value.count,
+        };
+
+        console.log(itemToAdd.Value);
+
+        listOfNewItemsToBeStored.value.push(itemToAdd);
+
+        // Reset newItemToBeStored after adding
+        newItemToBeStored.value = {
+            categoryName: "",
+            subcategoryName: "",
+            description: "",
+            quantity: 1,
+            unit: "", // This should match your initial state
+            paletaOption: "",
+            count: 1,
+        };
+    } else {
+        message.warning("Please fill in all the fields.");
+    }
+};
+
+
+    // Method to remove item from the list
+    const removeItemFromStorageCreation = (index) => {
+      listOfNewItemsToBeStored.value.splice(index, 1);
+    };
+
+    // Method to store all items in the list
+    const storeItems = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token && listOfNewItemsToBeStored.value.length > 0) {
+        // Assuming your API can handle batch storing, or you might need to iterate and store items individually
+        try {
+          // You need to adjust this according to your API's requirements
+          const response = await itemApi.storeMultipleItems(
+            listOfNewItemsToBeStored.value,
+            { headers: { Authorization: `Bearer ${token}` }}
+          );
+          message.success("Všechny položky byly úspěšně naskladněny");
+          listOfNewItemsToBeStored.value = []; // Clear the list after storing
+          showAddItemModal.value = false; // Close the modal
+          loadWarehouseDetails(); // Refresh the warehouse details if necessary
+        } catch (error) {
+          console.error("Failed to store items:", error);
+          message.error("Nepodařilo se naskladnit položky.");
+        }
+      } else {
+        router.push("/login");
+      }
+    };
+
+
     return {
       showDetails,
+      newItemToBeStored,
+      listOfNewItemsToBeStored,
       showAddItemModal,
       newItem,
       validationErrors,
@@ -840,6 +980,7 @@ export default {
       itemMasterColumns,
       itemChildColumns,
       unitOptions,
+      paletaOptions,
       categoriesOptions,
       subcategoriesOptions,
       showCreateOfferModal,
@@ -879,6 +1020,8 @@ export default {
       handleCreateSubcategory,
       loadOrganizationCategoriesAndSubcategories,
       organizationCategoriesAndSubcategories,
+      addToListForStorageCreation,
+      removeItemFromStorageCreation
     };
   },
 };
