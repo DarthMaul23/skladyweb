@@ -142,7 +142,7 @@
       <template #footer>
         <n-button
           v-if="listOfNewItemsToBeStored.length > 0"
-          @click="storeItems"
+          @click="storeItems()"
           class="save-button"
           >Naskladnit vše</n-button
         >
@@ -339,6 +339,7 @@ export default {
     const itemChildColumns = [
       { title: "Položka", key: "description" },
       { title: "Množství", key: "quantity" },
+      { title: "Jednotky", key: "unit" },
       {
         title: "Actions",
         key: "action",
@@ -962,9 +963,12 @@ export default {
         // Assuming your API can handle batch storing, or you might need to iterate and store items individually
         try {
           // You need to adjust this according to your API's requirements
-          const response = await itemApi.storeMultipleItems(
+          const response = await itemApi.itemAddNewItemPost(
+            route.params.id,
             listOfNewItemsToBeStored.value,
-            { headers: { Authorization: `Bearer ${token}` } }
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
           message.success("Všechny položky byly úspěšně naskladněny");
           listOfNewItemsToBeStored.value = []; // Clear the list after storing
@@ -1034,6 +1038,7 @@ export default {
       organizationCategoriesAndSubcategories,
       addToListForStorageCreation,
       removeItemFromStorageCreation,
+      storeItems
     };
   },
 };

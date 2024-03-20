@@ -792,11 +792,11 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * 
          * @param {string} [warehouseId] 
-         * @param {NewItem} [newItem] 
+         * @param {Array<NewItem>} [newItem] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemAddNewItemPost: async (warehouseId?: string, newItem?: NewItem, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        itemAddNewItemPost: async (warehouseId?: string, newItem?: Array<NewItem>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Item/AddNewItem`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -957,11 +957,11 @@ export const ItemApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} [warehouseId] 
-         * @param {NewItem} [newItem] 
+         * @param {Array<NewItem>} [newItem] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async itemAddNewItemPost(warehouseId?: string, newItem?: NewItem, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+        async itemAddNewItemPost(warehouseId?: string, newItem?: Array<NewItem>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.itemAddNewItemPost(warehouseId, newItem, options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['ItemApi.itemAddNewItemPost']?.[index]?.url;
@@ -1017,11 +1017,11 @@ export const ItemApiFactory = function (configuration?: Configuration, basePath?
         /**
          * 
          * @param {string} [warehouseId] 
-         * @param {NewItem} [newItem] 
+         * @param {Array<NewItem>} [newItem] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemAddNewItemPost(warehouseId?: string, newItem?: NewItem, options?: any): AxiosPromise<ResponseObject> {
+        itemAddNewItemPost(warehouseId?: string, newItem?: Array<NewItem>, options?: any): AxiosPromise<ResponseObject> {
             return localVarFp.itemAddNewItemPost(warehouseId, newItem, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1065,12 +1065,12 @@ export class ItemApi extends BaseAPI {
     /**
      * 
      * @param {string} [warehouseId] 
-     * @param {NewItem} [newItem] 
+     * @param {Array<NewItem>} [newItem] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ItemApi
      */
-    public itemAddNewItemPost(warehouseId?: string, newItem?: NewItem, options?: RawAxiosRequestConfig) {
+    public itemAddNewItemPost(warehouseId?: string, newItem?: Array<NewItem>, options?: RawAxiosRequestConfig) {
         return ItemApiFp(this.configuration).itemAddNewItemPost(warehouseId, newItem, options).then((request) => request(this.axios, this.basePath));
     }
 

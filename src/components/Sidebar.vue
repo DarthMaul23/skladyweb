@@ -1,62 +1,50 @@
 <template>
-  <aside :class="`${is_expanded ? 'is-expanded' : ''}`">
+  <aside :class="{ 'is-expanded': isExpanded }">
     <div class="logo">
       <!--<img :src="logoURL" alt="Vue" />-->
-    </div>
-
-    <div class="menu-toggle-wrap">
-      <button class="menu-toggle" @click="ToggleMenu">
-        <span class="material-icons">keyboard_double_arrow_right</span>
-      </button>
     </div>
     <div class="menu" >
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
-        <span class="text">Sklady</span>
+        <span v-if="isExpanded" class="text">Sklady</span>
       </router-link>
       <router-link to="/offers" class="button">
         <span class="material-icons">inbox</span>
-        <span class="text">Nabídky</span>
+        <span v-if="isExpanded" class="text">Nabídky</span>
       </router-link>
       <!--Tohle je odkaz pro organiazci NE ADMINA!-->
       <router-link to="/offersfororganization" class="button">
         <span class="material-icons">inbox</span>
-        <span class="text">OFFERS PRO ORG</span>
+        <span v-if="isExpanded" class="text">Nab. Org.</span>
       </router-link>
       <router-link to="/orders" class="button">
         <span class="material-icons">inbox</span>
-        <span class="text">Objednávky</span>
+        <span v-if="isExpanded" class="text">Objednávky</span>
       </router-link>
       <router-link to="/categories" class="button">
         <span class="material-icons">settings</span>
-        <span class="text">Kategorie</span>
+        <span v-if="isExpanded" class="text">Kategorie</span>
       </router-link>
       <router-link to="/Organizations" class="button">
         <span class="material-icons">house</span>
-        <span class="text">Organizace</span>
+        <span v-if="isExpanded" class="text">Organizace</span>
       </router-link>
       <router-link to="/team" class="button">
         <span class="material-icons">group</span>
-        <span class="text">Uživatelé</span>
+        <span v-if="isExpanded" class="text">Uživatelé</span>
       </router-link>
       <router-link to="/contact" class="button">
         <span class="material-icons">home</span>
-        <span class="text">Dodavatelé</span>
+        <span v-if="isExpanded" class="text">Dodavatelé</span>
       </router-link>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { ref } from "vue";
-
-const is_expanded = ref(localStorage.getItem("is_expanded") === "true");
-
-const ToggleMenu = () => {
-  is_expanded.value = !is_expanded.value;
-  localStorage.setItem("is_expanded", is_expanded.value);
-  console.log(localStorage.getItem("is_expanded"));
-};
+const props = defineProps({
+  isExpanded: Boolean,
+});
 </script>
 
 <style lang="scss" scoped>

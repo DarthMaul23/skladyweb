@@ -94,17 +94,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewItem"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewItem"
+                }
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewItem"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewItem"
+                }
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/NewItem"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NewItem"
+                }
               }
             }
           }

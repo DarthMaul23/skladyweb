@@ -2,7 +2,7 @@
   <div class="navbar">
     <div class="navbar-controls">
       <!-- Toggle Button for Sidebar -->
-      <n-button class="navbar-item" text @click="ToggleMenu">
+      <n-button class="navbar-item" text @click="toggleMenu">
         <span class="material-icons">menu</span>
       </n-button>
       <n-link to="/" class="navbar-logo">
@@ -18,23 +18,18 @@
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { store } from "../store/store";
-import { NButton, NIcon } from "naive-ui";
+import { NButton } from "naive-ui";
 
 const router = useRouter();
-const is_expanded = ref(localStorage.getItem("is_expanded") === "true");
-
 const emit = defineEmits(["toggle-sidebar"]);
 
-const ToggleMenu = () => {
-  is_expanded.value = !is_expanded.value;
-  localStorage.setItem("is_expanded", is_expanded.value);
-  console.log("Test");
-  console.log(localStorage.getItem("is_expanded"));
+const toggleMenu = () => {
+  const currentState = localStorage.getItem("is_expanded") === "true";
+  const newState = !currentState;
+  localStorage.setItem("is_expanded", newState.toString());
+  emit("toggle-sidebar", newState);
 };
-
 const Logout = () => {
   store.logout();
   router.push("/login");
@@ -65,7 +60,7 @@ const Logout = () => {
 }
 
 .navbar-item {
-  color: #ffffff;
+  color: #f9f9f9;
   display: flex;
   align-items: center;
   cursor: pointer;
