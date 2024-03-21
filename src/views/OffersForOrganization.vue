@@ -9,11 +9,9 @@
       />
     </div>
 
-    <n-button @click="showAddOfferModal">Vytvořit nabídku</n-button>
-
     <n-data-table
       :columns="columns"
-      :data="offers.offerGroup"
+      :data="filteredOffers"
       class="offers-table"
     >
       <template v-slot:action="{ row }">
@@ -22,63 +20,42 @@
     </n-data-table>
 
     <custom-modal
-      :show="isModalVisible"
-      :title="modalTitle"
-      :header-bg-color="'green'"
-      :modal-width="'1200px'"
-      :modal-height="'400px'"
-      @update:show="isModalVisible = $event"
-    >
-      <template #body>
-        <div v-if="showAddModal">
-          <n-form @submit.prevent="addOffer">
-            <n-form-item label="Offer Name">
-              <n-input v-model="newOffer.name" placeholder="Enter offer name" />
-            </n-form-item>
-            <n-form-item label="Address">
-              <n-input v-model="newOffer.address" placeholder="Enter address" />
-            </n-form-item>
-            <n-form-item label="Contact Person">
-              <n-input
-                v-model="newOffer.contact"
-                placeholder="Enter contact person"
-              />
-            </n-form-item>
-          </n-form>
-        </div>
-        <div v-if="showDetailModal">
-          <p><strong>ID:</strong> {{ selectedOfferDetails.offerGroup.id }}</p>
-          <p><strong>Title:</strong> {{ selectedOfferDetails.title }}</p>
-          <p>
-            <strong>Description:</strong> {{ selectedOfferDetails.description }}
-          </p>
-          <p>
-            <strong>Date Created:</strong>
-            {{ selectedOfferDetails.offerGroup.dateCreated }}
-          </p>
-          <p>
-            <strong>User ID:</strong>
-            {{ selectedOfferDetails.offerGroup.userId }}
-          </p>
-          <div v-for="organizations in selectedOfferDetails.offers">
-            {{ organizations.organization.name }}
-            <n-data-table
-              :columns="itemColumns"
-              :data="organizations.items"
-              class="item-table"
-            ></n-data-table>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <n-button @click="closeModal" class="modal-close-button"
-          >Close</n-button
-        >
-        <n-button v-if="showAddModal" @click="addOffer" class="modal-add-button"
-          >Add Offer</n-button
-        >
-      </template>
-    </custom-modal>
+  :show="isModalVisible"
+  :title="modalTitle"
+  :header-bg-color="'green'"
+  :modal-width="'1200px'"
+  :modal-height="'auto'"
+  @update:show="isModalVisible = $event"
+>
+  <template #body>
+    <div v-if="showDetailModal">
+      <!-- Displaying offer details -->
+      <div class="offer-details">
+        <p><strong>ID:</strong> {{ selectedOfferDetails.id }}</p>
+        <p><strong>Title:</strong> {{ selectedOfferDetails.title }}</p>
+        <p><strong>Description:</strong> {{ selectedOfferDetails.description }}</p>
+        <p><strong>Date Created:</strong> {{ selectedOfferDetails.dateCreated }}</p>
+        <p><strong>User ID:</strong> {{ selectedOfferDetails.userId }}</p>
+        <!-- Add more fields as necessary -->
+      </div>
+      
+      <!-- If your offer has associated items, display them in a table or list -->
+      <div v-if="selectedOfferDetails.items && selectedOfferDetails.items.length">
+        <h3>Items:</h3>
+        <ul>
+          <li v-for="(item, index) in selectedOfferDetails.items" :key="index">
+            {{ item.name }} - {{ item.description }}: {{ item.quantity }} {{ item.unit }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </template>
+  <template #footer>
+    <n-button @click="closeModal" class="modal-close-button">Close</n-button>
+  </template>
+</custom-modal>
+
+
   </main>
 </template>
 
@@ -108,36 +85,25 @@ export default {
     const showDetailModal = ref(false);
     const newOffer = ref({ name: "", address: "", contact: "" });
     const selectedOfferDetails = ref({});
-    const itemColumns = [
-      { title: "Kategorie", key: "name" },
-      { title: "Položka", key: "description" },
-      { title: "Množství", key: "quantity" },
-      { title: "Jednotky", key: "unit" },
-      // Add other columns as needed
-    ];
 
     const filteredOffers = computed(() => {
-      // Assuming 'offers.value' now holds the entire response, not just the array of offers.
-      if (!offers.value || !offers.value.offers) {
-        return [];
+      const allOffers = [];
+      if (offers.value && offers.value.length > 0) {
+        offers.value.forEach((group) => {
+          if (group.offers && group.offers.length > 0) {
+            group.offers.forEach((offer) => {
+              // Optionally, add offerGroup data to each offer if needed
+              offer.offerGroupTitle = group.offerGroup.title;
+              offer.offerGroupDescription = group.offerGroup.description;
+              allOffers.push(offer);
+            });
+          }
+        });
       }
 
-      return offers.value.offers.filter((offer) => {
-        const title = offers.value.offerGroup.title
-          ? offers.value.offerGroup.title.toLowerCase()
-          : "";
-        const description = offers.value.offerGroup.description
-          ? offers.value.offerGroup.description.toLowerCase()
-          : "";
-        const userId = offer.userId ? offer.userId.toLowerCase() : ""; // Assuming userId is directly under each offer
-        return offers.value;
-        /*
-        return (
-          title.includes(filters.value.searchQuery.toLowerCase()) ||
-          description.includes(filters.value.searchQuery.toLowerCase()) ||
-          userId.includes(filters.value.searchQuery.toLowerCase())
-        );
-        */
+      // Implement filtering if necessary
+      return allOffers.filter((offer) => {
+        return offer.title, offer.description, offer.organizationId;
       });
     });
 
@@ -148,13 +114,8 @@ export default {
           const response = await offerApi.offerOrganizationOffersGet({
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (response.data && response.data.offers) {
-            // Assuming 'response.data' holds the object with 'offerGroup' and 'offers'
-            offers.value = response.data; // Store the entire object including both offerGroup and offers
-          } else {
-            console.error("Received unexpected data structure:", response.data);
-            offers.value = { offerGroup: {}, offers: [] }; // Reset to initial structure if data is not as expected
-          }
+          // Assuming 'response.data' holds the object with 'offerGroup' and 'offers'
+          offers.value = response.data; // Store the entire object including both offerGroup and offers
         } catch (error) {
           console.error("Failed to load offers:", error);
           offers.value = { offerGroup: {}, offers: [] }; // Reset to initial structure in case of error
@@ -183,8 +144,11 @@ export default {
     };
 
     const prepareOfferDetails = async (offer) => {
+
+      console.log(offer);
       // Set the selected offer details to be displayed in the modal
       const token = localStorage.getItem("authToken");
+
       const data = await offerApi.offerIdGet(offer.id, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -207,7 +171,6 @@ export default {
       selectedOfferDetails,
       isModalVisible,
       modalTitle,
-      itemColumns,
       showAddModal,
       showDetailModal,
       newOffer,
@@ -216,9 +179,10 @@ export default {
       closeModal,
       prepareOfferDetails,
       columns: [
-        { title: "Nabídka", key: "title" },
-        { title: "Popis", key: "description" },
-        { title: "Vytvořil", key: "userId" },
+        { title: "Offer Group", key: "offerGroupTitle" },
+        { title: "Offer Title", key: "title" },
+        { title: "Description", key: "description" },
+        { title: "Organization ID", key: "organizationId" },
         {
           title: "Detail",
           key: "action",

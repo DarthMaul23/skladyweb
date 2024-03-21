@@ -225,13 +225,13 @@ export interface NewItem {
      * @type {string}
      * @memberof NewItem
      */
-    'name'?: string | null;
+    'description'?: string | null;
     /**
      * 
      * @type {string}
      * @memberof NewItem
      */
-    'description'?: string | null;
+    'paletaOption'?: string | null;
     /**
      * 
      * @type {number}
@@ -243,7 +243,7 @@ export interface NewItem {
      * @type {string}
      * @memberof NewItem
      */
-    'units'?: string | null;
+    'unit'?: string | null;
 }
 /**
  * 

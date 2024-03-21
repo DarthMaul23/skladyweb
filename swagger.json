@@ -964,11 +964,11 @@
             "type": "string",
             "nullable": true
           },
-          "name": {
+          "description": {
             "type": "string",
             "nullable": true
           },
-          "description": {
+          "paletaOption": {
             "type": "string",
             "nullable": true
           },
@@ -976,7 +976,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "units": {
+          "unit": {
             "type": "string",
             "nullable": true
           }

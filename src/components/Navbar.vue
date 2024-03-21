@@ -20,6 +20,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { NButton } from "naive-ui";
+import { store } from "../store/store";
 
 const router = useRouter();
 const emit = defineEmits(["toggle-sidebar"]);
