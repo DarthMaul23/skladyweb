@@ -18,44 +18,57 @@
         <n-button @click="prepareOfferDetails(row)">Details</n-button>
       </template>
     </n-data-table>
-
     <custom-modal
-  :show="isModalVisible"
-  :title="modalTitle"
-  :header-bg-color="'green'"
-  :modal-width="'1200px'"
-  :modal-height="'auto'"
-  @update:show="isModalVisible = $event"
->
-  <template #body>
-    <div v-if="showDetailModal">
-      <!-- Displaying offer details -->
-      <div class="offer-details">
-        <p><strong>ID:</strong> {{ selectedOfferDetails.id }}</p>
-        <p><strong>Title:</strong> {{ selectedOfferDetails.title }}</p>
-        <p><strong>Description:</strong> {{ selectedOfferDetails.description }}</p>
-        <p><strong>Date Created:</strong> {{ selectedOfferDetails.dateCreated }}</p>
-        <p><strong>User ID:</strong> {{ selectedOfferDetails.userId }}</p>
-        <!-- Add more fields as necessary -->
-      </div>
-      
-      <!-- If your offer has associated items, display them in a table or list -->
-      <div v-if="selectedOfferDetails.items && selectedOfferDetails.items.length">
-        <h3>Items:</h3>
-        <ul>
-          <li v-for="(item, index) in selectedOfferDetails.items" :key="index">
-            {{ item.name }} - {{ item.description }}: {{ item.quantity }} {{ item.unit }}
-          </li>
-        </ul>
+      :show="isModalVisible"
+      :title="selectedOfferDetails.offerGroupTitle"
+      :header-bg-color="'green'"
+      :modal-width="'1200px'"
+      :modal-height="'auto'"
+      @update:show="isModalVisible = $event"
+    ><template #body>
+  <div v-if="showDetailModal" class="modal-content">
+    <!-- Displaying offer details -->
+    <div class="offer-details">
+      <p class="detail-item"><strong>Vytvořeno organizací:</strong> <span class="chip">{{ selectedOfferDetails.organization.name }}</span></p>
+      <p class="detail-item"><strong>Vytvořeno dne:</strong> {{ selectedOfferDetails.createdOn }}</p>
+      <p class="detail-item"><strong>Platné do:</strong> {{ selectedOfferDetails.validUntil }}</p>
+      <p class="detail-item"><strong>Popis:</strong> {{ selectedOfferDetails.offerDescritpion }}</p>
+      <p class="detail-item"><strong>Počet palet v nabídce:</strong> {{ selectedOfferDetails.items.length }}</p>
+      <!-- Add more fields as necessary -->
+    </div>
+    <div class="modal-header-buttons">
+      <n-button class="order-button" @click="placeOrder" type="success">
+        <span class="material-icons">shopping_cart</span>
+        Objednat
+      </n-button>
+      <n-button class="reject-button" @click="rejectOffer" type="error">
+        <span class="material-icons">delete</span>
+        Odmítnout
+      </n-button>
+    </div>
+
+    <!-- Scrollable list of items associated with the offer -->
+    <div v-if="selectedOfferDetails.items && selectedOfferDetails.items.length" class="offer-items">
+      <h3><span class="material-icons item-icon">inventory_2</span>Položky v nabídce:</h3>
+      <div class="items-container">
+        <div class="item-card" v-for="(item, index) in selectedOfferDetails.items" :key="index">
+          <div class="card-header">
+              <span class="material-icons item-icon">inventory_2</span>
+              <h4>{{ item.name }}</h4>
+            </div>
+            <div class="card-body">
+              <p><strong>Popis:</strong> {{ item.description }}</p>
+              <p><strong>Množství:</strong> {{ item.quantity }} {{ item.unit }}</p>
+            </div>
+          </div>
       </div>
     </div>
-  </template>
-  <template #footer>
-    <n-button @click="closeModal" class="modal-close-button">Close</n-button>
-  </template>
-</custom-modal>
-
-
+  </div>
+</template>
+<template #footer>
+  <n-button @click="closeModal" class="modal-close-button">Zavřít</n-button>
+</template>
+    </custom-modal>
   </main>
 </template>
 
@@ -144,12 +157,11 @@ export default {
     };
 
     const prepareOfferDetails = async (offer) => {
-
       console.log(offer);
       // Set the selected offer details to be displayed in the modal
       const token = localStorage.getItem("authToken");
 
-      const data = await offerApi.offerIdGet(offer.id, {
+      const data = await offerApi.offerOfferDetailIdGet(offer.id, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log(data.data);
@@ -195,7 +207,113 @@ export default {
   },
 };
 </script>
-
 <style scoped>
-/* Your CSS styles here */
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.offer-details {
+  background-color: #f0fdf4; /* Light green background */
+  border-left: 5px solid #4CAF50; /* Green accent border */
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 8px; /* Rounded corners for a modern look */
+}
+
+.detail-item {
+  margin-bottom: 12px; /* Space between details for clarity */
+  color: #333; /* Dark color for better readability */
+  line-height: 1.6; /* Spacing between lines */
+}
+
+.detail-item strong {
+  color: green; /* Slightly darker green for emphasis */
+}
+
+.modal-header-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.order-button, .reject-button {
+  flex-basis: 48%; /* Adjust based on design */
+}
+
+.offer-items {
+  margin-bottom: -30px;
+}
+
+.offer-items h3{
+  background-color: green;
+  color:white;
+  padding: 5px;
+}
+
+h3 .material-icons {
+  vertical-align: middle; /* Align the icon with the middle of the text */
+  margin-right: 8px; /* Space between the icon and the text */
+}
+
+.items-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 300px; /* Adjust based on your requirement */
+  overflow-y: auto; /* Enables vertical scrolling */
+  padding-right: 10px; /* Optional: for better scrollbar visibility */
+}
+
+.item-card {
+  background-color: #ffffff;
+  border: 2px solid #e8f5e9; /* Light green border */
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  overflow: hidden; /* Ensures the child elements do not overflow */
+}
+
+.card-header {
+  background-color: green; /* Green background */
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.item-icon {
+  margin-right: 10px;
+}
+
+.card-body {
+  padding: 20px;
+  background-color: #f9f9f9; /* Lighter shade for the body */
+}
+
+.card-body p {
+  margin: 10px 0; /* Spacing between paragraphs */
+}
+
+.card-body strong {
+  color: green; /* Green text for labels */
+}
+
+.modal-close-button {
+  background-color: red;
+  color: white;
+}
+
+.chip {
+  display: inline-block;
+  padding: 4px 18px; /* Adjust the padding to change the size */
+  background-color: green; /* Green background */
+  color: white; /* White text */
+  border-radius: 16px; /* Rounded corners for chip shape */
+  font-size: 14px; /* Font size, adjust as needed */
+  font-weight: bold; /* Font weight, adjust for boldness */
+  margin: 0 5px; /* Margin for spacing if you have multiple chips */
+}
 </style>

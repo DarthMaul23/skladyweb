@@ -422,6 +422,30 @@
         }
       }
     },
+    "/Offer/OfferDetail/{id}": {
+      "get": {
+        "tags": [
+          "Offer"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Offer/OrganizationOffers": {
       "get": {
         "tags": [
