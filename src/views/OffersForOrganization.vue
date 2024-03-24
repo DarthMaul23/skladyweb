@@ -37,7 +37,7 @@
       <!-- Add more fields as necessary -->
     </div>
     <div class="modal-header-buttons">
-      <n-button class="order-button" @click="placeOrder" type="success">
+      <n-button class="order-button" @click="placeOrder(selectedOfferDetails)" type="success">
         <span class="material-icons">shopping_cart</span>
         Objednat
       </n-button>
@@ -77,6 +77,7 @@ import CustomModal from "../components/CustomModal.vue";
 import { ref, computed, onMounted, h } from "vue";
 import { NButton, NInput, NDataTable, NFormItem, NForm } from "naive-ui";
 import { OfferApi } from "../api/openapi/api";
+import { OrderApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
@@ -90,6 +91,7 @@ export default {
   },
   setup() {
     const offerApi = new OfferApi(getDefaultApiConfig());
+    const orderApi = new OrderApi(getDefaultApiConfig());
     const filters = ref({ searchQuery: "" });
     const offers = ref([]);
     const isModalVisible = ref(false);
@@ -184,6 +186,26 @@ export default {
       isModalVisible.value = true;
     };
 
+    const placeOrder = async (offer) => {
+      console.log(offer);
+      // Set the selected offer details to be displayed in the modal
+      const token = localStorage.getItem("authToken");
+
+      const data = await orderApi.orderPost(offer.id, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(data.data);
+      selectedOfferDetails.value = data.data; // Store the selected offer details
+      // Update the modal title to reflect that this is about viewing offer details
+      modalTitle.value = `Detail nabídky: ${offer.title}`;
+
+      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
+      showDetailModal.value = true;
+
+      // Finally, making the modal visible
+      isModalVisible.value = true;
+    };
+
     return {
       filters,
       offers,
@@ -199,6 +221,7 @@ export default {
       closeModal,
       prepareOfferDetails,
       formatDate,
+      placeOrder,
       columns: [
         { title: "Offer Group", key: "offerGroupTitle" },
         { title: "Offer Title", key: "title" },

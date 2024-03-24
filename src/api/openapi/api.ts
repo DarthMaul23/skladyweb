@@ -63,56 +63,6 @@ export interface Category {
 /**
  * 
  * @export
- * @interface CreateOrderItemModel
- */
-export interface CreateOrderItemModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateOrderItemModel
-     */
-    'itemId'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateOrderItemModel
-     */
-    'quantity'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateOrderItemModel
-     */
-    'unitType'?: string | null;
-}
-/**
- * 
- * @export
- * @interface CreateOrderModel
- */
-export interface CreateOrderModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateOrderModel
-     */
-    'note'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateOrderModel
-     */
-    'customerId'?: string;
-    /**
-     * 
-     * @type {Array<CreateOrderItemModel>}
-     * @memberof CreateOrderModel
-     */
-    'items'?: Array<CreateOrderItemModel> | null;
-}
-/**
- * 
- * @export
  * @interface Item
  */
 export interface Item {
@@ -521,13 +471,13 @@ export interface Order {
      * @type {string}
      * @memberof Order
      */
-    'customerId'?: string;
+    'organizationId'?: string;
     /**
      * 
      * @type {Organization}
      * @memberof Order
      */
-    'customer'?: Organization;
+    'organization'?: Organization;
     /**
      * 
      * @type {Array<OrderItem>}
@@ -1946,11 +1896,11 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {CreateOrderModel} [createOrderModel] 
+         * @param {string} [offerId] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        orderPost: async (createOrderModel?: CreateOrderModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        orderPost: async (offerId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Order`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1966,14 +1916,15 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
             // authentication Bearer required
             await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
 
+            if (offerId !== undefined) {
+                localVarQueryParameter['offerId'] = offerId;
+            }
+
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createOrderModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2040,12 +1991,12 @@ export const OrderApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {CreateOrderModel} [createOrderModel] 
+         * @param {string} [offerId] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async orderPost(createOrderModel?: CreateOrderModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateOrderModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.orderPost(createOrderModel, options);
+        async orderPost(offerId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderPost(offerId, options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['OrderApi.orderPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
@@ -2098,12 +2049,12 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
         },
         /**
          * 
-         * @param {CreateOrderModel} [createOrderModel] 
+         * @param {string} [offerId] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        orderPost(createOrderModel?: CreateOrderModel, options?: any): AxiosPromise<CreateOrderModel> {
-            return localVarFp.orderPost(createOrderModel, options).then((request) => request(axios, basePath));
+        orderPost(offerId?: string, options?: any): AxiosPromise<void> {
+            return localVarFp.orderPost(offerId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2161,13 +2112,13 @@ export class OrderApi extends BaseAPI {
 
     /**
      * 
-     * @param {CreateOrderModel} [createOrderModel] 
+     * @param {string} [offerId] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OrderApi
      */
-    public orderPost(createOrderModel?: CreateOrderModel, options?: RawAxiosRequestConfig) {
-        return OrderApiFp(this.configuration).orderPost(createOrderModel, options).then((request) => request(this.axios, this.basePath));
+    public orderPost(offerId?: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderPost(offerId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

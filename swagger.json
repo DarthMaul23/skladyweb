@@ -487,45 +487,20 @@
         "tags": [
           "Order"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrderModel"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrderModel"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrderModel"
-              }
+        "parameters": [
+          {
+            "name": "offerId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOrderModel"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOrderModel"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOrderModel"
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       },
@@ -877,45 +852,6 @@
         },
         "additionalProperties": false
       },
-      "CreateOrderItemModel": {
-        "type": "object",
-        "properties": {
-          "itemId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "quantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unitType": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateOrderModel": {
-        "type": "object",
-        "properties": {
-          "note": {
-            "type": "string",
-            "nullable": true
-          },
-          "customerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateOrderItemModel"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "Item": {
         "type": "object",
         "properties": {
@@ -1203,11 +1139,11 @@
             "type": "string",
             "nullable": true
           },
-          "customerId": {
+          "organizationId": {
             "type": "string",
             "format": "uuid"
           },
-          "customer": {
+          "organization": {
             "$ref": "#/components/schemas/Organization"
           },
           "items": {
