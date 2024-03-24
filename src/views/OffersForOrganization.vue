@@ -30,8 +30,8 @@
     <!-- Displaying offer details -->
     <div class="offer-details">
       <p class="detail-item"><strong>Vytvořeno organizací:</strong> <span class="chip">{{ selectedOfferDetails.organization.name }}</span></p>
-      <p class="detail-item"><strong>Vytvořeno dne:</strong> {{ selectedOfferDetails.createdOn }}</p>
-      <p class="detail-item"><strong>Platné do:</strong> {{ selectedOfferDetails.validUntil }}</p>
+      <p class="detail-item"><strong>Vytvořeno dne:</strong> <span class="chip">{{ formatDate(selectedOfferDetails.createdOn) }}</span></p>
+      <p class="detail-item"><strong>Platné do:</strong> <span class="chip">{{ formatDate(selectedOfferDetails.validUntil) }}</span></p>
       <p class="detail-item"><strong>Popis:</strong> {{ selectedOfferDetails.offerDescritpion }}</p>
       <p class="detail-item"><strong>Počet palet v nabídce:</strong> {{ selectedOfferDetails.items.length }}</p>
       <!-- Add more fields as necessary -->
@@ -136,6 +136,14 @@ export default {
       }
     };
 
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // +1 because months are zero-indexed
+      const year = date.getFullYear();
+      return `${day}. ${month}. ${year}`;
+    };
+
     onMounted(loadOffers);
 
     const showAddOfferModal = () => {
@@ -190,6 +198,7 @@ export default {
       addOffer,
       closeModal,
       prepareOfferDetails,
+      formatDate,
       columns: [
         { title: "Offer Group", key: "offerGroupTitle" },
         { title: "Offer Title", key: "title" },
