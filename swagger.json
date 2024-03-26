@@ -503,42 +503,6 @@
             "description": "Success"
           }
         }
-      },
-      "get": {
-        "tags": [
-          "Order"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Order"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Order"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Order"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/Order/{id}": {
@@ -638,6 +602,38 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Order/OrganizationOrders": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
                 }
               }
             }
@@ -1139,7 +1135,7 @@
             "type": "string",
             "format": "date-time"
           },
-          "note": {
+          "key": {
             "type": "string",
             "nullable": true
           },
