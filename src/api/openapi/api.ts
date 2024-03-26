@@ -459,6 +459,12 @@ export interface Order {
      * @type {string}
      * @memberof Order
      */
+    'offerId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Order
+     */
     'createdOn'?: string;
     /**
      * 

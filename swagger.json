@@ -1131,6 +1131,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "createdOn": {
             "type": "string",
             "format": "date-time"

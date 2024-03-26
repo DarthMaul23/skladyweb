@@ -50,7 +50,6 @@
 	  </n-dialog>
 	</main>
   </template>
-  
   <script>
   export default {
 	data() {
