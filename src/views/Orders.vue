@@ -28,6 +28,34 @@
             <p class="detail-item"><strong>Vytvořeno dne:</strong> <span class="chip">{{ formatDate(selectedOrderDetails.createdOn) }}</span></p>
             <!-- Add more fields as necessary -->
           </div>
+		  <n-timeline>
+    <n-timeline-item content="Oops" />
+    <n-timeline-item
+      type="success"
+      title="Success"
+      content="success content"
+      time="2018-04-03 20:46"
+    />
+    <n-timeline-item
+      type="error"
+      content="Error content"
+      time="2018-04-03 20:46"
+    />
+    <n-timeline-item
+      type="warning"
+      title="Warning"
+      content="warning content"
+      time="2018-04-03 20:46"
+    />
+    <n-timeline-item
+      type="info"
+      title="Info"
+      content="info content"
+      time="2018-04-03 20:46"
+      line-type="dashed"
+    />
+    <n-timeline-item content="Oops" />
+  </n-timeline>
 		  <OrderTimeline />
 		  <h1>TEST TEXT</h1>
           <!-- Any additional modal content can go here --> 

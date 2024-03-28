@@ -670,6 +670,83 @@
         }
       }
     },
+    "/Organization/GetAllOrganizations": {
+      "get": {
+        "tags": [
+          "Organization"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Organization/CreateOrganization": {
+      "post": {
+        "tags": [
+          "Organization"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewOrganization"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewOrganization"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewOrganization"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/User/{id}": {
       "get": {
         "tags": [
@@ -976,6 +1053,20 @@
             "items": {
               "$ref": "#/components/schemas/OfferItemModel"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewOrganization": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
             "nullable": true
           }
         },

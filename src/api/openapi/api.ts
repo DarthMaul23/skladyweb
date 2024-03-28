@@ -248,6 +248,25 @@ export interface NewOfferOrganizationsModel {
 /**
  * 
  * @export
+ * @interface NewOrganization
+ */
+export interface NewOrganization {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewOrganization
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewOrganization
+     */
+    'location'?: string | null;
+}
+/**
+ * 
+ * @export
  * @interface NewWarehouseModel
  */
 export interface NewWarehouseModel {
@@ -2138,6 +2157,74 @@ export const OrganizationApiAxiosParamCreator = function (configuration?: Config
     return {
         /**
          * 
+         * @param {NewOrganization} [newOrganization] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationCreateOrganizationPost: async (newOrganization?: NewOrganization, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Organization/CreateOrganization`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(newOrganization, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationGetAllOrganizationsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Organization/GetAllOrganizations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2180,6 +2267,29 @@ export const OrganizationApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {NewOrganization} [newOrganization] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async organizationCreateOrganizationPost(newOrganization?: NewOrganization, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.organizationCreateOrganizationPost(newOrganization, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OrganizationApi.organizationCreateOrganizationPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async organizationGetAllOrganizationsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.organizationGetAllOrganizationsGet(options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OrganizationApi.organizationGetAllOrganizationsGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2201,6 +2311,23 @@ export const OrganizationApiFactory = function (configuration?: Configuration, b
     return {
         /**
          * 
+         * @param {NewOrganization} [newOrganization] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationCreateOrganizationPost(newOrganization?: NewOrganization, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.organizationCreateOrganizationPost(newOrganization, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        organizationGetAllOrganizationsGet(options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.organizationGetAllOrganizationsGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2217,6 +2344,27 @@ export const OrganizationApiFactory = function (configuration?: Configuration, b
  * @extends {BaseAPI}
  */
 export class OrganizationApi extends BaseAPI {
+    /**
+     * 
+     * @param {NewOrganization} [newOrganization] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrganizationApi
+     */
+    public organizationCreateOrganizationPost(newOrganization?: NewOrganization, options?: RawAxiosRequestConfig) {
+        return OrganizationApiFp(this.configuration).organizationCreateOrganizationPost(newOrganization, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrganizationApi
+     */
+    public organizationGetAllOrganizationsGet(options?: RawAxiosRequestConfig) {
+        return OrganizationApiFp(this.configuration).organizationGetAllOrganizationsGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {*} [options] Override http request option.

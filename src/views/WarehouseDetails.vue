@@ -1092,8 +1092,8 @@ export default {
 }
 
 .selected-organizations {
-  height: 65vh;
-  max-height: 80vh;
+  height: 45vh;
+  max-height: 45vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
