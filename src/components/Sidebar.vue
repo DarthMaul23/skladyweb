@@ -29,7 +29,7 @@
         <span class="material-icons">house</span>
         <span v-if="isExpanded" class="text">Organizace</span>
       </router-link>
-      <router-link to="/team" class="button">
+      <router-link to="/users" class="button">
         <span class="material-icons">group</span>
         <span v-if="isExpanded" class="text">Uživatelé</span>
       </router-link>
