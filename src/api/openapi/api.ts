@@ -300,6 +300,12 @@ export interface NewUser {
      * @memberof NewUser
      */
     'rightId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewUser
+     */
+    'organizationId': string;
 }
 /**
  * 

@@ -3,7 +3,7 @@
     <div class="filter-container">
       <n-input
         v-model:value="filters.searchQuery"
-        placeholder="Nabídka, popis...."
+        placeholder="E-mail, Jméno, Příjmení, Organizace, Oprávnění ..."
         @update:value="filterUsers"
         class="filter-input"
       />
@@ -27,37 +27,55 @@
     >
       <template #body>
         <div v-if="showAddModal">
-          <n-form @submit.prevent="addUser">
-            <n-form-item label="E-mail">
-              <n-input v-model="newUser.email" placeholder="Enter user email" />
-            </n-form-item>
-            <n-form-item label="Password">
-              <n-input
-                v-model="newUser.password"
-                placeholder="Enter password"
-                type="password"
-              />
-            </n-form-item>
-            <n-form-item label="First Name">
-              <n-input
-                v-model="newUser.firstName"
-                placeholder="Enter first name"
-              />
-            </n-form-item>
-            <n-form-item label="Last Name">
-              <n-input
-                v-model="newUser.lastName"
-                placeholder="Enter last name"
-              />
-            </n-form-item>
-            <n-form-item label="Right ID">
-              <n-input v-model="newUser.rightId" placeholder="Enter right ID" />
-            </n-form-item>
-            <n-button type="submit" class="modal-add-button">Vytvořit Uživatele</n-button>
-          </n-form>
+          <n-form-item label="E-mail">
+            <n-input
+              v-model:value="newUser.email"
+              placeholder="Zadejte e-mail uživatele"
+            />
+          </n-form-item>
+          <n-form-item label="Heslo">
+            <n-input
+              v-model:value="newUser.password"
+              placeholder="Zadejte heslo"
+              type="password"
+            />
+          </n-form-item>
+          <n-form-item label="Jméno">
+            <n-input
+              v-model:value="newUser.firstName"
+              placeholder="Zadejte křestní jméno"
+            />
+          </n-form-item>
+          <n-form-item label="Příjmení">
+            <n-input
+              v-model:value="newUser.lastName"
+              placeholder="Zadejte příjmení"
+            />
+          </n-form-item>
+          <n-form-item label="Oprávnění">
+            <n-select
+              v-model:value="newUser.rightId"
+              :options="rightsOptions"
+              placeholder="Vyberte oprávnění"
+            />
+          </n-form-item>
+          <n-form-item label="Organizace">
+            <n-select
+              v-model:value="newUser.organizationId"
+              :options="organizationsOptions"
+              placeholder="Vyberte organizaci"
+            />
+          </n-form-item>
         </div>
         <div v-if="showDetailModal">
-          <p><strong>ID:</strong> {{ selectedUserDetails.UserGroup.id }}</p>
+          <n-space v-if="loadingDetails" vertical>
+            <n-skeleton height="40px" width="33%" />
+            <n-skeleton height="40px" width="66%" :sharp="false" />
+            <n-skeleton height="40px" round />
+            <n-skeleton height="40px" circle />
+          </n-space>
+          <!--
+            <p><strong>ID:</strong> {{ selectedUserDetails.UserGroup.id }}</p>
           <p><strong>Title:</strong> {{ selectedUserDetails.title }}</p>
           <p>
             <strong>Description:</strong> {{ selectedUserDetails.description }}
@@ -78,6 +96,7 @@
               class="item-table"
             ></n-data-table>
           </div>
+          -->
         </div>
       </template>
       <template #footer>
@@ -95,7 +114,16 @@
 <script>
 import CustomModal from "../components/CustomModal.vue";
 import { ref, computed, onMounted, h } from "vue";
-import { NButton, NInput, NDataTable, NFormItem, NForm } from "naive-ui";
+import {
+  NButton,
+  NInput,
+  NDataTable,
+  NFormItem,
+  NForm,
+  NSelect,
+  NSpace,
+  NSkeleton,
+} from "naive-ui";
 import { UserApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
@@ -107,6 +135,9 @@ export default {
     NDataTable,
     NFormItem,
     NForm,
+    NSelect,
+    NSpace,
+    NSkeleton,
   },
   setup() {
     const userApi = new UserApi(getDefaultApiConfig());
@@ -115,6 +146,7 @@ export default {
     const modalTitle = ref("");
     const showAddModal = ref(false);
     const showDetailModal = ref(false);
+    const loadingDetails = ref(false);
     const selectedUserDetails = ref({});
     const filters = ref({ searchQuery: "" });
     const newUser = ref({
@@ -123,42 +155,71 @@ export default {
       firstName: "",
       lastName: "",
       rightId: "",
+      organizationId: "",
     });
+    const rights = ref([]);
+
+    const rightsOptions = computed(() =>
+      rights.value.map((right) => ({
+        label: right.name,
+        value: right.id,
+      }))
+    );
+
+    const organizations = ref([]);
+    const organizationsOptions = computed(() =>
+      organizations.value.map((right) => ({
+        label: right.name,
+        value: right.id,
+      }))
+    );
 
     // Function to show modal for adding a new user
     const showAddUserModal = () => {
       isModalVisible.value = true;
-      modalTitle.value = "Add New User";
+      modalTitle.value = "Vytvořit nového uživatele";
       showAddModal.value = true;
     };
 
     // Function to hide modal for adding a new user
     const hideAddUserModal = () => {
       isModalVisible.value = false;
-      modalTitle.value = "Add New User";
+      modalTitle.value = "";
       showAddModal.value = false;
     };
 
     // Function to add a new user
     const addUser = async () => {
       try {
-        await userApi.createUser({ ...newUser.value });
-        // Clear form
-        newUser.value = {
-          email: "",
-          password: "",
-          firstName: "",
-          lastName: "",
-          rightId: "",
-        };
-        isModalVisible.value = false;
-        showAddModal.value = false;
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          console.log(newUser.value);
+          await userApi.userCreateNewUserPost(
+            { ...newUser.value },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          // Clear form
+          newUser.value = {
+            email: "",
+            password: "",
+            firstName: "",
+            lastName: "",
+            rightId: "",
+            organizationId: "",
+          };
+
+          loadUsers();
+
+          isModalVisible.value = false;
+          showAddModal.value = false;
+        }
         // Optionally, refresh the list of users
       } catch (error) {
         console.error("Failed to add user:", error);
       }
     };
-
 
     const loadUsers = async () => {
       try {
@@ -172,7 +233,9 @@ export default {
             response.data.result &&
             Array.isArray(response.data.result.users)
           ) {
-            users.value = response.data.result.users; // Use the users array from the response
+            users.value = response.data.result.users;
+            rights.value = response.data.result.rights;
+            organizations.value = response.data.result.organizations;
           } else {
             console.error("Unexpected response format:", response.data);
           }
@@ -202,6 +265,29 @@ export default {
               .includes(filters.value.searchQuery.toLowerCase()))
       );
     });
+
+    const prepareUserDetails = async (user) => {
+      console.log(user);
+      loadingDetails.value = true;
+      console.log(loadingDetails.value);
+      // Set the selected offer details to be displayed in the modal
+      const token = localStorage.getItem("authToken");
+      /*
+      const data = await offerApi.offerIdGet(offer.id, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(data.data);
+      selectedOfferDetails.value = data.data; // Store the selected offer details
+      */
+      // Update the modal title to reflect that this is about viewing offer details
+      modalTitle.value = `Detail uživatele: ${user.firstName} ${user.lastName}`;
+
+      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
+      showDetailModal.value = true;
+
+      // Finally, making the modal visible
+      isModalVisible.value = true;
+    };
 
     const columns = ref([
       {
@@ -236,8 +322,16 @@ export default {
       filteredUsers,
       selectedUserDetails,
       isModalVisible,
+      showAddModal,
+      showDetailModal,
       showAddUserModal,
+      prepareUserDetails,
       hideAddUserModal,
+      addUser,
+      rights,
+      rightsOptions,
+      organizations,
+      organizationsOptions,
       modalTitle,
       newUser,
       columns,
@@ -247,5 +341,29 @@ export default {
 </script>
 
 <style scoped>
-/* Your CSS styles here */
+/* Apply greenish styles for this component */
+.n-input,
+.n-select {
+  --n-border-color: #4caf50; /* Green border */
+  --n-border-focus-color: #67c23a; /* Lighter green for focus */
+}
+
+.n-button {
+  --n-color: #4caf50; /* Green background */
+  --n-text-color: white; /* White text */
+  --n-color-hover: #67c23a; /* Lighter green on hover */
+}
+
+.n-form-item {
+  --n-label-text-color: #4caf50; /* Green labels */
+}
+
+.modal-add-button {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+.modal-close-button {
+  background-color: #f56c6c; /* Red for close button */
+}
 </style>
