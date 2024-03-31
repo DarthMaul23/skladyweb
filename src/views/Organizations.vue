@@ -8,7 +8,7 @@
     >
     <n-data-table
       :columns="columns"
-      :data="organizations"
+      :data="data.organizations"
       class="organizations-table"
     >
       <template v-slot:action="{ row }">
@@ -17,6 +17,10 @@
         >
       </template>
     </n-data-table>
+    <n-pagination
+      v-model:page="pageSettings.Page"
+      :page-count="data.totalPages"
+    />
 
     <custom-modal
       :show="isModal2Visible"
@@ -84,8 +88,8 @@
   <script>
 import CustomModal from "../components/CustomModal.vue";
 import OrderTimeline from "../components/OrderTimeline.vue";
-import { ref, computed, onMounted, h } from "vue";
-import { NButton, NInput, NDataTable } from "naive-ui";
+import { ref, computed, onMounted, h, watch } from "vue";
+import { NButton, NInput, NDataTable, NPagination } from "naive-ui";
 import { OrganizationApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
@@ -96,10 +100,11 @@ export default {
     NInput,
     NDataTable,
     OrderTimeline,
+    NPagination,
   },
   setup() {
     const organizationApi = new OrganizationApi(getDefaultApiConfig()); // Initialize API (add params as needed)
-    const organizations = ref([]);
+    const data = ref([]);
     const isModalVisible = ref(false);
     const isModal2Visible = ref(false);
     const selectedOrderDetails = ref({});
@@ -108,18 +113,26 @@ export default {
       Location: "",
     });
 
+    const pageSettings = ref({
+      Page: 1,
+      NoOfItems: 5,
+    });
+
     const loadOrganizations = async () => {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
           const response =
-            await organizationApi.organizationGetAllOrganizationsGet({
-              headers: { Authorization: `Bearer ${token}` },
-            });
-          organizations.value = response.data.result; // Assuming the response structure matches your endpoint data
+            await organizationApi.organizationGetAllOrganizationsPost(
+              pageSettings.value,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+          data.value = response.data.result; // Assuming the response structure matches your endpoint data
         } catch (error) {
           console.error("Failed to load offers:", error);
-          organizations.value = []; // Reset to initial structure in case of error
+          data.value = []; // Reset to initial structure in case of error
         }
       }
     };
@@ -149,14 +162,24 @@ export default {
 
     onMounted(loadOrganizations);
 
+    watch(
+      () => pageSettings.value.Page,
+      (newPage, oldPage) => {
+        if (newPage !== oldPage) {
+			loadOrganizations();
+        }
+      }
+    );
+
     return {
-      organizations,
+      data,
       newOrganization,
       createNewOrganization,
       isModalVisible,
       isModal2Visible,
       selectedOrderDetails,
       closeModal,
+      pageSettings,
       columns: [
         { title: "Organiazce", key: "name" },
         { title: "Lokalita", key: "location" },

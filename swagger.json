@@ -671,10 +671,29 @@
       }
     },
     "/Organization/GetAllOrganizations": {
-      "get": {
+      "post": {
         "tags": [
           "Organization"
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
@@ -1400,6 +1419,20 @@
               "$ref": "#/components/schemas/Warehouse"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PageSettings": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "noOfItems": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
