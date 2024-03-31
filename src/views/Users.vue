@@ -10,13 +10,25 @@
     </div>
 
     <n-button @click="showAddUserModal">Přidat uživatele</n-button>
-
+    <!--
     <n-data-table :columns="columns" :data="filteredUsers" class="users-table">
       <template v-slot:action="{ row }">
         <n-button @click="prepareUserDetails(row)">Details</n-button>
       </template>
     </n-data-table>
-
+    <n-pagination
+      v-model:page="pageSettings.Page"
+      :page-count="data.totalPages"
+    />
+    -->
+    <CustomTable
+    :data="filteredUsers"
+    :columns="columns"
+    :pagination="pageSettings"
+    :noPages="data.totalPages"
+    @detailClicked="prepareUserDetails"
+    @pageChanged="loadUsers"
+  />
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
@@ -113,7 +125,7 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, onMounted, h } from "vue";
+import { ref, computed, onMounted, h, watch } from "vue";
 import {
   NButton,
   NInput,
@@ -123,13 +135,16 @@ import {
   NSelect,
   NSpace,
   NSkeleton,
+  NPagination,
 } from "naive-ui";
 import { UserApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
+import CustomTable from '../components/CustomTable.vue';
 
 export default {
   components: {
     CustomModal,
+    CustomTable,
     NButton,
     NInput,
     NDataTable,
@@ -138,10 +153,11 @@ export default {
     NSelect,
     NSpace,
     NSkeleton,
+    NPagination,
   },
   setup() {
     const userApi = new UserApi(getDefaultApiConfig());
-    const users = ref([]);
+    const data = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
     const showAddModal = ref(false);
@@ -157,6 +173,12 @@ export default {
       rightId: "",
       organizationId: "",
     });
+
+    const pageSettings = ref({
+      Page: 1,
+      NoOfItems: 2,
+    });
+
     const rights = ref([]);
 
     const rightsOptions = computed(() =>
@@ -225,15 +247,18 @@ export default {
       try {
         const token = localStorage.getItem("authToken");
         if (token) {
-          const response = await userApi.userUsersAndUserCreationDataGet({
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await userApi.userUsersAndUserCreationDataPost(
+            pageSettings.value,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           if (
             response.data &&
             response.data.result &&
             Array.isArray(response.data.result.users)
           ) {
-            users.value = response.data.result.users;
+            data.value = response.data.result;
             rights.value = response.data.result.rights;
             organizations.value = response.data.result.organizations;
           } else {
@@ -248,7 +273,8 @@ export default {
     onMounted(loadUsers);
 
     const filteredUsers = computed(() => {
-      return users.value.filter(
+      return data.value.users;
+      /*.value.filter(
         (user) =>
           user.email
             .toLowerCase()
@@ -263,7 +289,7 @@ export default {
             user.organization.name
               .toLowerCase()
               .includes(filters.value.searchQuery.toLowerCase()))
-      );
+      );*/
     });
 
     const prepareUserDetails = async (user) => {
@@ -289,11 +315,15 @@ export default {
       isModalVisible.value = true;
     };
 
+    const getRowNo = (row) => {
+      return filteredUsers.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+    }
+
     const columns = ref([
       {
         title: "No",
         key: "no",
-        render: (row) => filteredUsers.value.indexOf(row) + 1,
+        render: (row) => getRowNo(row),
       },
       { title: "E-mail", key: "email" },
       { title: "Jméno", key: "firstName" },
@@ -316,9 +346,18 @@ export default {
       },
     ]);
 
+    watch(
+      () => pageSettings.value.Page,
+      (newPage, oldPage) => {
+        if (newPage !== oldPage) {
+          loadUsers();
+        }
+      }
+    );
+
     return {
       filters,
-      users,
+      data,
       filteredUsers,
       selectedUserDetails,
       isModalVisible,
@@ -327,7 +366,9 @@ export default {
       showAddUserModal,
       prepareUserDetails,
       hideAddUserModal,
+      loadUsers,
       addUser,
+      pageSettings,
       rights,
       rightsOptions,
       organizations,

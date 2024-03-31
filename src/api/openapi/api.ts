@@ -2564,10 +2564,11 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userUsersAndUserCreationDataGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        userUsersAndUserCreationDataPost: async (pageSettings?: PageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/User/UsersAndUserCreationData`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2576,7 +2577,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -2585,9 +2586,12 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
 
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(pageSettings, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2642,13 +2646,14 @@ export const UserApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async userUsersAndUserCreationDataGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.userUsersAndUserCreationDataGet(options);
+        async userUsersAndUserCreationDataPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.userUsersAndUserCreationDataPost(pageSettings, options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['UserApi.userUsersAndUserCreationDataGet']?.[index]?.url;
+            const operationBasePath = operationServerMap['UserApi.userUsersAndUserCreationDataPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
     }
@@ -2690,11 +2695,12 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userUsersAndUserCreationDataGet(options?: any): AxiosPromise<void> {
-            return localVarFp.userUsersAndUserCreationDataGet(options).then((request) => request(axios, basePath));
+        userUsersAndUserCreationDataPost(pageSettings?: PageSettings, options?: any): AxiosPromise<void> {
+            return localVarFp.userUsersAndUserCreationDataPost(pageSettings, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2741,12 +2747,13 @@ export class UserApi extends BaseAPI {
 
     /**
      * 
+     * @param {PageSettings} [pageSettings] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UserApi
      */
-    public userUsersAndUserCreationDataGet(options?: RawAxiosRequestConfig) {
-        return UserApiFp(this.configuration).userUsersAndUserCreationDataGet(options).then((request) => request(this.axios, this.basePath));
+    public userUsersAndUserCreationDataPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig) {
+        return UserApiFp(this.configuration).userUsersAndUserCreationDataPost(pageSettings, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
