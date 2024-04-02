@@ -9,7 +9,7 @@
       />
     </div>
 
-    <n-button @click="showAddUserModal">Nová Kategorie</n-button>
+    <n-button @click="showAddUserModal">Nová Podkategorie</n-button>
     <!--
     <n-data-table :columns="columns" :data="filteredUsers" class="users-table">
       <template v-slot:action="{ row }">
@@ -22,12 +22,12 @@
     />
     -->
     <CustomTable
-    :data="filteredCategories"
+    :data="filteredSubcategories"
     :columns="columns"
     :pagination="pageSettings"
     :noPages="totalPages"
-    @detailClicked="prepareCategoryDetails"
-    @pageChanged="loadCategories"
+    @detailClicked="prepareSubcategoryDetails"
+    @pageChanged="loadSubcategories"
   />
     <custom-modal
       :show="isModalVisible"
@@ -39,22 +39,22 @@
     >
       <template #body>
         <div v-if="showAddModal">
-          <n-form-item label="Kód Kategorie">
+          <n-form-item label="Kód Podkategorie">
             <n-input
-              v-model:value="newCategory.key"
-              placeholder="Zadejte e-mail uživatele"
+              v-model:value="newSubcategory.key"
+              placeholder="Zadejte Kód Podkategorie"
             />
           </n-form-item>
-          <n-form-item label="Název Kategorie">
+          <n-form-item label="Název Podkategorie">
             <n-input
-              v-model:value="newCategory.name"
-              placeholder="Zadejte e-mail uživatele"
+              v-model:value="newSubcategory.name"
+              placeholder="Zadejte Název Podkategorie"
             />
           </n-form-item>
-          <n-form-item label="Popis">
+          <n-form-item label="Popis Podkategorie">
             <n-input
-              v-model:value="newCategory.description"
-              placeholder="Zadejte e-mail uživatele"
+              v-model:value="newSubcategory.description"
+              placeholder="Zadejte Popis Podkategorie"
             />
           </n-form-item>
         </div>
@@ -94,8 +94,8 @@
         <n-button @click="hideAddUserModal" class="modal-close-button"
           >Zařít</n-button
         >
-        <n-button v-if="showAddModal" @click="addCategory" class="modal-add-button"
-          >Vtyvořit Kategorii</n-button
+        <n-button v-if="showAddModal" @click="addSubcategory" class="modal-add-button"
+          >Vtyvořit Podkategorii</n-button
         >
       </template>
     </custom-modal>
@@ -144,7 +144,7 @@ export default {
     const loadingDetails = ref(false);
     const selectedUserDetails = ref({});
     const filters = ref({ searchQuery: "" });
-    const newCategory = ref({
+    const newSubcategory = ref({
       key: "",
       name: "",
       description: "",
@@ -172,25 +172,25 @@ export default {
     };
 
     // Function to add a new user
-    const addCategory = async () => {
+    const addSubcategory = async () => {
       try {
         const token = localStorage.getItem("authToken");
         if (token) {
-          console.log(newCategory.value);
-          await categoryApi.categoryCreateCategoryPost(
-            { ...newCategory.value },
+          console.log(newSubcategory.value);
+          await categoryApi.categoryCreateSubcategoryPost(
+            { ...newSubcategory.value },
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
           // Clear form
-          newCategory.value = {
+          newSubcategory.value = {
             key: "",
             name: "",
             description: "",
           };
 
-          loadCategories();
+          loadSubcategories();
 
           isModalVisible.value = false;
           showAddModal.value = false;
@@ -201,11 +201,11 @@ export default {
       }
     };
 
-    const loadCategories = async () => {
+    const loadSubcategories = async () => {
       try {
         const token = localStorage.getItem("authToken");
         if (token) {
-          const response = await categoryApi.categoryGetCategoriesPost(
+          const response = await categoryApi.categoryGetSubcategoriesPost(
             pageSettings.value,
             {
               headers: { Authorization: `Bearer ${token}` },
@@ -217,6 +217,7 @@ export default {
             Array.isArray(response.data.result.data)
           ) {
             data.value = response.data.result.data;
+            console.log(data.value);
             totalPages.value = response.data.result.totalPages;
           } else {
             console.error("Unexpected response format:", response.data);
@@ -227,9 +228,9 @@ export default {
       }
     };
 
-    onMounted(loadCategories);
+    onMounted(loadSubcategories);
 
-    const filteredCategories = computed(() => {
+    const filteredSubcategories = computed(() => {
       return data.value;
       /*.value.filter(
         (user) =>
@@ -249,7 +250,7 @@ export default {
       );*/
     });
 
-    const prepareCategoryDetails = async (user) => {
+    const prepareSubcategoryDetails = async (user) => {
       console.log(user);
       loadingDetails.value = true;
       console.log(loadingDetails.value);
@@ -273,7 +274,7 @@ export default {
     };
 
     const getRowNo = (row) => {
-      const rowNo = filteredCategories.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      const rowNo = filteredSubcategories.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
       console.log(rowNo.value);
       return rowNo.value;
     }
@@ -284,14 +285,14 @@ export default {
         key: "no",
         render: (row) => getRowNo(row),
       },
-      { title: "Kategorie", key: "key" },
+      { title: "Podkategorie", key: "key" },
       { title: "Název", key: "name" },
       { title: "Popis", key: "description" },
       {
         title: "Detail",
         key: "action",
         render: (row) =>
-          h(NButton, { onClick: () => prepareCategoryDetails(row) }, "Detail"),
+          h(NButton, { onClick: () => prepareSubcategoryDetails(row) }, "Detail"),
       },
     ]);
 
@@ -299,7 +300,7 @@ export default {
       () => pageSettings.value.Page,
       (newPage, oldPage) => {
         if (newPage !== oldPage) {
-          loadCategories();
+          loadSubcategories();
         }
       }
     );
@@ -307,20 +308,20 @@ export default {
     return {
       filters,
       data,
-      filteredCategories,
+      filteredSubcategories,
       selectedUserDetails,
       isModalVisible,
       showAddModal,
       showDetailModal,
       showAddUserModal,
-      prepareCategoryDetails,
+      prepareSubcategoryDetails,
       hideAddUserModal,
-      loadCategories,
-      addCategory,
+      loadSubcategories,
+      addSubcategory,
       pageSettings,
       totalPages,
       modalTitle,
-      newCategory,
+      newSubcategory,
       columns,
     };
   },

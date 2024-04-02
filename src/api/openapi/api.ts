@@ -40,25 +40,43 @@ export interface Category {
      * @type {string}
      * @memberof Category
      */
-    'name'?: string | null;
+    'key': string;
     /**
      * 
      * @type {string}
      * @memberof Category
      */
-    'description'?: string | null;
+    'name': string;
     /**
      * 
      * @type {string}
      * @memberof Category
      */
-    'createdBy'?: string;
+    'description': string;
     /**
      * 
-     * @type {number}
+     * @type {boolean}
      * @memberof Category
      */
-    'isDeleted'?: number;
+    'isDeleted': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof Category
+     */
+    'createdBy': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Category
+     */
+    'createdOn': string;
+    /**
+     * 
+     * @type {Array<SubcategoryForCategory>}
+     * @memberof Category
+     */
+    'subcategoryForCategories'?: Array<SubcategoryForCategory> | null;
 }
 /**
  * 
@@ -113,7 +131,7 @@ export interface Item {
      * @type {string}
      * @memberof Item
      */
-    'units'?: string | null;
+    'unit'?: string | null;
     /**
      * 
      * @type {Category}
@@ -155,6 +173,31 @@ export interface LoginModel {
 /**
  * 
  * @export
+ * @interface NewCategory
+ */
+export interface NewCategory {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewCategory
+     */
+    'key'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewCategory
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewCategory
+     */
+    'description'?: string | null;
+}
+/**
+ * 
+ * @export
  * @interface NewItem
  */
 export interface NewItem {
@@ -163,13 +206,13 @@ export interface NewItem {
      * @type {string}
      * @memberof NewItem
      */
-    'categoryName'?: string | null;
+    'categoryId'?: string;
     /**
      * 
      * @type {string}
      * @memberof NewItem
      */
-    'subcategoryName'?: string | null;
+    'subcategoryId'?: string;
     /**
      * 
      * @type {string}
@@ -263,6 +306,37 @@ export interface NewOrganization {
      * @memberof NewOrganization
      */
     'location'?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface NewSubcategory
+ */
+export interface NewSubcategory {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof NewSubcategory
+     */
+    'categories'?: Array<string> | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewSubcategory
+     */
+    'key'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewSubcategory
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewSubcategory
+     */
+    'description'?: string | null;
 }
 /**
  * 
@@ -700,25 +774,74 @@ export interface Subcategory {
      * @type {string}
      * @memberof Subcategory
      */
+    'key': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subcategory
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subcategory
+     */
+    'description': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Subcategory
+     */
+    'isDeleted': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subcategory
+     */
+    'createdBy': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subcategory
+     */
+    'createdOn': string;
+    /**
+     * 
+     * @type {Array<SubcategoryForCategory>}
+     * @memberof Subcategory
+     */
+    'subcategoryForCategories'?: Array<SubcategoryForCategory> | null;
+}
+/**
+ * 
+ * @export
+ * @interface SubcategoryForCategory
+ */
+export interface SubcategoryForCategory {
+    /**
+     * 
+     * @type {string}
+     * @memberof SubcategoryForCategory
+     */
     'categoryId'?: string;
     /**
      * 
      * @type {string}
-     * @memberof Subcategory
+     * @memberof SubcategoryForCategory
      */
-    'name'?: string | null;
+    'subcategoryId'?: string;
     /**
      * 
-     * @type {string}
-     * @memberof Subcategory
+     * @type {Category}
+     * @memberof SubcategoryForCategory
      */
-    'createdBy'?: string;
+    'category'?: Category;
     /**
      * 
-     * @type {number}
-     * @memberof Subcategory
+     * @type {Subcategory}
+     * @memberof SubcategoryForCategory
      */
-    'isDeleted'?: number;
+    'subcategory'?: Subcategory;
 }
 /**
  * 
@@ -821,6 +944,514 @@ export interface WarehouseModel {
 }
 
 /**
+ * CategoryApi - axios parameter creator
+ * @export
+ */
+export const CategoryApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {NewCategory} [newCategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryCreateCategoryPost: async (newCategory?: NewCategory, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/CreateCategory`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(newCategory, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {NewSubcategory} [newSubcategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryCreateSubcategoryPost: async (newSubcategory?: NewSubcategory, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/CreateSubcategory`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(newSubcategory, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoriesAndSubcategoriesGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/GetCategoriesAndSubcategories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoriesPost: async (pageSettings?: PageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/GetCategories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(pageSettings, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} categoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoryDetailCategoryIdGet: async (categoryId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'categoryId' is not null or undefined
+            assertParamExists('categoryGetCategoryDetailCategoryIdGet', 'categoryId', categoryId)
+            const localVarPath = `/Category/GetCategoryDetail/{categoryId}`
+                .replace(`{${"categoryId"}}`, encodeURIComponent(String(categoryId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoriesPost: async (pageSettings?: PageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/GetSubcategories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(pageSettings, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} subcategoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoryDetailSubcategoryIdGet: async (subcategoryId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'subcategoryId' is not null or undefined
+            assertParamExists('categoryGetSubcategoryDetailSubcategoryIdGet', 'subcategoryId', subcategoryId)
+            const localVarPath = `/Category/GetSubcategoryDetail/{subcategoryId}`
+                .replace(`{${"subcategoryId"}}`, encodeURIComponent(String(subcategoryId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CategoryApi - functional programming interface
+ * @export
+ */
+export const CategoryApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CategoryApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {NewCategory} [newCategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryCreateCategoryPost(newCategory?: NewCategory, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryCreateCategoryPost(newCategory, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryCreateCategoryPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {NewSubcategory} [newSubcategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryCreateSubcategoryPost(newSubcategory?: NewSubcategory, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryCreateSubcategoryPost(newSubcategory, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryCreateSubcategoryPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetCategoriesAndSubcategoriesGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetCategoriesAndSubcategoriesGet(options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetCategoriesAndSubcategoriesGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetCategoriesPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetCategoriesPost(pageSettings, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetCategoriesPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} categoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetCategoryDetailCategoryIdGet(categoryId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetCategoryDetailCategoryIdGet(categoryId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetCategoryDetailCategoryIdGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetSubcategoriesPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetSubcategoriesPost(pageSettings, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetSubcategoriesPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} subcategoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetSubcategoryDetailSubcategoryIdGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CategoryApi - factory interface
+ * @export
+ */
+export const CategoryApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CategoryApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {NewCategory} [newCategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryCreateCategoryPost(newCategory?: NewCategory, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryCreateCategoryPost(newCategory, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {NewSubcategory} [newSubcategory] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryCreateSubcategoryPost(newSubcategory?: NewSubcategory, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryCreateSubcategoryPost(newSubcategory, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoriesAndSubcategoriesGet(options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetCategoriesAndSubcategoriesGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoriesPost(pageSettings?: PageSettings, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetCategoriesPost(pageSettings, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} categoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetCategoryDetailCategoryIdGet(categoryId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetCategoryDetailCategoryIdGet(categoryId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {PageSettings} [pageSettings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoriesPost(pageSettings?: PageSettings, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetSubcategoriesPost(pageSettings, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} subcategoryId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * CategoryApi - object-oriented interface
+ * @export
+ * @class CategoryApi
+ * @extends {BaseAPI}
+ */
+export class CategoryApi extends BaseAPI {
+    /**
+     * 
+     * @param {NewCategory} [newCategory] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryCreateCategoryPost(newCategory?: NewCategory, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryCreateCategoryPost(newCategory, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {NewSubcategory} [newSubcategory] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryCreateSubcategoryPost(newSubcategory?: NewSubcategory, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryCreateSubcategoryPost(newSubcategory, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetCategoriesAndSubcategoriesGet(options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetCategoriesAndSubcategoriesGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {PageSettings} [pageSettings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetCategoriesPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetCategoriesPost(pageSettings, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} categoryId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetCategoryDetailCategoryIdGet(categoryId: string, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetCategoryDetailCategoryIdGet(categoryId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {PageSettings} [pageSettings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetSubcategoriesPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetSubcategoriesPost(pageSettings, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} subcategoryId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId: string, options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetSubcategoryDetailSubcategoryIdGet(subcategoryId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * ItemApi - axios parameter creator
  * @export
  */
@@ -872,8 +1503,8 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemGetOrganizationCategoriesAndSubCategoriesPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Item/GetOrganizationCategoriesAndSubCategories`;
+        itemGetCategoriesAndSubcategoriesPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Item/GetCategoriesAndSubcategories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1009,10 +1640,10 @@ export const ItemApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async itemGetOrganizationCategoriesAndSubCategoriesPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetOrganizationCategoriesAndSubCategoriesPost(options);
+        async itemGetCategoriesAndSubcategoriesPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetCategoriesAndSubcategoriesPost(options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['ItemApi.itemGetOrganizationCategoriesAndSubCategoriesPost']?.[index]?.url;
+            const operationBasePath = operationServerMap['ItemApi.itemGetCategoriesAndSubcategoriesPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
         /**
@@ -1066,8 +1697,8 @@ export const ItemApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemGetOrganizationCategoriesAndSubCategoriesPost(options?: any): AxiosPromise<ResponseObject> {
-            return localVarFp.itemGetOrganizationCategoriesAndSubCategoriesPost(options).then((request) => request(axios, basePath));
+        itemGetCategoriesAndSubcategoriesPost(options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.itemGetCategoriesAndSubcategoriesPost(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1117,8 +1748,8 @@ export class ItemApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ItemApi
      */
-    public itemGetOrganizationCategoriesAndSubCategoriesPost(options?: RawAxiosRequestConfig) {
-        return ItemApiFp(this.configuration).itemGetOrganizationCategoriesAndSubCategoriesPost(options).then((request) => request(this.axios, this.basePath));
+    public itemGetCategoriesAndSubcategoriesPost(options?: RawAxiosRequestConfig) {
+        return ItemApiFp(this.configuration).itemGetCategoriesAndSubcategoriesPost(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

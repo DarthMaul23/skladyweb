@@ -5,6 +5,190 @@
     "version": "v1"
   },
   "paths": {
+    "/Category/CreateCategory": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/CreateSubcategory": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewSubcategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewSubcategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewSubcategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetCategoryDetail/{categoryId}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetSubcategoryDetail/{subcategoryId}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "subcategoryId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetCategoriesAndSubcategories": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetCategories": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetSubcategories": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Item/GetWarehouseItems": {
       "post": {
         "tags": [
@@ -45,7 +229,7 @@
         }
       }
     },
-    "/Item/GetOrganizationCategoriesAndSubCategories": {
+    "/Item/GetCategoriesAndSubcategories": {
       "post": {
         "tags": [
           "Item"
@@ -1004,27 +1188,50 @@
   "components": {
     "schemas": {
       "Category": {
+        "required": [
+          "createdBy",
+          "createdOn",
+          "description",
+          "isDeleted",
+          "key",
+          "name"
+        ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
+          "key": {
+            "minLength": 1,
+            "type": "string"
+          },
           "name": {
-            "type": "string",
-            "nullable": true
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
+          },
+          "isDeleted": {
+            "type": "boolean"
           },
           "createdBy": {
             "type": "string",
             "format": "uuid"
           },
-          "isDeleted": {
-            "type": "integer",
-            "format": "int32"
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subcategoryForCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubcategoryForCategory"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1060,7 +1267,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "units": {
+          "unit": {
             "type": "string",
             "nullable": true
           },
@@ -1090,16 +1297,34 @@
         },
         "additionalProperties": false
       },
-      "NewItem": {
+      "NewCategory": {
         "type": "object",
         "properties": {
-          "categoryName": {
+          "key": {
             "type": "string",
             "nullable": true
           },
-          "subcategoryName": {
+          "name": {
             "type": "string",
             "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewItem": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
           },
           "description": {
             "type": "string",
@@ -1170,6 +1395,32 @@
             "nullable": true
           },
           "location": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewSubcategory": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
             "type": "string",
             "nullable": true
           }
@@ -1482,27 +1733,70 @@
         "additionalProperties": false
       },
       "Subcategory": {
+        "required": [
+          "createdBy",
+          "createdOn",
+          "description",
+          "isDeleted",
+          "key",
+          "name"
+        ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid"
+          "key": {
+            "minLength": 1,
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "isDeleted": {
+            "type": "boolean"
           },
           "createdBy": {
             "type": "string",
             "format": "uuid"
           },
-          "isDeleted": {
-            "type": "integer",
-            "format": "int32"
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subcategoryForCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubcategoryForCategory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SubcategoryForCategory": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subcategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "subcategory": {
+            "$ref": "#/components/schemas/Subcategory"
           }
         },
         "additionalProperties": false

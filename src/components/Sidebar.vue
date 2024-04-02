@@ -25,6 +25,10 @@
         <span class="material-icons">settings</span>
         <span v-if="isExpanded" class="text">Kategorie</span>
       </router-link>
+      <router-link to="/subcategories" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Podkategorie</span>
+      </router-link>
       <router-link to="/Organizations" class="button">
         <span class="material-icons">house</span>
         <span v-if="isExpanded" class="text">Organizace</span>

@@ -25,7 +25,7 @@
     :data="filteredUsers"
     :columns="columns"
     :pagination="pageSettings"
-    :noPages="data.totalPages"
+    :noPages="totalPages"
     @detailClicked="prepareUserDetails"
     @pageChanged="loadUsers"
   />
@@ -173,7 +173,7 @@ export default {
       rightId: "",
       organizationId: "",
     });
-
+    const totalPages = ref(0);
     const pageSettings = ref({
       Page: 1,
       NoOfItems: 2,
@@ -256,11 +256,12 @@ export default {
           if (
             response.data &&
             response.data.result &&
-            Array.isArray(response.data.result.users)
+            Array.isArray(response.data.result.data.users)
           ) {
-            data.value = response.data.result;
-            rights.value = response.data.result.rights;
-            organizations.value = response.data.result.organizations;
+            data.value = response.data.result.data;
+            totalPages.value = response.data.result.totalPages;
+            rights.value = response.data.result.data.rights;
+            organizations.value = response.data.result.data.organizations;
           } else {
             console.error("Unexpected response format:", response.data);
           }
@@ -316,7 +317,9 @@ export default {
     };
 
     const getRowNo = (row) => {
-      return filteredUsers.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      const rowNo = filteredUsers.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      console.log(rowNo.value);
+      return rowNo.value;
     }
 
     const columns = ref([
@@ -368,6 +371,7 @@ export default {
       hideAddUserModal,
       loadUsers,
       addUser,
+      totalPages,
       pageSettings,
       rights,
       rightsOptions,
