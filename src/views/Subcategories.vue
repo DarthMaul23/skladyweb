@@ -22,13 +22,13 @@
     />
     -->
     <CustomTable
-    :data="filteredSubcategories"
-    :columns="columns"
-    :pagination="pageSettings"
-    :noPages="totalPages"
-    @detailClicked="prepareSubcategoryDetails"
-    @pageChanged="loadSubcategories"
-  />
+      :data="filteredSubcategories"
+      :columns="columns"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @detailClicked="prepareSubcategoryDetails"
+      @pageChanged="loadSubcategories"
+    />
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
@@ -55,6 +55,14 @@
             <n-input
               v-model:value="newSubcategory.description"
               placeholder="Zadejte Popis Podkategorie"
+            />
+          </n-form-item>
+          <n-form-item label="Kategorie">
+            <n-select
+              v-model:value="selectedCategories"
+              :options="categoriesOptions"
+              placeholder="Vyberte kategorie"
+              multiple
             />
           </n-form-item>
         </div>
@@ -94,7 +102,10 @@
         <n-button @click="hideAddUserModal" class="modal-close-button"
           >Zařít</n-button
         >
-        <n-button v-if="showAddModal" @click="addSubcategory" class="modal-add-button"
+        <n-button
+          v-if="showAddModal"
+          @click="addSubcategory"
+          class="modal-add-button"
           >Vtyvořit Podkategorii</n-button
         >
       </template>
@@ -118,7 +129,7 @@ import {
 } from "naive-ui";
 import { CategoryApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import CustomTable from '../components/CustomTable.vue';
+import CustomTable from "../components/CustomTable.vue";
 
 export default {
   components: {
@@ -137,6 +148,7 @@ export default {
   setup() {
     const categoryApi = new CategoryApi(getDefaultApiConfig());
     const data = ref([]);
+    const categories = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
     const showAddModal = ref(false);
@@ -145,6 +157,7 @@ export default {
     const selectedUserDetails = ref({});
     const filters = ref({ searchQuery: "" });
     const newSubcategory = ref({
+      categories: [],
       key: "",
       name: "",
       description: "",
@@ -154,7 +167,23 @@ export default {
 
     const pageSettings = ref({
       Page: 1,
-      NoOfItems: 2,
+      NoOfItems: 10,
+    });
+
+    const categoriesOptions = computed(() =>
+      categories.value.map((right) => ({
+        label: right.name,
+        value: right.id,
+      }))
+    );
+
+    const selectedCategories = computed({
+      get() {
+        return newSubcategory.value.categories;
+      },
+      set(value) {
+        newSubcategory.value.categories = value;
+      },
     });
 
     // Function to show modal for adding a new user
@@ -219,6 +248,32 @@ export default {
             data.value = response.data.result.data;
             console.log(data.value);
             totalPages.value = response.data.result.totalPages;
+
+            loadCategories();
+          } else {
+            console.error("Unexpected response format:", response.data);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load users:", error);
+      }
+    };
+
+    const loadCategories = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          const response =
+            await categoryApi.categoryGetCategoriesForSubcategoryCreationPost({
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          if (
+            response.data &&
+            response.data.result &&
+            Array.isArray(response.data.result)
+          ) {
+            categories.value = response.data.result;
+            console.log(categories.value);
           } else {
             console.error("Unexpected response format:", response.data);
           }
@@ -274,10 +329,13 @@ export default {
     };
 
     const getRowNo = (row) => {
-      const rowNo = filteredSubcategories.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      const rowNo =
+        filteredSubcategories.value.indexOf(row) +
+        1 +
+        (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
       console.log(rowNo.value);
       return rowNo.value;
-    }
+    };
 
     const columns = ref([
       {
@@ -292,7 +350,11 @@ export default {
         title: "Detail",
         key: "action",
         render: (row) =>
-          h(NButton, { onClick: () => prepareSubcategoryDetails(row) }, "Detail"),
+          h(
+            NButton,
+            { onClick: () => prepareSubcategoryDetails(row) },
+            "Detail"
+          ),
       },
     ]);
 
@@ -308,6 +370,9 @@ export default {
     return {
       filters,
       data,
+      categories,
+      categoriesOptions,
+      selectedCategories,
       filteredSubcategories,
       selectedUserDetails,
       isModalVisible,

@@ -50,27 +50,24 @@
           <n-space align="center">
             <n-form-item label="Kategorie:" required>
               <n-select
-                v-model:value="newItemToBeStored.categoryName"
+                v-model:value="newItemToBeStored.categoryId"
                 :options="categoriesOptions"
+                @update:value="
+                  (value) => {
+                    newItemToBeStored.categoryId = value;
+                    newItemToBeStored.subcategoryId = '';
+                  }
+                "
                 filterable
-                tag
-                allow-create
-                @create="handleCreateCategory"
-                placeholder="Vyber nebo vytvoř novou kategorii"
+                placeholder="Select a category"
               />
-              <div v-if="validationErrors.categoryName" class="error-msg">
-                {{ validationErrors.categoryName }}
-              </div>
             </n-form-item>
-            <n-form-item label="Podkategorie:" required>
+            <n-form-item label="Podkategorie:">
               <n-select
-                v-model:value="newItemToBeStored.subcategoryName"
+                v-model:value="newItemToBeStored.subcategoryId"
                 :options="subcategoriesOptions"
                 filterable
-                tag
-                allow-create
-                @create="handleCreateSubcategory"
-                placeholder="Vyber nebo vytvoř novou kategorii"
+                placeholder="Select a subcategory"
               />
               <div v-if="validationErrors.subcategoryName" class="error-msg">
                 {{ validationErrors.subcategoryName }}
@@ -117,25 +114,39 @@
               </div>
             </n-form-item>
             <n-button @click="addToListForStorageCreation" class="save-button"
-          >Přidat k naskladnění</n-button
-        >
+              >Přidat k naskladnění</n-button
+            >
           </n-space>
         </div>
         <div v-if="listOfNewItemsToBeStored.length > 0">
-          <h3>Seznam položek k naskladnění ({{listOfNewItemsToBeStored.length}} položek):</h3>
+          <h3>
+            Seznam položek k naskladnění ({{ listOfNewItemsToBeStored.length }}
+            položek):
+          </h3>
           <div class="items-container">
-           <div v-for="(item, index) in listOfNewItemsToBeStored" :key="index" class="item-card">
-    <div class="item-header">
-        <h4>{{ item.description }}</h4>
-        <n-button size="small" class="remove-button" @click="removeItemFromStorageCreation(index)">
-            <span class="material-icons">delete_outline</span>
-        </n-button>
-    </div>
-    <div class="item-content">
-        <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
-        <p>Kategorie: {{ item.categoryName }} > {{ item.subcategoryName }}</p>
-    </div>
-</div>
+            <div
+              v-for="(item, index) in listOfNewItemsToBeStored"
+              :key="index"
+              class="item-card"
+            >
+              <div class="item-header">
+                <h4>{{ item.description }}</h4>
+                <n-button
+                  size="small"
+                  class="remove-button"
+                  @click="removeItemFromStorageCreation(index)"
+                >
+                  <span class="material-icons">delete_outline</span>
+                </n-button>
+              </div>
+              <div class="item-content">
+                <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
+                <p>
+                  Kategorie: {{ item.categoryName }} >
+                  {{ item.subcategoryName }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -262,7 +273,12 @@ import {
   NSelect,
   NSpace,
 } from "naive-ui";
-import { ItemApi, OrganizationApi, OfferApi } from "../api/openapi/api";
+import {
+  ItemApi,
+  OrganizationApi,
+  OfferApi,
+  CategoryApi,
+} from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 import { watch } from "vue";
 
@@ -282,6 +298,7 @@ export default {
     const router = useRouter();
     const route = useRoute(); // Correctly initialized
     const itemApi = new ItemApi(getDefaultApiConfig());
+    const categoryApi = new CategoryApi(getDefaultApiConfig());
     const organizationApi = new OrganizationApi(getDefaultApiConfig());
     const offerApi = new OfferApi(getDefaultApiConfig());
     const message = useMessage(); // Correctly initialized
@@ -300,8 +317,8 @@ export default {
     });
 
     const newItemToBeStored = ref({
-      categoryName: "",
-      subcategoryName: "",
+      categoryId: "",
+      subcategoryId: "",
       name: "",
       description: "",
       quantity: 1,
@@ -386,81 +403,20 @@ export default {
     ];
 
     watch(
-      () => newItem.value.categoryName,
+      () => newItemToBeStored.value.categoryId,
       (newCategoryId) => {
         if (newCategoryId) {
-          const selectedCategory =
-            organizationCategoriesAndSubcategories.value.find(
-              (cat) => cat.category.id === newCategoryId
-            );
-          if (selectedCategory && selectedCategory.subcategories) {
-            subcategoriesOptions.value = selectedCategory.subcategories.map(
-              (sub) => ({
-                value: sub.id,
-                label: sub.name,
-              })
-            );
-          } else {
-            subcategoriesOptions.value = [];
-          }
-        } else {
-          subcategoriesOptions.value = [];
+          fetchSubcategories(newCategoryId);
         }
       }
     );
-
-    const handleCreateCategory = (value) => {
-      console.log("Creating new item category");
-      // Check if the newly entered value already exists in the options
-      const existingOption = categoriesOptions.value.find(
-        (option) => option.value.toLowerCase() === value.toLowerCase()
-      );
-
-      if (existingOption) {
-        // If it exists, just set the v-model value to the existing option's value
-        newItem.value.categoryName = existingOption.value;
-      } else {
-        // If it doesn't exist, create a new option and update v-model
-        const newOption = { label: value, value };
-        categoriesOptions.value.push(newOption);
-        newItem.value.categoryName = value; // This sets the select input to use the newly added value
-      }
-
-      subcategoriesOptions.value = [];
-
-      console.log(organizationCategoriesAndSubcategories.value);
-
-      /*
-      subcategoriesOptions.value = organizationCategoriesAndSubcategories.value.find(
-        (items) => items. === value.toLowerCase()
-      );
-      */
-    };
-
-    const handleCreateSubcategory = (value) => {
-      console.log("Creating new item subcategory");
-      // Check if the newly entered value already exists in the options
-      const existingOption = subcategoriesOptions.value.find(
-        (option) => option.value.toLowerCase() === value.toLowerCase()
-      );
-
-      if (existingOption) {
-        // If it exists, just set the v-model value to the existing option's value
-        newItem.value.subcategoryName = existingOption.value;
-      } else {
-        // If it doesn't exist, create a new option and update v-model
-        const newOption = { label: value, value };
-        subcategoriesOptions.value.push(newOption);
-        newItem.value.subcategoryName = value; // This sets the select input to use the newly added value
-      }
-    };
 
     const rowKey = (row) => row.name;
     const childRowKey = (child) => child.name;
 
     onMounted(() => {
       loadWarehouseDetails();
-      loadOrganizationCategoriesAndSubcategories();
+      fetchCategories();
       loadOrganizations();
     });
 
@@ -533,7 +489,7 @@ export default {
         router.push("/login");
       }
     };
-
+    /*
     const getCategoriesOfItems = (items) => {
       categoriesOptions.value = items.map((item) => ({
         label: item.name,
@@ -549,7 +505,7 @@ export default {
       }));
       return categoriesOptions; // return the new array to be used elsewhere
     };
-
+    */
     const getQuanitity = (item) => {
       //console.log(item);
       var quantity = item.unit / selectedOrganizations.length;
@@ -909,8 +865,8 @@ export default {
     const addToListForStorageCreation = () => {
       // Validate that all necessary fields have been filled out
       if (
-        newItemToBeStored.value.categoryName &&
-        newItemToBeStored.value.subcategoryName &&
+        newItemToBeStored.value.categoryId &&
+        newItemToBeStored.value.subcategoryId &&
         newItemToBeStored.value.description &&
         newItemToBeStored.value.quantity > 0 &&
         newItemToBeStored.value.unit &&
@@ -926,11 +882,13 @@ export default {
               : newItemToBeStored.value.quantity;
 
           const itemToAdd = {
-            categoryName: newItemToBeStored.value.categoryName,
-            subcategoryName: newItemToBeStored.value.subcategoryName,
+            categoryId: newItemToBeStored.value.categoryId,
+            subcategoryId: newItemToBeStored.value.subcategoryId,
             description:
               newItemToBeStored.value.description +
-              (newItemToBeStored.value.count > 1 ? ` (Položka č. ${i + 1})` : ""), // Add part number if count > 1
+              (newItemToBeStored.value.count > 1
+                ? ` (Položka č. ${i + 1})`
+                : ""), // Add part number if count > 1
             quantity: quantity,
             unit: newItemToBeStored.value.unit,
             paletaOption: newItemToBeStored.value.paletaOption,
@@ -983,6 +941,51 @@ export default {
       }
     };
 
+    // Function to fetch categories
+    const fetchCategories = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          // Assuming getCategoriesOptions is your API method to fetch categories
+          const response = await categoryApi.categoryGetCategoriesOptionsGet({
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          console.log(response.data.result);
+          categoriesOptions.value = response.data.result.map((cat) => ({
+            label: cat.name,
+            value: cat.id,
+          }));
+        } catch (error) {
+          message.error("Failed to load categories");
+          console.error(error);
+        }
+      }
+    };
+
+    // Function to fetch subcategories for a selected category
+    const fetchSubcategories = async (categoryId) => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response =
+            await categoryApi.categoryGetSubcategoriesOptionsForCategoryGet(
+              categoryId,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+          console.log(response.data.result);
+          subcategoriesOptions.value = response.data.result.map((sub) => ({
+            label: sub.name,
+            value: sub.id,
+          }));
+        } catch (error) {
+          message.error("Failed to load subcategories");
+          console.error(error);
+        }
+      }
+    };
+
     return {
       showDetails,
       newItemToBeStored,
@@ -1010,8 +1013,8 @@ export default {
       updateItemQuantity,
       selectItem,
       deselectItem,
-      getCategoriesOfItems,
-      getSubcategoriesOfItems,
+      // getCategoriesOfItems,
+      // getSubcategoriesOfItems,
       findChildItemsByName,
       addOrganization,
       removeOrganization,
@@ -1032,13 +1035,13 @@ export default {
       validateForm,
       createOffer,
       prepareOfferData,
-      handleCreateCategory,
-      handleCreateSubcategory,
+      // handleCreateCategory,
+      // handleCreateSubcategory,
       loadOrganizationCategoriesAndSubcategories,
       organizationCategoriesAndSubcategories,
       addToListForStorageCreation,
       removeItemFromStorageCreation,
-      storeItems
+      storeItems,
     };
   },
 };
@@ -1139,30 +1142,29 @@ export default {
   margin-bottom: 20px; /* Extra space at the bottom, if needed */
 }
 
-
 .item-card {
-    background-color: rgb(253, 253, 253);
-    border-radius: 10px;
-    overflow: hidden; /* Ensures the header's rounded corners */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow for depth */
-    margin-bottom: 10px;
+  background-color: rgb(253, 253, 253);
+  border-radius: 10px;
+  overflow: hidden; /* Ensures the header's rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* subtle shadow for depth */
+  margin-bottom: 10px;
 }
 
 .item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: green;
-    color: white;
-    padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: green;
+  color: white;
+  padding: 10px;
 }
 
 .item-header h4 {
-    margin: 0; /* Removes default margin */
+  margin: 0; /* Removes default margin */
 }
 
 .item-content {
-    padding: 10px;
+  padding: 10px;
 }
 
 .item-content h4 {

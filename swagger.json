@@ -115,10 +115,33 @@
         }
       }
     },
-    "/Category/GetCategoriesAndSubcategories": {
+    "/Category/GetCategoriesOptions": {
       "get": {
         "tags": [
           "Category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetSubcategoriesOptionsForCategory": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -151,6 +174,18 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Category/GetCategoriesForSubcategoryCreation": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
         "responses": {
           "200": {
             "description": "Success"
