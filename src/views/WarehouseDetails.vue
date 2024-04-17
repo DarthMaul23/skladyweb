@@ -538,8 +538,6 @@ export default {
           warehouseDetails.value = response.data.result.warehouse; // Adjust according to your API response
           items.value = response.data.result.items; // Adjust according to your API response
 
-          console.log(newItem.value);
-
           showAddItemModal.value = false;
           newItem.value = {
             categoryName: "",

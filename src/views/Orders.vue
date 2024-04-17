@@ -11,68 +11,76 @@
         >
       </template>
     </n-data-table>
-  
-	<custom-modal
+
+    <custom-modal
       :show="isModalVisible"
-	  :title="selectedOrderDetails ? `Detail Objednávky: ${selectedOrderDetails.key}` : 'Detail Objednávky'"
+      :title="
+        selectedOrder
+          ? `Detail Objednávky: ${selectedOrder.key}`
+          : 'Detail Objednávky'
+      "
       :header-bg-color="'green'"
       :modal-width="'1200px'"
       :modal-height="'auto'"
       @update:show="isModalVisible = $event"
     >
       <template #body>
-        <div v-if="selectedOrderDetails" class="modal-content">
+        <div v-if="selectedOrder" class="modal-content">
           <!-- Displaying order details here -->
           <div class="offer-details">
-            <p class="detail-item"><strong>Vytvořeno organizací:</strong> <span class="chip">{{ selectedOrderDetails.organizationName }}</span></p>
-            <p class="detail-item"><strong>Vytvořeno dne:</strong> <span class="chip">{{ formatDate(selectedOrderDetails.createdOn) }}</span></p>
+            <p class="detail-item">
+              <strong>Vytvořeno organizací:</strong>
+              <span class="chip">{{
+                selectedOrder.organizationName
+              }}</span>
+            </p>
+            <p class="detail-item">
+              <strong>Vytvořeno dne:</strong>
+              <span class="chip">{{
+                formatDate(selectedOrder.createdOn)
+              }}</span>
+            </p>
             <!-- Add more fields as necessary -->
           </div>
-		  <n-timeline>
-    <n-timeline-item content="Oops" />
-    <n-timeline-item
-      type="success"
-      title="Success"
-      content="success content"
-      time="2018-04-03 20:46"
-    />
-    <n-timeline-item
-      type="error"
-      content="Error content"
-      time="2018-04-03 20:46"
-    />
-    <n-timeline-item
-      type="warning"
-      title="Warning"
-      content="warning content"
-      time="2018-04-03 20:46"
-    />
-    <n-timeline-item
-      type="info"
-      title="Info"
-      content="info content"
-      time="2018-04-03 20:46"
-      line-type="dashed"
-    />
-    <n-timeline-item content="Oops" />
-  </n-timeline>
-		  <OrderTimeline />
-		  <h1>TEST TEXT</h1>
-          <!-- Any additional modal content can go here --> 
+          <n-timeline size="large">
+            <n-timeline-item
+              v-for="(stage, index) in stages"
+              :key="index"
+              :title="stage.title"
+              :content="stage.content"
+              :time="stage.time"
+              :type="stage.type"
+            >
+            </n-timeline-item>
+          </n-timeline>
+          <n-button
+            v-if="stages.length < allStages.length"
+            @click="addStage"
+            class="save-button"
+            >Další krok</n-button
+          >
+          <n-button @click="resetStages" class="close-button">Reset</n-button>
         </div>
       </template>
       <template #footer>
-        <n-button @click="closeModal" class="modal-close-button">Zavřít</n-button>
+        <n-button @click="closeModal" class="modal-close-button"
+          >Zavřít</n-button
+        >
       </template>
     </custom-modal>
-
- </main>
+  </main>
 </template>  
 <script>
 import CustomModal from "../components/CustomModal.vue";
 import OrderTimeline from "../components/OrderTimeline.vue";
 import { ref, computed, onMounted, h } from "vue";
-import { NButton, NInput, NDataTable } from "naive-ui";
+import {
+  NButton,
+  NInput,
+  NDataTable,
+  NTimeline,
+  NTimelineItem,
+} from "naive-ui";
 import { OrderApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
@@ -82,13 +90,72 @@ export default {
     NButton,
     NInput,
     NDataTable,
-	OrderTimeline,
+    NTimeline,
+    NTimelineItem,
+    OrderTimeline,
   },
   setup() {
     const orderApi = new OrderApi(getDefaultApiConfig()); // Initialize API (add params as needed)
     const orders = ref([]);
-	const isModalVisible = ref(false);
+    const isModalVisible = ref(false);
+    const selectedOrder = ref({});
     const selectedOrderDetails = ref({});
+    const stages = ref([
+      {
+        title: "Nabídka Vytvořena",
+        content: "Vytvořeno: ",
+        time: "2024-04-03 20:46",
+      },
+    ]);
+    const allStages = [
+      {
+        title: "Objednávka vytvořena",
+        content: "Objednáno: ",
+        time: "2024-04-03 20:46",
+        type: "success",
+      },
+      {
+        title: "Položky vyskladněny",
+        content: "Vyskladnil: ",
+        time: "2024-04-03 20:46",
+        type: "warning",
+      },
+      {
+        title: "Předání k přepravě",
+        content: "Přepravuje: ",
+        time: "2024-04-03 20:46",
+        type: "warning",
+      },
+      {
+        title: "Položky doručeny",
+        content: "Převzal: ",
+        time: "2024-04-03 20:46",
+        type: "warning",
+      },
+      {
+        title: "Položky naskladněny",
+        content: "Naskladnil: ",
+        time: "2024-04-03 20:46",
+        type: "warning",
+      },
+      // Add other stages here as needed
+      {
+        title: "Objednávka Vyřízena",
+        content: "info content",
+        time: "2024-04-03 20:46",
+        type: "success",
+      },
+    ];
+
+    const addStage = () => {
+      if (stages.value.length < allStages.length) {
+        stages.value.push(allStages[stages.value.length]);
+      }
+    };
+
+    const resetStages = () => {
+      stages.value = [allStages[0]]; // Reset to the first stage
+    };
 
     const loadOrders = async () => {
       const token = localStorage.getItem("authToken");
@@ -105,6 +172,21 @@ export default {
       }
     };
 
+    const loadOrderDetail = async (orderId) => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response = await orderApi.orderIdGet(orderId, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          orderDetail.value = response.data; // Assuming the response structure matches your endpoint data
+        } catch (error) {
+          console.error("Failed to load offers:", error);
+          orderDetail.value = undefined; // Reset to initial structure in case of error
+        }
+      }
+    };
+
     const formatDate = (dateString) => {
       const date = new Date(dateString);
       const day = date.getDate().toString().padStart(2, "0");
@@ -113,8 +195,9 @@ export default {
       return `${day}. ${month}. ${year}`;
     };
 
-	const prepareOrderDetails = (order) => {
-      selectedOrderDetails.value = order; // Set the selected order details
+    const prepareOrderDetails = (order) => {
+      selectedOrder.value = order; // Set the selected order details
+      loadOrderDetail(order.id);
       isModalVisible.value = true; // Show the modal
     };
 
@@ -126,8 +209,13 @@ export default {
 
     return {
       orders,
+      allStages,
+      addStage,
+      resetStages,
+      stages,
       formatDate,
-	  isModalVisible,
+      isModalVisible,
+      selectedOrder,
       selectedOrderDetails,
       prepareOrderDetails,
       closeModal,

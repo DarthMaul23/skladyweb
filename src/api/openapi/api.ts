@@ -630,6 +630,55 @@ export interface Order {
 /**
  * 
  * @export
+ * @interface OrderDetailDto
+ */
+export interface OrderDetailDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'offerId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'createdOn'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'key'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'organizationId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderDetailDto
+     */
+    'organizationName'?: string | null;
+    /**
+     * 
+     * @type {Array<OrderItemDto>}
+     * @memberof OrderDetailDto
+     */
+    'items'?: Array<OrderItemDto> | null;
+}
+/**
+ * 
+ * @export
  * @interface OrderItem
  */
 export interface OrderItem {
@@ -667,6 +716,43 @@ export interface OrderItem {
      * 
      * @type {string}
      * @memberof OrderItem
+     */
+    'unitType'?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface OrderItemDto
+ */
+export interface OrderItemDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderItemDto
+     */
+    'itemId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderItemDto
+     */
+    'itemName'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderItemDto
+     */
+    'itemDescription'?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof OrderItemDto
+     */
+    'quantity'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderItemDto
      */
     'unitType'?: string | null;
 }
@@ -2820,7 +2906,7 @@ export const OrderApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async orderIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Order>> {
+        async orderIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrderDetailDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.orderIdGet(id, options);
             const index = configuration?.serverIndex ?? 0;
             const operationBasePath = operationServerMap['OrderApi.orderIdGet']?.[index]?.url;
@@ -2887,7 +2973,7 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        orderIdGet(id: string, options?: any): AxiosPromise<Order> {
+        orderIdGet(id: string, options?: any): AxiosPromise<OrderDetailDto> {
             return localVarFp.orderIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**

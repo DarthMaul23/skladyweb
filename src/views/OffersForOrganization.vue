@@ -109,6 +109,7 @@ export default {
             group.offers.forEach((offer) => {
               // Optionally, add offerGroup data to each offer if needed
               offer.offerGroupTitle = group.offerGroup.title;
+              offer.offerDescritpion = group.offerGroup.offerDescritpion;
               offer.offerGroupDescription = group.offerGroup.description;
               allOffers.push(offer);
             });
@@ -223,10 +224,9 @@ export default {
       formatDate,
       placeOrder,
       columns: [
-        { title: "Offer Group", key: "offerGroupTitle" },
-        { title: "Offer Title", key: "title" },
-        { title: "Description", key: "description" },
-        { title: "Organization ID", key: "organizationId" },
+        { title: "Skupina", key: "offerGroupTitle" },
+        { title: "Nabídka", key: "offerDescritpion" },
+        { title: "Organizace", key: "description" },
         {
           title: "Detail",
           key: "action",
