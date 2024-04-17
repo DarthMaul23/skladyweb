@@ -17,24 +17,14 @@
       >
     </div>
     <div class="scrollable-content">
-      <div
-        v-for="parentItem in items"
-        :key="parentItem.name"
-        class="parent-item"
-      >
-        <section class="item-header" color="green">
-          <h3>
-            {{ parentItem.name }} (Celkové množství:
-            {{ parentItem.totalQuantity }})
-          </h3>
-        </section>
-        <n-data-table
-          :columns="itemChildColumns"
-          :data="parentItem.items"
-          :row-key="childRowKey"
-          bordered
-        />
-      </div>
+      <CustomTable
+        :data="items"
+        :columns="columns"
+        :pagination="pageSettings"
+        :noPages="totalPages"
+        @detailClicked="prepareCategoryDetails"
+        @pageChanged="loadWarehouseDetails"
+      />
     </div>
     <!-- Custom Modal for Adding New Item -->
     <CustomModal
@@ -260,7 +250,7 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, onMounted, h, computed } from "vue";
+import { ref, onMounted, h, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   NButton,
@@ -280,11 +270,12 @@ import {
   CategoryApi,
 } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import { watch } from "vue";
+import CustomTable from '../components/CustomTable.vue';
 
 export default {
   components: {
     CustomModal,
+    CustomTable,
     NButton,
     NDataTable,
     NForm,
@@ -343,6 +334,13 @@ export default {
 
     const selectedOrganizations = ref([]);
 
+    const totalPages = ref(0);
+
+    const pageSettings = ref({
+      Page: 1,
+      NoOfItems: 2,
+    });
+
     const itemMasterColumns = [
       { title: "Name", key: "name" },
       { title: "Quantity", key: "totalQuantity" },
@@ -353,12 +351,14 @@ export default {
       },
     ];
 
-    const itemChildColumns = [
+    const columns = [
       { title: "Položka", key: "description" },
+      { title: "Kategorie", key: "categoryName" },
+      { title: "Podkategorie", key: "subcategoryName" },
       { title: "Množství", key: "quantity" },
       { title: "Jednotky", key: "unit" },
       {
-        title: "Actions",
+        title: "Akce",
         key: "action",
         render: (row) => {
           const isSelected = selectedItems.value.some(
@@ -426,13 +426,16 @@ export default {
         try {
           const response = await itemApi.itemGetWarehouseItemsPost(
             route.params.id,
+            pageSettings.value,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          warehouseDetails.value = response.data.result.warehouse;
-          items.value = response.data.result.items;
-          getCategoriesOfItems(items.value);
+          warehouseDetails.value = response.data.result.data.warehouse;
+          items.value = response.data.result.data.items;
+          totalPages.value = response.data.result.totalPages;
+          console.log(items.value);
+          //getCategoriesOfItems(items.value);
         } catch (error) {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
@@ -974,7 +977,6 @@ export default {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-          console.log(response.data.result);
           subcategoriesOptions.value = response.data.result.map((sub) => ({
             label: sub.name,
             value: sub.id,
@@ -986,7 +988,18 @@ export default {
       }
     };
 
+    watch(
+      () => pageSettings.value.Page,
+      (newPage, oldPage) => {
+        if (newPage !== oldPage) {
+          loadWarehouseDetails();
+        }
+      }
+    );
+
     return {
+      pageSettings,
+      totalPages,
       showDetails,
       newItemToBeStored,
       listOfNewItemsToBeStored,
@@ -997,7 +1010,7 @@ export default {
       expandedRowKeys,
       warehouseDetails,
       itemMasterColumns,
-      itemChildColumns,
+      columns,
       unitOptions,
       paletaOptions,
       categoriesOptions,
