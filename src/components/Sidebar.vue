@@ -3,7 +3,7 @@
     <div class="logo">
       <!--<img :src="logoURL" alt="Vue" />-->
     </div>
-    <div class="menu" >
+    <div v-if="showAdminLinks" class="menu">
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
         <span v-if="isExpanded" class="text">Sklady</span>
@@ -11,11 +11,6 @@
       <router-link to="/offers" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Nabídky</span>
-      </router-link>
-      <!--Tohle je odkaz pro organiazci NE ADMINA!-->
-      <router-link to="/offersfororganization" class="button">
-        <span class="material-icons">inbox</span>
-        <span v-if="isExpanded" class="text">Nab. Org.</span>
       </router-link>
       <router-link to="/orders" class="button">
         <span class="material-icons">inbox</span>
@@ -42,12 +37,39 @@
         <span v-if="isExpanded" class="text">Dodavatelé</span>
       </router-link>
     </div>
+    <div v-if="showOrgLinks" class="menu">
+      <router-link to="/" class="button">
+        <span class="material-icons">warehouse</span>
+        <span v-if="isExpanded" class="text">Sklady</span>
+      </router-link>
+      <router-link to="/offersfororganization" class="button">
+        <span class="material-icons">inbox</span>
+        <span v-if="isExpanded" class="text">Nabídky</span>
+      </router-link>
+      <router-link to="/orders" class="button">
+        <span class="material-icons">inbox</span>
+        <span v-if="isExpanded" class="text">Objednávky</span>
+      </router-link>
+    </div>
   </aside>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue';
 const props = defineProps({
   isExpanded: Boolean,
+});
+
+const userRole = ref(localStorage.getItem('role'));
+
+// Computed properties to determine which menu items to show
+const showAdminLinks = computed(() => {
+  return userRole.value === 'admin';
+});
+
+const showOrgLinks = computed(() => {
+  // Assume 'organization' role is for organizational users
+  return userRole.value === 'adminorganizace';
 });
 </script>
 

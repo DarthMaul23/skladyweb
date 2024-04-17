@@ -6,7 +6,7 @@
         <span class="material-icons">menu</span>
       </n-button>
       <n-link to="/" class="navbar-logo">
-        <img src="assets/logo.png" alt="Your Logo" width="112" height="28" />
+        <img src="/src/assets/logo_new_1.png" alt="Your Logo" width="90" height="10" />
       </n-link>
     </div>
     <div class="navbar-menu">
@@ -56,7 +56,8 @@ const Logout = () => {
 }
 
 .navbar-logo img {
-  height: 3rem;
+  height: 1rem;
+  width: 3rem;
   margin-left: 1rem;
 }
 
