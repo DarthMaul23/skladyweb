@@ -75,6 +75,7 @@ export default {
   background: white;
   border-radius: 5px;
   max-width: calc(100% - 40px);
+  min-width: calc(60% - 40px);
   display: flex;
   flex-direction: column;
   overflow: hidden;

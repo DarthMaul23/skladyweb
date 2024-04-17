@@ -42,24 +42,37 @@
             </p>
             <!-- Add more fields as necessary -->
           </div>
-          <n-timeline size="large">
-            <n-timeline-item
-              v-for="(stage, index) in stages"
-              :key="index"
-              :title="stage.title"
-              :content="stage.content"
-              :time="stage.time"
-              :type="stage.type"
-            >
-            </n-timeline-item>
-          </n-timeline>
-          <n-button
-            v-if="stages.length < allStages.length"
-            @click="addStage"
-            class="save-button"
-            >Další krok</n-button
-          >
-          <n-button @click="resetStages" class="close-button">Reset</n-button>
+          <div class="modal-split-container">
+            <!-- Timeline section -->
+            <div class="timeline-container">
+              <n-timeline size="large">
+                <n-timeline-item
+                  v-for="(stage, index) in stages"
+                  :key="index"
+                  :title="stage.title"
+                  :content="stage.content"
+                  :time="stage.time"
+                  :type="stage.type"
+                ></n-timeline-item>
+              </n-timeline>
+              <n-button
+                v-if="stages.length < allStages.length"
+                @click="addStage"
+                class="save-button"
+              >Další krok</n-button>
+              <n-button @click="resetStages" class="close-button">Reset</n-button>
+            </div>
+
+            <!-- Items table section -->
+            <div class="items-table-container">
+              <n-data-table
+                :columns="itemColumns"
+                :data="orderDetail.items"
+                bordered
+                :scroll-x="600"
+              />
+            </div>
+          </div>
         </div>
       </template>
       <template #footer>
@@ -99,7 +112,7 @@ export default {
     const orders = ref([]);
     const isModalVisible = ref(false);
     const selectedOrder = ref({});
-    const selectedOrderDetails = ref({});
+    const orderDetail = ref({});
     const stages = ref([
       {
         title: "Nabídka Vytvořena",
@@ -180,6 +193,7 @@ export default {
             headers: { Authorization: `Bearer ${token}` },
           });
           orderDetail.value = response.data; // Assuming the response structure matches your endpoint data
+          console.log(orderDetail.value);
         } catch (error) {
           console.error("Failed to load offers:", error);
           orderDetail.value = undefined; // Reset to initial structure in case of error
@@ -203,7 +217,15 @@ export default {
 
     const closeModal = () => {
       isModalVisible.value = false;
+      orderDetail.value = undefined;
     };
+
+
+    const itemColumns = ref([
+      { title: 'Položka', key: 'itemDescription' },
+      { title: 'Množství', key: 'quantity' },
+      { title: 'Jednotky', key: 'unitType' }
+    ]);
 
     onMounted(loadOrders);
 
@@ -216,9 +238,10 @@ export default {
       formatDate,
       isModalVisible,
       selectedOrder,
-      selectedOrderDetails,
+      orderDetail,
       prepareOrderDetails,
       closeModal,
+      itemColumns,
       columns: [
         { title: "ID Objednávky", key: "key" },
         { title: "Organizace", key: "organizationName" },
@@ -347,6 +370,21 @@ h3 .material-icons {
   font-size: 14px; /* Font size, adjust as needed */
   font-weight: bold; /* Font weight, adjust for boldness */
   margin: 0 5px; /* Margin for spacing if you have multiple chips */
+}
+
+.modal-split-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.timeline-container {
+  flex: 1;
+  margin-right: 20px; /* Space between timeline and table */
+}
+
+.items-table-container {
+  flex: 2;
+  overflow-x: auto; /* Allows horizontal scrolling if necessary */
 }
 </style>
   
