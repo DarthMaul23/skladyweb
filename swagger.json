@@ -1352,17 +1352,19 @@
             "type": "string",
             "nullable": true
           },
-          "categroies": {
+          "categories": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Category"
+              "type": "string",
+              "format": "uuid"
             },
             "nullable": true
           },
           "subcategories": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Subcategory"
+              "type": "string",
+              "format": "uuid"
             },
             "nullable": true
           }

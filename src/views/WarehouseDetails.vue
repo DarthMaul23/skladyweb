@@ -381,6 +381,7 @@ export default {
     ];
 
     const columns = [
+      { title: "Id", key: "name" },
       { title: "Položka", key: "description" },
       { title: "Kategorie", key: "categoryName" },
       { title: "Podkategorie", key: "subcategoryName" },
@@ -931,11 +932,7 @@ export default {
           const itemToAdd = {
             categoryId: newItemToBeStored.value.categoryId,
             subcategoryId: newItemToBeStored.value.subcategoryId,
-            description:
-              newItemToBeStored.value.description +
-              (newItemToBeStored.value.count > 1
-                ? ` (Položka č. ${i + 1})`
-                : ""), // Add part number if count > 1
+            description: newItemToBeStored.value.description,
             quantity: quantity,
             unit: newItemToBeStored.value.unit,
             paletaOption: newItemToBeStored.value.paletaOption,

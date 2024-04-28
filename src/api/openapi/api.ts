@@ -184,16 +184,16 @@ export interface ItemSearchSettings {
     'search'?: string | null;
     /**
      * 
-     * @type {Array<Category>}
+     * @type {Array<string>}
      * @memberof ItemSearchSettings
      */
-    'categroies'?: Array<Category> | null;
+    'categories'?: Array<string> | null;
     /**
      * 
-     * @type {Array<Subcategory>}
+     * @type {Array<string>}
      * @memberof ItemSearchSettings
      */
-    'subcategories'?: Array<Subcategory> | null;
+    'subcategories'?: Array<string> | null;
 }
 /**
  * 
