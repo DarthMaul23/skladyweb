@@ -127,6 +127,18 @@
         }
       }
     },
+    "/Category/GetSubcategoriesOptions": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Category/GetSubcategoriesOptionsForCategory": {
       "get": {
         "tags": [
@@ -224,7 +236,7 @@
         }
       }
     },
-    "/Item/GetWarehouseItems": {
+    "/Item/GetWarehouseItems/{warehouseId}": {
       "post": {
         "tags": [
           "Item"
@@ -232,8 +244,9 @@
         "parameters": [
           {
             "name": "warehouseId",
-            "in": "query",
-            "style": "form",
+            "in": "path",
+            "required": true,
+            "style": "simple",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -244,41 +257,24 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PageSettings"
+                "$ref": "#/components/schemas/ItemSearchPageSettings"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/PageSettings"
+                "$ref": "#/components/schemas/ItemSearchPageSettings"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/PageSettings"
+                "$ref": "#/components/schemas/ItemSearchPageSettings"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseObject"
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       }
@@ -1333,6 +1329,42 @@
           },
           "warehouse": {
             "$ref": "#/components/schemas/Warehouse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ItemSearchPageSettings": {
+        "type": "object",
+        "properties": {
+          "pageSettings": {
+            "$ref": "#/components/schemas/PageSettings"
+          },
+          "itemSearchSettings": {
+            "$ref": "#/components/schemas/ItemSearchSettings"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ItemSearchSettings": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string",
+            "nullable": true
+          },
+          "categroies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "nullable": true
+          },
+          "subcategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subcategory"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false

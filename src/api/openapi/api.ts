@@ -154,6 +154,50 @@ export interface Item {
 /**
  * 
  * @export
+ * @interface ItemSearchPageSettings
+ */
+export interface ItemSearchPageSettings {
+    /**
+     * 
+     * @type {PageSettings}
+     * @memberof ItemSearchPageSettings
+     */
+    'pageSettings'?: PageSettings;
+    /**
+     * 
+     * @type {ItemSearchSettings}
+     * @memberof ItemSearchPageSettings
+     */
+    'itemSearchSettings'?: ItemSearchSettings;
+}
+/**
+ * 
+ * @export
+ * @interface ItemSearchSettings
+ */
+export interface ItemSearchSettings {
+    /**
+     * 
+     * @type {string}
+     * @memberof ItemSearchSettings
+     */
+    'search'?: string | null;
+    /**
+     * 
+     * @type {Array<Category>}
+     * @memberof ItemSearchSettings
+     */
+    'categroies'?: Array<Category> | null;
+    /**
+     * 
+     * @type {Array<Subcategory>}
+     * @memberof ItemSearchSettings
+     */
+    'subcategories'?: Array<Subcategory> | null;
+}
+/**
+ * 
+ * @export
  * @interface LoginModel
  */
 export interface LoginModel {
@@ -1288,6 +1332,38 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoriesOptionsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Category/GetSubcategoriesOptions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1452,6 +1528,17 @@ export const CategoryApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryGetSubcategoriesOptionsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryGetSubcategoriesOptionsGet(options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CategoryApi.categoryGetSubcategoriesOptionsGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
          * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1544,6 +1631,14 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
          */
         categoryGetSubcategoriesOptionsForCategoryGet(categoryId?: string, options?: any): AxiosPromise<void> {
             return localVarFp.categoryGetSubcategoriesOptionsForCategoryGet(categoryId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryGetSubcategoriesOptionsGet(options?: any): AxiosPromise<void> {
+            return localVarFp.categoryGetSubcategoriesOptionsGet(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1646,6 +1741,16 @@ export class CategoryApi extends BaseAPI {
      */
     public categoryGetSubcategoriesOptionsForCategoryGet(categoryId?: string, options?: RawAxiosRequestConfig) {
         return CategoryApiFp(this.configuration).categoryGetSubcategoriesOptionsForCategoryGet(categoryId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CategoryApi
+     */
+    public categoryGetSubcategoriesOptionsGet(options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryGetSubcategoriesOptionsGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1754,13 +1859,16 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {PageSettings} [pageSettings] 
+         * @param {string} warehouseId 
+         * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemGetWarehouseItemsPost: async (warehouseId?: string, pageSettings?: PageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Item/GetWarehouseItems`;
+        itemGetWarehouseItemsWarehouseIdPost: async (warehouseId: string, itemSearchPageSettings?: ItemSearchPageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'warehouseId' is not null or undefined
+            assertParamExists('itemGetWarehouseItemsWarehouseIdPost', 'warehouseId', warehouseId)
+            const localVarPath = `/Item/GetWarehouseItems/{warehouseId}`
+                .replace(`{${"warehouseId"}}`, encodeURIComponent(String(warehouseId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1775,10 +1883,6 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
             // authentication Bearer required
             await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
 
-            if (warehouseId !== undefined) {
-                localVarQueryParameter['warehouseId'] = warehouseId;
-            }
-
 
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -1786,7 +1890,7 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(pageSettings, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(itemSearchPageSettings, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1874,15 +1978,15 @@ export const ItemApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {PageSettings} [pageSettings] 
+         * @param {string} warehouseId 
+         * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async itemGetWarehouseItemsPost(warehouseId?: string, pageSettings?: PageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetWarehouseItemsPost(warehouseId, pageSettings, options);
+        async itemGetWarehouseItemsWarehouseIdPost(warehouseId: string, itemSearchPageSettings?: ItemSearchPageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetWarehouseItemsWarehouseIdPost(warehouseId, itemSearchPageSettings, options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['ItemApi.itemGetWarehouseItemsPost']?.[index]?.url;
+            const operationBasePath = operationServerMap['ItemApi.itemGetWarehouseItemsWarehouseIdPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
         /**
@@ -1929,13 +2033,13 @@ export const ItemApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
-         * @param {string} [warehouseId] 
-         * @param {PageSettings} [pageSettings] 
+         * @param {string} warehouseId 
+         * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        itemGetWarehouseItemsPost(warehouseId?: string, pageSettings?: PageSettings, options?: any): AxiosPromise<ResponseObject> {
-            return localVarFp.itemGetWarehouseItemsPost(warehouseId, pageSettings, options).then((request) => request(axios, basePath));
+        itemGetWarehouseItemsWarehouseIdPost(warehouseId: string, itemSearchPageSettings?: ItemSearchPageSettings, options?: any): AxiosPromise<void> {
+            return localVarFp.itemGetWarehouseItemsWarehouseIdPost(warehouseId, itemSearchPageSettings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1982,14 +2086,14 @@ export class ItemApi extends BaseAPI {
 
     /**
      * 
-     * @param {string} [warehouseId] 
-     * @param {PageSettings} [pageSettings] 
+     * @param {string} warehouseId 
+     * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ItemApi
      */
-    public itemGetWarehouseItemsPost(warehouseId?: string, pageSettings?: PageSettings, options?: RawAxiosRequestConfig) {
-        return ItemApiFp(this.configuration).itemGetWarehouseItemsPost(warehouseId, pageSettings, options).then((request) => request(this.axios, this.basePath));
+    public itemGetWarehouseItemsWarehouseIdPost(warehouseId: string, itemSearchPageSettings?: ItemSearchPageSettings, options?: RawAxiosRequestConfig) {
+        return ItemApiFp(this.configuration).itemGetWarehouseItemsWarehouseIdPost(warehouseId, itemSearchPageSettings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

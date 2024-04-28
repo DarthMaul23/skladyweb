@@ -5,6 +5,27 @@
       <h2>Sklad: {{ warehouseDetails.name }}</h2>
       <!-- Here you can insert additional details or management sections for your warehouse -->
     </div>
+    <div class="filter-container">
+      <n-input
+        placeholder="Hledat položku"
+        v-model="searchQuery"
+        class="filter-input"
+      />
+      <n-select
+        v-model="selectedCategories"
+        :options="categoriesOptions"
+        multiple
+        placeholder="Vybrat kategorie"
+        @change="handleCategoryChange"
+      />
+      <n-select
+        v-model="selectedSubcategories"
+        :options="subcategoryOptions"
+        multiple
+        placeholder="Vybrat podkategorie"
+        @change="handleSubcategoryChange"
+      />
+    </div>
     <div class="actions">
       <n-button color="green" @click="showAddItemModal = true"
         >+ Naskladnit položku</n-button
@@ -250,6 +271,7 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
+import { debounce } from "lodash";
 import { ref, onMounted, h, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
@@ -270,7 +292,7 @@ import {
   CategoryApi,
 } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import CustomTable from '../components/CustomTable.vue';
+import CustomTable from "../components/CustomTable.vue";
 
 export default {
   components: {
@@ -316,6 +338,13 @@ export default {
       units: "",
     });
 
+    // Reactive states
+    const searchQuery = ref("");
+    const selectedCategories = ref([]);
+    const selectedSubcategories = ref([]);
+    const categoryOptions = ref([]); // Populate this based on your API
+    const subcategoryOptions = ref([]); // Populate this based on your API
+
     const listOfNewItemsToBeStored = ref([]);
 
     const validationErrors = ref({});
@@ -338,7 +367,7 @@ export default {
 
     const pageSettings = ref({
       Page: 1,
-      NoOfItems: 2,
+      NoOfItems: 30,
     });
 
     const itemMasterColumns = [
@@ -406,7 +435,7 @@ export default {
       () => newItemToBeStored.value.categoryId,
       (newCategoryId) => {
         if (newCategoryId) {
-          fetchSubcategories(newCategoryId);
+          fetchSubcategoriesById(newCategoryId);
         }
       }
     );
@@ -418,31 +447,61 @@ export default {
       loadWarehouseDetails();
       fetchCategories();
       loadOrganizations();
+      fetchSubcategories();
     });
+    // Debounce function to delay execution
+    const debouncedLoadWarehouseDetails = debounce(() => {
+      loadWarehouseDetails();
+    }, 300);
 
     const loadWarehouseDetails = async () => {
+      console.log(selectedCategories.value);
       const token = localStorage.getItem("authToken");
       if (token) {
+        const payload = {
+          PageSettings: {
+            Page: pageSettings.value.Page,
+            NoOfItems: pageSettings.value.NoOfItems,
+          },
+          ItemSearchSettings: {
+            Search: searchQuery.value,
+            categories: selectedCategories.value,
+            subcategories: selectedSubcategories.value,
+          },
+        };
+        
         try {
-          const response = await itemApi.itemGetWarehouseItemsPost(
+          const response = await itemApi.itemGetWarehouseItemsWarehouseIdPost(
             route.params.id,
-            pageSettings.value,
+            payload,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          warehouseDetails.value = response.data.result.data.warehouse;
-          items.value = response.data.result.data.items;
+          warehouseDetails.value = response.data.result.warehouse;
+          items.value = response.data.result.items;
           totalPages.value = response.data.result.totalPages;
-          console.log(items.value);
           //getCategoriesOfItems(items.value);
         } catch (error) {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
         }
+        
       } else {
         router.push("/login");
       }
+    };
+
+    const handleCategoryChange = (newValues) => {
+      selectedCategories.value = newValues;
+      console.log(selectedCategories.value);
+      loadWarehouseDetails();
+    };
+
+    const handleSubcategoryChange = (newValues) => {
+      selectedSubcategories.value = newValues;
+      console.log(selectedSubcategories.value);
+      loadWarehouseDetails();
     };
 
     const loadOrganizationCategoriesAndSubcategories = async () => {
@@ -510,7 +569,6 @@ export default {
     };
     */
     const getQuanitity = (item) => {
-      //console.log(item);
       var quantity = item.unit / selectedOrganizations.length;
 
       return 5; // return the new array to be used elsewhere
@@ -526,7 +584,6 @@ export default {
       ) {
         // Ensure mandatory fields are filled
         try {
-          console.log(newItem.value);
           const response = await itemApi.itemAddNewItemPost(
             route.params.id,
             newItem.value,
@@ -580,7 +637,6 @@ export default {
       } else {
         expandedRowKeys.value.push(key); // Otherwise, expand it
       }
-      //console.log(expandedRowKeys.value);
       findChildItemsByName(row.name);
     };
 
@@ -592,20 +648,11 @@ export default {
     };
 
     const selectItem = (item) => {
-      //selectedItems.value.push(item);
-      // Open modal for selecting quantity, for simplicity, let's just prompt
-      const quantity = window.prompt(
-        `Vyberte množství pro ${item.description}`,
-        "1"
-      );
-      if (quantity) {
-        item.selectedQuantity = parseInt(quantity, 10);
-        // Add item with selected quantity
-        selectedItems.value.push({
-          ...item,
-          selectedQuantity: item.selectedQuantity,
-        });
-      }
+      // Add item with selected quantity
+      selectedItems.value.push({
+        ...item,
+        selectedQuantity: item.quantity,
+      });
     };
 
     const deselectItem = (item) => {
@@ -702,7 +749,7 @@ export default {
         // Trigger Vue reactivity for nested changes
         offerData.value.organizations = [...offerData.value.organizations];
       }
-      console.log(offerData.value.organizations);
+      //console.log(offerData.value.organizations);
     };
 
     const distributeQuantitiesToOfferItems = () => {
@@ -847,7 +894,6 @@ export default {
         try {
           offerData.value.title = offerInformations.value.title;
           offerData.value.description = offerInformations.value.description;
-          console.log(offerData.value);
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -951,7 +997,6 @@ export default {
           const response = await categoryApi.categoryGetCategoriesOptionsGet({
             headers: { Authorization: `Bearer ${token}` },
           });
-          console.log(response.data.result);
           categoriesOptions.value = response.data.result.map((cat) => ({
             label: cat.name,
             value: cat.id,
@@ -963,8 +1008,37 @@ export default {
       }
     };
 
+    const fetchSubcategories = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const response = await categoryApi.categoryGetSubcategoriesOptionsGet(
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          subcategoryOptions.value = response.data.result.map((sub) => ({
+            label: sub.name,
+            value: sub.id,
+          }));
+        } catch (error) {
+          message.error("Failed to load subcategories");
+          console.error(error);
+        }
+      }
+    };
+
+    watch(
+      () => pageSettings.value.Page,
+      (newPage, oldPage) => {
+        if (newPage !== oldPage) {
+          loadWarehouseDetails();
+        }
+      }
+    );
+
     // Function to fetch subcategories for a selected category
-    const fetchSubcategories = async (categoryId) => {
+    const fetchSubcategoriesById = async (categoryId) => {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
@@ -1013,6 +1087,10 @@ export default {
       paletaOptions,
       categoriesOptions,
       subcategoriesOptions,
+      subcategoryOptions,
+      searchQuery,
+      selectedCategories,
+      selectedSubcategories,
       showCreateOfferModal,
       selectedItems,
       organizationOptions,
@@ -1021,6 +1099,7 @@ export default {
       offerItems,
       offerData,
       offerInformations,
+      debouncedLoadWarehouseDetails,
       updateItemQuantity,
       selectItem,
       deselectItem,
@@ -1046,6 +1125,8 @@ export default {
       validateForm,
       createOffer,
       prepareOfferData,
+      handleCategoryChange,
+      handleSubcategoryChange,
       // handleCreateCategory,
       // handleCreateSubcategory,
       loadOrganizationCategoriesAndSubcategories,
