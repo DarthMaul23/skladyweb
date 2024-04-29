@@ -531,11 +531,32 @@
             }
           }
         }
-      },
-      "get": {
+      }
+    },
+    "/Offer/GetAllOffers": {
+      "post": {
         "tags": [
           "Offer"
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageSettings"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",

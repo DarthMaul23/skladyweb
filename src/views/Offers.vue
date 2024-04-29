@@ -3,89 +3,77 @@
     <div class="filter-container">
       <n-input
         v-model:value="filters.searchQuery"
-        placeholder="Nabídka, popis...."
+        placeholder="Nabídka, popis..."
         @update:value="filterOffers"
         class="filter-input"
       />
     </div>
 
-    <n-button @click="showAddOfferModal">Vytvořit nabídku</n-button>
-
     <n-data-table
       :columns="columns"
       :data="filteredOffers"
       class="offers-table"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @pageChanged="handlePageChange"
     >
       <template v-slot:action="{ row }">
         <n-button @click="prepareOfferDetails(row)">Details</n-button>
       </template>
     </n-data-table>
-
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
       :header-bg-color="'green'"
       :modal-width="'1200px'"
-      :modal-height="'400px'"
+      :modal-height="'900px'"
       @update:show="isModalVisible = $event"
     >
       <template #body>
-        <div v-if="showAddModal">
-          <n-form @submit.prevent="addOffer">
-            <n-form-item label="Offer Name">
-              <n-input v-model="newOffer.name" placeholder="Enter offer name" />
-            </n-form-item>
-            <n-form-item label="Address">
-              <n-input v-model="newOffer.address" placeholder="Enter address" />
-            </n-form-item>
-            <n-form-item label="Contact Person">
-              <n-input
-                v-model="newOffer.contact"
-                placeholder="Enter contact person"
-              />
-            </n-form-item>
-          </n-form>
+        <div class="modal-body">
+          <div class="details-section">
+            <div class="detail-item">
+              <p>
+                <strong>Nabídka:</strong>
+                {{ selectedOfferDetails.offerGroup.title }}
+              </p>
+            </div>
+            <div class="detail-item">
+              <p>
+                <strong>Vytvořeno dne:</strong>
+                {{ selectedOfferDetails.offerGroup.dateCreated }}
+              </p>
+            </div>
+          </div>
         </div>
-        <div v-if="showDetailModal">
-          <p><strong>ID:</strong> {{ selectedOfferDetails.offerGroup.id }}</p>
-          <p><strong>Title:</strong> {{ selectedOfferDetails.title }}</p>
-          <p>
-            <strong>Description:</strong> {{ selectedOfferDetails.description }}
-          </p>
-          <p>
-            <strong>Date Created:</strong>
-            {{ selectedOfferDetails.offerGroup.dateCreated }}
-          </p>
-          <p>
-            <strong>User ID:</strong>
-            {{ selectedOfferDetails.offerGroup.userId }}
-          </p>
-          <div v-for="organizations in selectedOfferDetails.offers">
-            {{ organizations.organization.name }}
-            <n-data-table
-              :columns="itemColumns"
-              :data="organizations.items"
-              class="item-table"
-            ></n-data-table>
+        <div class="details-container">
+          <div class="organizations-section">
+            <div
+              v-for="organization in selectedOfferDetails.offers"
+              :key="organization.organization.id"
+            >
+              <h3>{{ organization.organization.name }}</h3>
+              <n-data-table
+                :columns="itemColumns"
+                :data="organization.items"
+                class="item-table"
+              ></n-data-table>
+            </div>
           </div>
         </div>
       </template>
       <template #footer>
         <n-button @click="closeModal" class="modal-close-button"
-          >Close</n-button
-        >
-        <n-button v-if="showAddModal" @click="addOffer" class="modal-add-button"
-          >Add Offer</n-button
+          >Zavřít</n-button
         >
       </template>
     </custom-modal>
   </main>
 </template>
-
 <script>
 import CustomModal from "../components/CustomModal.vue";
 import { ref, computed, onMounted, h } from "vue";
-import { NButton, NInput, NDataTable, NFormItem, NForm } from "naive-ui";
+import { NButton, NInput, NDataTable } from "naive-ui";
 import { OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
@@ -95,8 +83,6 @@ export default {
     NButton,
     NInput,
     NDataTable,
-    NFormItem,
-    NForm,
   },
   setup() {
     const offerApi = new OfferApi(getDefaultApiConfig());
@@ -104,22 +90,21 @@ export default {
     const offers = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
-    const showAddModal = ref(false);
     const showDetailModal = ref(false);
-    const newOffer = ref({ name: "", address: "", contact: "" });
     const selectedOfferDetails = ref({});
     const itemColumns = [
       { title: "Kategorie", key: "name" },
       { title: "Položka", key: "description" },
       { title: "Množství", key: "quantity" },
       { title: "Jednotky", key: "unit" },
-      // Add other columns as needed
     ];
 
-    const filteredOffers = computed(() => {
-      return offers.value.filter((offer) => {
-        console.log(offer);
-        return (
+    const totalPages = ref(0);
+    const pageSettings = ref({ Page: 1, NoOfItems: 30 });
+
+    const filteredOffers = computed(() =>
+      offers.value.filter(
+        (offer) =>
           offer.title
             .toLowerCase()
             .includes(filters.value.searchQuery.toLowerCase()) ||
@@ -129,68 +114,60 @@ export default {
           offer.userId
             .toLowerCase()
             .includes(filters.value.searchQuery.toLowerCase())
-        );
-      });
-    });
+      )
+    );
 
     const loadOffers = async () => {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
-          const response = await offerApi.offerGet({
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          // Check if the direct response data is an array
+          const response = await offerApi.offerGetAllOffersPost(
+            {
+              Page: pageSettings.value.Page,
+              NoOfItems: pageSettings.value.NoOfItems,
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           if (Array.isArray(response.data)) {
-            offers.value = response.data; // Directly use the array from response.data
+            offers.value = response.data; // Make sure the 'items' and 'totalPages' are handled if that's how your API response is structured
+            totalPages.value = response.data.totalPages; // This assumes totalPages is part of the response
           } else {
-            console.error("Received data is not an array:", response.data);
-            offers.value = []; // Reset to empty array if data is not as expected
+            console.error(
+              "Received data is not in expected array format:",
+              response.data
+            );
+            offers.value = [];
           }
         } catch (error) {
           console.error("Failed to load offers:", error);
-          offers.value = []; // Reset to empty array in case of error
+          offers.value = [];
         }
-        console.log(offers.value);
       }
     };
 
     onMounted(loadOffers);
 
-    const showAddOfferModal = () => {
-      isModalVisible.value = true;
-      modalTitle.value = "Add New Offer";
-      showAddModal.value = true;
-    };
-
-    const addOffer = () => {
-      // Your logic to add an offer
-      // For this example, we'll just add it to the offers lis
-      closeModal(); // Reset and close the modal
-    };
-
-    const closeModal = () => {
-      isModalVisible.value = false;
-      newOffer.value = { name: "", address: "", contact: "" }; // Reset the form
-      showAddModal.value = false; // Hide add offer form
+    const handlePageChange = (newPage) => {
+      pageSettings.value.Page = newPage;
+      loadOffers();
     };
 
     const prepareOfferDetails = async (offer) => {
-      // Set the selected offer details to be displayed in the modal
       const token = localStorage.getItem("authToken");
       const data = await offerApi.offerIdGet(offer.id, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(data.data);
-      selectedOfferDetails.value = data.data; // Store the selected offer details
-      // Update the modal title to reflect that this is about viewing offer details
+      selectedOfferDetails.value = data.data;
       modalTitle.value = `Detail nabídky: ${offer.title}`;
-
-      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
       showDetailModal.value = true;
-
-      // Finally, making the modal visible
       isModalVisible.value = true;
+    };
+
+    const closeModal = () => {
+      isModalVisible.value = false;
+      showDetailModal.value = false;
     };
 
     return {
@@ -201,30 +178,118 @@ export default {
       isModalVisible,
       modalTitle,
       itemColumns,
-      showAddModal,
       showDetailModal,
-      newOffer,
-      showAddOfferModal,
-      addOffer,
+      totalPages,
+      pageSettings,
       closeModal,
       prepareOfferDetails,
+      handlePageChange,
       columns: [
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
-        { title: "Vytvořil", key: "userId" },
+        { title: "Vytvořeno", key: "dateCreated" },
         {
           title: "Detail",
           key: "action",
           render: (row) =>
             h(NButton, { onClick: () => prepareOfferDetails(row) }, "Detail"),
         },
-        // You can define other columns as needed
       ],
     };
   },
 };
 </script>
-
 <style scoped>
-/* Your CSS styles here */
+/* General layout for the offers page */
+#offers-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* Styling for the input container at the top */
+.filter-container {
+  margin-bottom: 20px;
+}
+
+/* Styling for the input field */
+.filter-input {
+  width: 100%;
+  max-width: 600px; /* Limits the input field's width for better appearance */
+}
+
+/* Styling for the main offers data table */
+.offers-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Styling for item-specific data tables within the modal */
+.item-table {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Buttons in the modal's footer */
+.modal-close-button,
+.modal-add-button {
+  margin-right: 10px;
+}
+
+/* Basic modal styling adjustments */
+.custom-modal {
+  --modal-content-padding: 20px;
+}
+
+/* Header for organizations listed in the modal */
+.organization-header {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+/* Container for organization-specific items */
+.organization-items {
+  margin-bottom: 10px;
+}
+
+/* Container for fixed details at the top of the modal */
+.details-section {
+  flex-shrink: 0;
+}
+
+/* Container for scrollable organization details in the modal */
+.organizations-section {
+  flex-grow: 1;
+  overflow-y: auto; /* Enables scrolling */
+  margin-top: 20px;
+}
+
+/* Styling for the fixed details area */
+.details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Individual detail items */
+.detail-item {
+  background-color: #f9f9f9; /* Light grey for contrast */
+  border-left: 5px solid #4caf50; /* Green accent line for emphasis */
+  padding: 10px 20px;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Paragraphs in detail items */
+.detail-item p {
+  margin: 0; /* Remove default margin */
+  color: #333; /* Dark grey for readability */
+  font-size: 16px; /* Slightly larger text for clarity */
+}
+
+/* Strong elements in detail items */
+.detail-item strong {
+  font-weight: bold; /* Emphasize key labels */
+  color: #2c3e50; /* Dark blue for additional emphasis */
+}
 </style>

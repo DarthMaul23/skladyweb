@@ -2227,11 +2227,12 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
     return {
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Offer`;
+        offerGetAllOffersPost: async (pageSettings?: PageSettings, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Offer/GetAllOffers`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2239,7 +2240,7 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -2248,9 +2249,12 @@ export const OfferApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(pageSettings, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2521,13 +2525,14 @@ export const OfferApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async offerGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<OfferGroup>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.offerGet(options);
+        async offerGetAllOffersPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<OfferGroup>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerGetAllOffersPost(pageSettings, options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['OfferApi.offerGet']?.[index]?.url;
+            const operationBasePath = operationServerMap['OfferApi.offerGetAllOffersPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
         /**
@@ -2626,11 +2631,12 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
     return {
         /**
          * 
+         * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        offerGet(options?: any): AxiosPromise<Array<OfferGroup>> {
-            return localVarFp.offerGet(options).then((request) => request(axios, basePath));
+        offerGetAllOffersPost(pageSettings?: PageSettings, options?: any): AxiosPromise<Array<OfferGroup>> {
+            return localVarFp.offerGetAllOffersPost(pageSettings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2707,12 +2713,13 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
 export class OfferApi extends BaseAPI {
     /**
      * 
+     * @param {PageSettings} [pageSettings] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OfferApi
      */
-    public offerGet(options?: RawAxiosRequestConfig) {
-        return OfferApiFp(this.configuration).offerGet(options).then((request) => request(this.axios, this.basePath));
+    public offerGetAllOffersPost(pageSettings?: PageSettings, options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerGetAllOffersPost(pageSettings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

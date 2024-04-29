@@ -44,7 +44,7 @@
         :pagination="pageSettings"
         :noPages="totalPages"
         @detailClicked="prepareCategoryDetails"
-        @pageChanged="loadWarehouseDetails"
+        @pageChanged="handlePageChange"
       />
     </div>
     <!-- Custom Modal for Adding New Item -->
@@ -381,6 +381,18 @@ export default {
     ];
 
     const columns = [
+      {
+        title: "No", // Title for the record number column
+        key: "recordNumber",
+        render: (row, index) => {
+          // Calculate record number based on current page and index
+          return (
+            (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems +
+            index +
+            1
+          );
+        },
+      },
       { title: "Id", key: "name" },
       { title: "Položka", key: "description" },
       { title: "Kategorie", key: "categoryName" },
@@ -470,7 +482,7 @@ export default {
             subcategories: selectedSubcategories.value,
           },
         };
-        
+
         try {
           const response = await itemApi.itemGetWarehouseItemsWarehouseIdPost(
             route.params.id,
@@ -487,19 +499,20 @@ export default {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
         }
-        
       } else {
         router.push("/login");
       }
     };
 
     const handleCategoryChange = (newValues) => {
+      pageSettings.value.Page = 1;
       selectedCategories.value = newValues;
       console.log(selectedCategories.value);
       loadWarehouseDetails();
     };
 
     const handleSubcategoryChange = (newValues) => {
+      pageSettings.value.Page = 1;
       selectedSubcategories.value = newValues;
       console.log(selectedSubcategories.value);
       loadWarehouseDetails();
@@ -630,6 +643,7 @@ export default {
     const backToList = () => {
       router.push("/"); // Change this as needed
     };
+
     const toggleExpand = (row) => {
       const key = row.name; // Use the name as the key
       const index = expandedRowKeys.value.indexOf(key);
@@ -1025,6 +1039,7 @@ export default {
       }
     };
 
+    /*
     watch(
       () => pageSettings.value.Page,
       (newPage, oldPage) => {
@@ -1033,6 +1048,7 @@ export default {
         }
       }
     );
+    */
 
     // Function to fetch subcategories for a selected category
     const fetchSubcategoriesById = async (categoryId) => {
@@ -1057,15 +1073,22 @@ export default {
       }
     };
 
+    const handlePageChange = (newPage) => {
+      pageSettings.value.Page = newPage;
+      loadWarehouseDetails();
+    };
+
+    /*
     watch(
       () => pageSettings.value.Page,
       (newPage, oldPage) => {
         if (newPage !== oldPage) {
+          console.log(newPage);
           loadWarehouseDetails();
         }
       }
     );
-
+      */
     return {
       pageSettings,
       totalPages,
@@ -1102,6 +1125,7 @@ export default {
       deselectItem,
       // getCategoriesOfItems,
       // getSubcategoriesOfItems,
+      handlePageChange,
       findChildItemsByName,
       addOrganization,
       removeOrganization,
@@ -1277,4 +1301,21 @@ export default {
   color: white;
   border: none; /* Remove border */
 }
+.filter-container {
+  display: flex;
+  align-items: center; /* Keeps items vertically aligned in the center */
+  gap: 10px; /* Spacing between each element */
+  margin-bottom: 10px; /* Space below the container */
+}
+
+/* Giving more space to the input field */
+.filter-input {
+  flex: 3 1 300px; /* Allows the input to grow and starts with a base width of 300px */
+}
+
+/* Adjusting select fields to be a bit smaller than the input */
+.n-select {
+  flex: 2 1 200px; /* Starts with a base width of 200px and can grow */
+}
+
 </style>
