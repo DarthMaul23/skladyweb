@@ -52,7 +52,16 @@
               v-for="organization in selectedOfferDetails.offers"
               :key="organization.organization.id"
             >
-              <h3>{{ organization.organization.name }}</h3>
+              <div class="organization-item">
+                <h3>{{ organization.organization.name }}</h3>
+                <div v-if="organization.orderId" class="chip confirmed">
+                  <span>Objednáno</span>
+                  <!--<h2>{{ organization.orderId }}</h2>-->
+                </div>
+                <div v-else class="chip pending">
+                  <span>Čekající</span>
+                </div>
+              </div>
               <n-data-table
                 :columns="itemColumns"
                 :data="organization.items"
@@ -291,5 +300,38 @@ export default {
 .detail-item strong {
   font-weight: bold; /* Emphasize key labels */
   color: #2c3e50; /* Dark blue for additional emphasis */
+}
+
+.organization-item {
+  display: flex;
+  align-items: center; /* Aligns children vertically in the center */
+  gap: 10px; /* Spacing between the name and the chip */
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1em;
+  border-radius: 16px;
+  color: white;
+  font-size: 0.875em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.confirmed {
+  background-color: #4CAF50; /* Green background for confirmed orders */
+}
+
+.pending {
+  background-color: #FFA500; /* Orange background for pending orders */
+}
+
+h3 {
+  margin: 0; /* Removes margin to maintain alignment */
+}
+
+.item-table {
+  margin-top: 10px; /* Space between tables and above content */
 }
 </style>

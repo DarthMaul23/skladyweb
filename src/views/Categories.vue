@@ -8,95 +8,66 @@
         class="filter-input"
       />
     </div>
-
-    <n-button @click="showAddUserModal">Nová Kategorie</n-button>
-    <!--
-    <n-data-table :columns="columns" :data="filteredUsers" class="users-table">
-      <template v-slot:action="{ row }">
-        <n-button @click="prepareUserDetails(row)">Details</n-button>
-      </template>
-    </n-data-table>
-    <n-pagination
-      v-model:page="pageSettings.Page"
-      :page-count="data.totalPages"
-    />
-    -->
+    <n-button @click="showAddModal">Nová Kategorie</n-button>
     <CustomTable
-    :data="filteredCategories"
-    :columns="columns"
-    :pagination="pageSettings"
-    :noPages="totalPages"
-    @detailClicked="prepareCategoryDetails"
-    @pageChanged="loadCategories"
-  />
+      :data="data"
+      :columns="columns"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @detailClicked="prepareCategoryDetails"
+      @pageChanged="loadCategories"
+    />
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
       :header-bg-color="'green'"
       :modal-width="'1200px'"
-      :modal-height="'400px'"
-      @update:show="isModalVisible = $event"
+      :modal-height="'900px'"
+      @update:show="handleModalVisibility"
     >
       <template #body>
-        <div v-if="showAddModal">
+        <div v-if="showAddCategory">
           <n-form-item label="Kód Kategorie">
-            <n-input
-              v-model:value="newCategory.key"
-              placeholder="Zadejte e-mail uživatele"
-            />
+            <n-input v-model:value="newCategory.key" placeholder="Zadejte kód kategorie" />
           </n-form-item>
           <n-form-item label="Název Kategorie">
-            <n-input
-              v-model:value="newCategory.name"
-              placeholder="Zadejte e-mail uživatele"
-            />
+            <n-input v-model:value="newCategory.name" placeholder="Zadejte název kategorie" />
           </n-form-item>
           <n-form-item label="Popis">
-            <n-input
-              v-model:value="newCategory.description"
-              placeholder="Zadejte e-mail uživatele"
-            />
+            <n-input v-model:value="newCategory.description" placeholder="Zadejte popis kategorie" />
           </n-form-item>
+          <n-button @click="addCategory">Vytvořit Kategorii</n-button>
         </div>
-        <div v-if="showDetailModal">
-          <n-space v-if="loadingDetails" vertical>
-            <n-skeleton height="40px" width="33%" />
-            <n-skeleton height="40px" width="66%" :sharp="false" />
-            <n-skeleton height="40px" round />
-            <n-skeleton height="40px" circle />
-          </n-space>
-          <!--
-            <p><strong>ID:</strong> {{ selectedUserDetails.UserGroup.id }}</p>
-          <p><strong>Title:</strong> {{ selectedUserDetails.title }}</p>
-          <p>
-            <strong>Description:</strong> {{ selectedUserDetails.description }}
-          </p>
-          <p>
-            <strong>Date Created:</strong>
-            {{ selectedUserDetails.UserGroup.dateCreated }}
-          </p>
-          <p>
-            <strong>User ID:</strong>
-            {{ selectedUserDetails.UserGroup.userId }}
-          </p>
-          <div v-for="organizations in selectedUserDetails.Users">
-            {{ organizations.organization.name }}
-            <n-data-table
-              :columns="itemColumns"
-              :data="organizations.items"
-              class="item-table"
-            ></n-data-table>
+        <div v-if="showDetailModal && !showEditModal">
+          <div class="detail-view">
+            <p>
+              <strong>Kód Kategorie:</strong> {{ selectedCategoryDetails.key }}
+              <n-button class="edit-button" @click="editCategory">Upravit</n-button>
+            </p>
+            <p><strong>Název:</strong> {{ selectedCategoryDetails.name }}</p>
+            <p><strong>Popis:</strong> {{ selectedCategoryDetails.description }}</p>
           </div>
-          -->
+        </div>
+        <div v-if="showEditModal">
+          <n-form class="edit-form">
+            <n-form-item label="Kód Kategorie">
+              <n-input v-model:value="editCategoryDetails.key" />
+            </n-form-item>
+            <n-form-item label="Název Kategorie">
+              <n-input v-model:value="editCategoryDetails.name" />
+            </n-form-item>
+            <n-form-item label="Popis">
+              <n-input v-model:value="editCategoryDetails.description" />
+            </n-form-item>
+            <div class="form-buttons">
+              <n-button class="save-button" @click="saveCategory">Uložit úpravy</n-button>
+              <n-button class="cancel-button" @click="cancelEdit">Zrušit úpravy</n-button>
+            </div>
+          </n-form>
         </div>
       </template>
       <template #footer>
-        <n-button @click="hideAddUserModal" class="modal-close-button"
-          >Zařít</n-button
-        >
-        <n-button v-if="showAddModal" @click="addCategory" class="modal-add-button"
-          >Vtyvořit Kategorii</n-button
-        >
+        <n-button @click="hideModal" class="modal-close-button">Zavřít</n-button>
       </template>
     </custom-modal>
   </main>
@@ -104,21 +75,11 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, onMounted, h, watch } from "vue";
-import {
-  NButton,
-  NInput,
-  NDataTable,
-  NFormItem,
-  NForm,
-  NSelect,
-  NSpace,
-  NSkeleton,
-  NPagination,
-} from "naive-ui";
+import { ref, computed, onMounted, watch, h } from "vue";
+import { NButton, NInput, NSkeleton, NFormItem, NSpace } from "naive-ui";
+import CustomTable from '../components/CustomTable.vue';
 import { CategoryApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import CustomTable from '../components/CustomTable.vue';
 
 export default {
   components: {
@@ -126,157 +87,120 @@ export default {
     CustomTable,
     NButton,
     NInput,
-    NDataTable,
-    NFormItem,
-    NForm,
-    NSelect,
-    NSpace,
     NSkeleton,
-    NPagination,
+    NFormItem,
+    NSpace,
   },
   setup() {
     const categoryApi = new CategoryApi(getDefaultApiConfig());
     const data = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
-    const showAddModal = ref(false);
+    const showAddCategory = ref(false);
     const showDetailModal = ref(false);
-    const loadingDetails = ref(false);
-    const selectedUserDetails = ref({});
+    const showEditModal = ref(false);
+    const selectedCategoryDetails = ref({});
+    const editCategoryDetails = ref({});
+    const newCategory = ref({ key: "", name: "", description: "" });
     const filters = ref({ searchQuery: "" });
-    const newCategory = ref({
-      key: "",
-      name: "",
-      description: "",
-    });
-
     const totalPages = ref(0);
-
-    const pageSettings = ref({
-      Page: 1,
-      NoOfItems: 2,
-    });
-
-    // Function to show modal for adding a new user
-    const showAddUserModal = () => {
-      isModalVisible.value = true;
-      modalTitle.value = "Vytvořit Kategorii";
-      showAddModal.value = true;
-    };
-
-    // Function to hide modal for adding a new user
-    const hideAddUserModal = () => {
-      isModalVisible.value = false;
-      modalTitle.value = "";
-      showAddModal.value = false;
-    };
-
-    // Function to add a new user
-    const addCategory = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          console.log(newCategory.value);
-          await categoryApi.categoryCreateCategoryPost(
-            { ...newCategory.value },
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          // Clear form
-          newCategory.value = {
-            key: "",
-            name: "",
-            description: "",
-          };
-
-          loadCategories();
-
-          isModalVisible.value = false;
-          showAddModal.value = false;
-        }
-        // Optionally, refresh the list of users
-      } catch (error) {
-        console.error("Failed to add category:", error);
-      }
-    };
-
-    const loadCategories = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          const response = await categoryApi.categoryGetCategoriesPost(
-            pageSettings.value,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          if (
-            response.data &&
-            response.data.result &&
-            Array.isArray(response.data.result.data)
-          ) {
-            data.value = response.data.result.data;
-            totalPages.value = response.data.result.totalPages;
-          } else {
-            console.error("Unexpected response format:", response.data);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load users:", error);
-      }
-    };
+    const pageSettings = ref({ Page: 1, NoOfItems: 3 });
 
     onMounted(loadCategories);
 
-    const filteredCategories = computed(() => {
-      return data.value;
-      /*.value.filter(
-        (user) =>
-          user.email
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase()) ||
-          user.firstName
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase()) ||
-          user.lastName
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase()) ||
-          (user.organization &&
-            user.organization.name
-              .toLowerCase()
-              .includes(filters.value.searchQuery.toLowerCase()))
-      );*/
-    });
+    function showAddModal() {
+      isModalVisible.value = true;
+      modalTitle.value = "Vytvořit Kategorii";
+      showAddCategory.value = true;
+      showDetailModal.value = false;
+      showEditModal.value = false;
+    }
 
-    const prepareCategoryDetails = async (user) => {
-      console.log(user);
-      loadingDetails.value = true;
-      console.log(loadingDetails.value);
-      // Set the selected offer details to be displayed in the modal
-      const token = localStorage.getItem("authToken");
-      /*
-      const data = await offerApi.offerIdGet(offer.id, {
+    function hideModal() {
+      isModalVisible.value = false;
+      modalTitle.value = "";
+      showAddCategory.value = false;
+      showDetailModal.value = false;
+      showEditModal.value = false;
+    }
+
+    async function addCategory() {
+      try {
+        const token = localStorage.getItem("authToken");
+
+        const response = await categoryApi.categoryCreateCategoryPost(newCategory.value, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(data.data);
-      selectedOfferDetails.value = data.data; // Store the selected offer details
-      */
-      // Update the modal title to reflect that this is about viewing offer details
-      modalTitle.value = `Detail uživatele: ${user.firstName} ${user.lastName}`;
+        newCategory.value = { key: "", name: "", description: "" };
+        loadCategories();
+        hideModal();
+      } catch (error) {
+        console.error("Failed to add category:", error);
+      }
+    }
 
-      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
+    async function loadCategories() {
+      const token = localStorage.getItem("authToken");
+      
+      const response = await categoryApi.categoryGetCategoriesPost(pageSettings.value, 
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+      data.value = response.data.result.data;
+      totalPages.value = response.data.result.totalPages;
+      console.log(data.value);
+      console.log(totalPages.value);
+    }
+
+    function prepareCategoryDetails(category) {
+      selectedCategoryDetails.value = { ...category };
+      modalTitle.value = `Detail kategorie: ${category.name}`;
       showDetailModal.value = true;
-
-      // Finally, making the modal visible
+      showAddCategory.value = false;
+      showEditModal.value = false;
       isModalVisible.value = true;
-    };
+    }
+
+    function editCategory() {
+      editCategoryDetails.value = { ...selectedCategoryDetails.value };
+      showDetailModal.value = false;
+      showEditModal.value = true;
+    }
+
+    async function saveCategory() {
+      try {
+        const token = localStorage.getItem("authToken");
+        
+        const response = await categoryApi.categoryUpdateCategoryPost(editCategoryDetails.value.id, editCategoryDetails.value, 
+        {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+        selectedCategoryDetails.value = { ...editCategoryDetails.value };
+        showEditModal.value = false;
+        showDetailModal.value = true;
+      } catch (error) {
+        console.error("Failed to update category:", error);
+      }
+    }
+
+    function cancelEdit() {
+      editCategoryDetails.value = {};
+      showEditModal.value = false;
+      showDetailModal.value = true;
+    }
+
+    function handleModalVisibility(show) {
+      if (!show) {
+        hideModal();
+      }
+    }
 
     const getRowNo = (row) => {
-      const rowNo = filteredCategories.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
-      console.log(rowNo.value);
-      return rowNo.value;
-    }
+  // Using data instead of filteredCategories since filteredCategories is not defined
+  const rowNo = data.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+  return rowNo;
+}
 
     const columns = ref([
       {
@@ -295,62 +219,72 @@ export default {
       },
     ]);
 
-    watch(
-      () => pageSettings.value.Page,
-      (newPage, oldPage) => {
-        if (newPage !== oldPage) {
-          loadCategories();
-        }
-      }
-    );
-
     return {
       filters,
       data,
-      filteredCategories,
-      selectedUserDetails,
       isModalVisible,
-      showAddModal,
+      showAddCategory,
       showDetailModal,
-      showAddUserModal,
-      prepareCategoryDetails,
-      hideAddUserModal,
+      showEditModal,
+      selectedCategoryDetails,
+      editCategoryDetails,
+      columns,
+      showAddModal,
+      hideModal,
       loadCategories,
       addCategory,
-      pageSettings,
-      totalPages,
+      prepareCategoryDetails,
+      editCategory,
+      saveCategory,
+      cancelEdit,
       modalTitle,
       newCategory,
-      columns,
+      pageSettings,
+      totalPages,
     };
   },
 };
 </script>
-
 <style scoped>
-/* Apply greenish styles for this component */
-.n-input,
-.n-select {
-  --n-border-color: #4caf50; /* Green border */
-  --n-border-focus-color: #67c23a; /* Lighter green for focus */
+.filter-input {
+  margin-bottom: 20px;
 }
 
-.n-button {
-  --n-color: #4caf50; /* Green background */
-  --n-text-color: white; /* White text */
-  --n-color-hover: #67c23a; /* Lighter green on hover */
+.detail-view p {
+  font-size: 1.2rem;
+  margin: 10px 0;
 }
 
-.n-form-item {
-  --n-label-text-color: #4caf50; /* Green labels */
+.edit-button {
+  margin-left: 15px;
+  color: white;
+  background-color: orange;
+  border: none;
 }
 
-.modal-add-button {
-  background-color: #4caf50;
-  border-color: #4caf50;
+.edit-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.save-button {
+  background-color: green;
+  color: white;
+}
+
+.cancel-button {
+  background-color: red;
+  color: white;
 }
 
 .modal-close-button {
-  background-color: #f56c6c; /* Red for close button */
+  background-color: #f56c6c;
+  color: white;
 }
 </style>
