@@ -27,13 +27,24 @@ import { LoginApi, LoginModel } from "../api/openapi/api";
 import { store } from "../store/store";
 import { Configuration } from "../api/openapi/configuration"; // Import the Configuration class
 import { getDefaultApiConfig } from "../utils/utils";
-
+import {
+  NButton,
+  NDataTable,
+  NForm,
+  NFormItem,
+  NInput,
+  NInputNumber,
+  useMessage,
+  NSelect,
+  NSpace,
+} from "naive-ui";
 export default {
   setup() {
     const router = useRouter();
     const username = ref("");
     const password = ref("");
     const error = ref(""); // This will hold the error message
+    const message = useMessage(); // Correctly initialized
 
     const handleLogin = async () => {
       const loginApi = new LoginApi(getDefaultApiConfig());
@@ -54,7 +65,8 @@ export default {
       } catch (e) {
         // Make sure to catch the error correctly
         console.error("Login failed:", e);
-        error.value = "Nesprávné přihlašovací údaje."; // Set the error message
+        message.error("Nesprávné přihlašovací údaje!");
+        
       }
     };
 

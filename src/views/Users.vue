@@ -334,12 +334,12 @@ export default {
       {
         title: "Organizace",
         key: "organizationName",
-        render: (row) => row.organization.name,
+        render: (row) => row.organization?.name,
       },
       {
         title: "Oprávění",
         key: "right",
-        render: (row) => row.right.name,
+        render: (row) => row.right?.name,
       },
       {
         title: "Detail",

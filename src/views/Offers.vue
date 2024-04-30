@@ -41,7 +41,7 @@
             <div class="detail-item">
               <p>
                 <strong>Vytvořeno dne:</strong>
-                {{ selectedOfferDetails.offerGroup.dateCreated }}
+                {{ formatDate(selectedOfferDetails.offerGroup.dateCreated) }}
               </p>
             </div>
           </div>
@@ -179,6 +179,14 @@ export default {
       showDetailModal.value = false;
     };
 
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // +1 because months are zero-indexed
+      const year = date.getFullYear();
+      return `${day}. ${month}. ${year}`;
+    };
+
     return {
       filters,
       offers,
@@ -193,10 +201,15 @@ export default {
       closeModal,
       prepareOfferDetails,
       handlePageChange,
+      formatDate,
       columns: [
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
-        { title: "Vytvořeno", key: "dateCreated" },
+        {
+          title: "Vytvořeno dne",
+          key: "dateCreated",
+          render: (order) => formatDate(order.dateCreated),
+        },
         {
           title: "Detail",
           key: "action",

@@ -22,7 +22,7 @@
       :title="modalTitle"
       :header-bg-color="'green'"
       :modal-width="'1200px'"
-      :modal-height="'400px'"
+      :modal-height="'900px'"
       @update:show="handleModalVisibility"
     >
       <template #body>
