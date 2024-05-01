@@ -5,7 +5,9 @@
   "scripts": {
     "apigen": "npx openapi-generator-cli generate -i swagger.json -g typescript-axios -o ./src/api/openapi",
     "pregenerate-dev-api": "curl -k https://localhost:7292/swagger/v1/swagger.json > swagger.json",
+    "pregenerate-prod-api": "curl -k https://template-test-api.azurewebsites.net/swagger/v1/swagger.json > swagger.json",
     "dev": "npm run pregenerate-dev-api && npm run apigen && vite --host",
+    "prod": "npm run pregenerate-prod-api && npm run apigen && vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
