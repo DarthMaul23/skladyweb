@@ -17,7 +17,7 @@
 import { ref } from "vue";
 import { store } from "./store/store";
 import Sidebar from "./components/Sidebar.vue";
-import Navbar from "/components/navbar.vue";
+import Navbar from "./components/Navbar.vue";
 import { NMessageProvider } from "naive-ui";
 
 const isSidebarExpanded = ref(true);

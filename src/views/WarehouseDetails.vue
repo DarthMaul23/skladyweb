@@ -104,8 +104,9 @@
                 {{ validationErrors.quantity }}
               </div>
             </n-form-item>
-            <n-form-item label="Jednotky:" required>
+            <n-form-item label="Výběr jednotek:" required>
               <n-select
+                width="200px"
                 v-model:value="newItemToBeStored.unit"
                 :options="unitOptions"
                 size="small"

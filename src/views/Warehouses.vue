@@ -14,7 +14,7 @@
             text
             color="red"
             @click="deleteWarehouse(row.id)"
-            >Delete</n-button
+            >Odstranit</n-button
           >
         </template>
       </n-data-table>
@@ -27,7 +27,7 @@
     <!-- Custom Modal for Adding New Warehouse -->
     <CustomModal
       :show="showModal"
-      title="Add New Warehouse"
+      title="Vytvořit nový sklad"
       :headerBgColor="'green'"
       :modalWidth="'400px'"
       :modalHeight="'auto'"
@@ -35,19 +35,19 @@
     >
       <template #body>
         <div class="form-group">
-          <n-form-item label="Name:" required>
+          <n-form-item label="Název:" required>
             <n-input
               v-model:value="newWarehouse.name"
-              placeholder="Warehouse name"
+              placeholder="Název skladu"
             />
             <div v-if="validationErrors.name" class="error-msg">
               {{ validationErrors.name }}
             </div>
           </n-form-item>
-          <n-form-item label="Location:" required>
+          <n-form-item label="Lokace:" required>
             <n-input
               v-model:value="newWarehouse.location"
-              placeholder="Warehouse location"
+              placeholder="Lokace skladu"
             />
             <div v-if="validationErrors.location" class="error-msg">
               {{ validationErrors.location }}
@@ -56,8 +56,8 @@
         </div>
       </template>
       <template #footer>
-        <n-button @click="addWarehouse" class="save-button">Add</n-button>
-        <n-button @click="closeModal" class="close-button">Close</n-button>
+        <n-button @click="addWarehouse" class="save-button">Přidat</n-button>
+        <n-button @click="closeModal" class="close-button">Zrušit</n-button>
       </template>
     </CustomModal>
   </main>
@@ -228,7 +228,7 @@ export default {
 }
 
 .save-button {
-  background-color: #52c41a;
+  background-color: green;
   color: white;
 }
 

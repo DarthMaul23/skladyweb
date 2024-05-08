@@ -1,46 +1,46 @@
 <template>
   <main id="offers-page">
     <div class="filter-container">
-      <n-input placeholder="Search..." class="filter-input" />
+      <n-input
+        v-model:value="filters.searchQuery"
+        placeholder="Search..."
+        class="filter-input"
+        @input="filterOrders(filters.searchQuery)"
+      />
     </div>
 
-    <n-data-table :columns="columns" :data="orders" class="offers-table">
-      <template v-slot:action="{ row }">
-        <n-button @click="() => console.log('Detail view for', row)"
-          >Details</n-button
-        >
-      </template>
-    </n-data-table>
+    <CustomTable
+      :data="filteredOrders"
+      :columns="columns"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @detailClicked="prepareOrderDetails"
+      @pageChanged="loadOrders"
+    />
 
     <custom-modal
       :show="isModalVisible"
-      :title="
-        selectedOrder
-          ? `Detail Objednávky: ${selectedOrder.key}`
-          : 'Detail Objednávky'
-      "
+      :title="modalTitle"
       :header-bg-color="'green'"
       :modal-width="'1200px'"
       :modal-height="'auto'"
       @update:show="isModalVisible = $event"
     >
       <template #body>
-        <div v-if="selectedOrder" class="modal-content">
+        <div v-if="selectedOrder">
           <!-- Displaying order details here -->
           <div class="offer-details">
             <p class="detail-item">
-              <strong>Vytvořeno organizací:</strong>
-              <span class="chip">{{
-                selectedOrder.organizationName
-              }}</span>
+              <strong>Created by:</strong>
+              <span class="chip">{{ selectedOrder.organizationName }}</span>
             </p>
             <p class="detail-item">
-              <strong>Vytvořeno dne:</strong>
+              <strong>Created on:</strong>
               <span class="chip">{{
                 formatDate(selectedOrder.createdOn)
               }}</span>
             </p>
-            <!-- Add more fields as necessary -->
+            <!-- Additional fields can be added here -->
           </div>
           <div class="modal-split-container">
             <!-- Timeline section -->
@@ -59,8 +59,11 @@
                 v-if="stages.length < allStages.length"
                 @click="addStage"
                 class="save-button"
-              >Další krok</n-button>
-              <n-button @click="resetStages" class="close-button">Reset</n-button>
+                >Next Step</n-button
+              >
+              <n-button @click="resetStages" class="close-button"
+                >Reset</n-button
+              >
             </div>
 
             <!-- Items table section -->
@@ -82,11 +85,12 @@
       </template>
     </custom-modal>
   </main>
-</template>  
+</template>
+
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import OrderTimeline from "../components/OrderTimeline.vue";
-import { ref, computed, onMounted, h } from "vue";
+import CustomTable from "../components/CustomTable.vue";
+import { ref, computed, onMounted, h, watch } from "vue";
 import {
   NButton,
   NInput,
@@ -100,75 +104,42 @@ import { getDefaultApiConfig } from "../utils/utils";
 export default {
   components: {
     CustomModal,
+    CustomTable,
     NButton,
     NInput,
     NDataTable,
     NTimeline,
     NTimelineItem,
-    OrderTimeline,
   },
   setup() {
-    const orderApi = new OrderApi(getDefaultApiConfig()); // Initialize API (add params as needed)
+    const orderApi = new OrderApi(getDefaultApiConfig());
     const orders = ref([]);
+    const filteredOrders = ref([]);
+    const filters = ref({ searchQuery: "" });
     const isModalVisible = ref(false);
+    const modalTitle = ref("");
     const selectedOrder = ref({});
     const orderDetail = ref({});
+    const totalPages = ref(0);
+    const pageSettings = ref({ Page: 1, NoOfItems: 3 });
     const stages = ref([
       {
-        title: "Nabídka Vytvořena",
-        content: "Vytvořeno: ",
+        title: "Order Created",
+        content: "Created by: ",
         time: "2024-04-03 20:46",
+        type: "success",
       },
+      // Additional stages as required
     ]);
     const allStages = [
       {
-        title: "Objednávka vytvořena",
-        content: "Objednáno: ",
+        title: "Order Created",
+        content: "Created by: ",
         time: "2024-04-03 20:46",
         type: "success",
       },
-      {
-        title: "Položky vyskladněny",
-        content: "Vyskladnil: ",
-        time: "2024-04-03 20:46",
-        type: "warning",
-      },
-      {
-        title: "Předání k přepravě",
-        content: "Přepravuje: ",
-        time: "2024-04-03 20:46",
-        type: "warning",
-      },
-      {
-        title: "Položky doručeny",
-        content: "Převzal: ",
-        time: "2024-04-03 20:46",
-        type: "warning",
-      },
-      {
-        title: "Položky naskladněny",
-        content: "Naskladnil: ",
-        time: "2024-04-03 20:46",
-        type: "warning",
-      },
-      // Add other stages here as needed
-      {
-        title: "Objednávka Vyřízena",
-        content: "info content",
-        time: "2024-04-03 20:46",
-        type: "success",
-      },
+      // Additional stages as required
     ];
-
-    const addStage = () => {
-      if (stages.value.length < allStages.length) {
-        stages.value.push(allStages[stages.value.length]);
-      }
-    };
-
-    const resetStages = () => {
-      stages.value = [allStages[0]]; // Reset to the first stage
-    };
 
     const loadOrders = async () => {
       const token = localStorage.getItem("authToken");
@@ -178,6 +149,8 @@ export default {
             headers: { Authorization: `Bearer ${token}` },
           });
           orders.value = response.data; // Assuming the response structure matches your endpoint data
+          filterOrders();
+          console.log(orders.value);
         } catch (error) {
           console.error("Failed to load offers:", error);
           orders.value = []; // Reset to initial structure in case of error
@@ -201,6 +174,33 @@ export default {
       }
     };
 
+    const filterOrders = () => {
+      if (filters.value.searchQuery) {
+        filteredOrders.value = orders.value.filter((order) =>
+          order.organizationName
+            .toLowerCase()
+            .includes(filters.value.searchQuery.toLowerCase())
+        );
+      } else {
+        filteredOrders.value = orders.value;
+      }
+      console.log(filteredOrders.value);
+    };
+
+    const prepareOrderDetails = (order) => {
+      selectedOrder.value = order;
+      modalTitle.value = `Order Detail: ${order.key}`;
+      loadOrderDetail(order.id);
+      isModalVisible.value = true;
+    };
+
+    const closeModal = () => {
+      isModalVisible.value = false;
+      orderDetail.value = [];
+    };
+
+    watch(() => filters.value.searchQuery, filterOrders);
+
     const formatDate = (dateString) => {
       const date = new Date(dateString);
       const day = date.getDate().toString().padStart(2, "0");
@@ -209,42 +209,37 @@ export default {
       return `${day}. ${month}. ${year}`;
     };
 
-    const prepareOrderDetails = (order) => {
-      selectedOrder.value = order; // Set the selected order details
-      loadOrderDetail(order.id);
-      isModalVisible.value = true; // Show the modal
+    const getRowNo = (row) => {
+      // Using data instead of filteredCategories since filteredCategories is not defined
+      const rowNo =
+        orders.value.indexOf(row) +
+        1 +
+        (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      return rowNo;
     };
-
-    const closeModal = () => {
-      isModalVisible.value = false;
-      orderDetail.value = undefined;
-    };
-
-
-    const itemColumns = ref([
-      { title: 'Položka', key: 'itemDescription' },
-      { title: 'Množství', key: 'quantity' },
-      { title: 'Jednotky', key: 'unitType' }
-    ]);
 
     onMounted(loadOrders);
 
     return {
       orders,
-      allStages,
-      addStage,
-      resetStages,
-      stages,
-      formatDate,
+      filteredOrders,
+      filters,
       isModalVisible,
+      modalTitle,
       selectedOrder,
       orderDetail,
       prepareOrderDetails,
       closeModal,
-      itemColumns,
-      columns: [
+      filterOrders,
+      formatDate,
+      stages,
+      allStages,
+      pageSettings,
+      totalPages,
+      columns: computed(() => [
+        { title: "No", key: "no", render: (row) => getRowNo(row) },
         { title: "ID Objednávky", key: "key" },
-        { title: "Organizace", key: "organizationName" },
+        { title: "Oragnizace", key: "organizationName" },
         {
           title: "Vytvořeno dne",
           key: "createdOn",
@@ -256,16 +251,15 @@ export default {
           render: (order) =>
             h(NButton, { onClick: () => prepareOrderDetails(order) }, "Detail"),
         },
-      ],
+      ]),
     };
   },
 };
 </script>
+
 <style scoped>
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
+.filter-input {
+  margin-bottom: 20px;
 }
 
 .offer-details {
@@ -339,10 +333,6 @@ h3 .material-icons {
   padding: 10px;
 }
 
-.item-icon {
-  margin-right: 10px;
-}
-
 .card-body {
   padding: 20px;
   background-color: #f9f9f9; /* Lighter shade for the body */
@@ -387,4 +377,3 @@ h3 .material-icons {
   overflow-x: auto; /* Allows horizontal scrolling if necessary */
 }
 </style>
-  
