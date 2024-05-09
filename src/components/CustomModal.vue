@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay" @click.self="close">
-    <div class="modal-container" :style="{ width: modalWidth, maxHeight: modalHeight }">
+    <div class="modal-container" :style="{ width: modalWidth, height: modalHeight }">
       <div class="modal-header" :style="{ backgroundColor: headerBgColor, color: headerTitleColor }">
         <h3>{{ title }}</h3>
       </div>

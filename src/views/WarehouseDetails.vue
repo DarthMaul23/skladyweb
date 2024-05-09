@@ -176,12 +176,12 @@
     </CustomModal>
     <!--Modal for creation of new offer-->
     <!-- CustomModal for Offer Creation -->
-    <CustomModal
+    <!--<CustomModal
       :show="showCreateOfferModal"
       title="Vytvořit nabídku"
       :header-bg-color="'green'"
       :modal-width="'80%'"
-      :modal-height="'80%'"
+      :modal-height="'90%'"
       @update:show="showCreateOfferModal = $event"
     >
       <template #body>
@@ -199,7 +199,6 @@
               placeholder="Popis položky"
             />
           </n-form-item>
-          <!-- Organization selection -->
           <n-form-item label="Organizace:" required>
             <n-select
               v-model:value="selectedOrganization"
@@ -208,7 +207,6 @@
               @update:value="addOrganization"
             />
           </n-form-item>
-          <!-- Display selected organizations and their items -->
           <div class="selected-organizations">
             <div
               v-for="(organization, orgIndex) in offerData.organizations"
@@ -267,11 +265,17 @@
         >
       </template>
     </CustomModal>
+  -->
+  <OfferCreationModal
+      :showCreateOfferModal="showCreateOfferModal"
+      :selectedItems="selectedItems"
+      @updateShowCreateOfferModal="showCreateOfferModal = $event"
+    />
   </main>
 </template>
-
 <script>
 import CustomModal from "../components/CustomModal.vue";
+import OfferCreationModal from "../components/OfferCreationModal.vue";
 import { debounce } from "lodash";
 import { ref, onMounted, h, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -297,6 +301,7 @@ import CustomTable from "../components/CustomTable.vue";
 
 export default {
   components: {
+    OfferCreationModal,
     CustomModal,
     CustomTable,
     NButton,
@@ -566,23 +571,6 @@ export default {
         router.push("/login");
       }
     };
-    /*
-    const getCategoriesOfItems = (items) => {
-      categoriesOptions.value = items.map((item) => ({
-        label: item.name,
-        value: item.name,
-      }));
-      return categoriesOptions; // return the new array to be used elsewhere
-    };
-
-    const getSubcategoriesOfItems = (items) => {
-      subcategoriesOptions.value = items.map((item) => ({
-        label: item.name,
-        value: item.name,
-      }));
-      return categoriesOptions; // return the new array to be used elsewhere
-    };
-    */
     const getQuanitity = (item) => {
       var quantity = item.unit / selectedOrganizations.length;
 
@@ -635,6 +623,7 @@ export default {
       offerItems.value = JSON.parse(JSON.stringify(selectedItems.value)); // Deep copy selected items
       distributeQuantitiesToOfferItems(); // Distribute quantities for the copied items
       showCreateOfferModal.value = true;
+      console.log(showCreateOfferModal.value);
     };
 
     const closeModal = () => {
@@ -1209,12 +1198,11 @@ export default {
 }
 
 .selected-organizations {
-  height: 45vh;
-  max-height: 45vh;
+  height: 48vh;
+  max-height: 48vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
-  margin-bottom: 1rem;
   background-color: #f8f8f8;
   padding: 10px; /* Optional: adds some padding inside the scrollable area */
 }
