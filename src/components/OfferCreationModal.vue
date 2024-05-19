@@ -10,19 +10,11 @@
     <template #body>
       <div class="form-group">
         <n-form-item label="Nabídka:">
-          <n-input
-            v-model="offerInformations.title"
-            placeholder="Název nabídky"
-          />
+          <n-input v-model="offerInformations.title" placeholder="Název nabídky" />
         </n-form-item>
-
         <n-form-item label="Popis:">
-          <n-input
-            v-model="offerInformations.description"
-            placeholder="Popis nabídky"
-          />
+          <n-input v-model="offerInformations.description" placeholder="Popis nabídky" />
         </n-form-item>
-        <!-- Organization selection -->
         <n-form-item label="Organizace:" required>
           <n-select
             v-model="selectedOrganization"
@@ -31,46 +23,33 @@
             @change="addOrganization"
           />
         </n-form-item>
-        <!-- Display selected organizations and their items -->
+        <div class="available-items">
+          <div v-for="(item, index) in availableItems" :key="index" class="item-card">
+            <div class="item-header">
+              <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+              <n-button icon="add" type="primary" @click="addItemToOrganization(item, index)">
+                <span class="material-icons">add</span>
+              </n-button>
+            </div>
+          </div>
+        </div>
         <div class="selected-organizations">
-          <div
-            v-for="(organization, orgIndex) in offerData.organizations"
-            :key="orgIndex"
-            class="organization-card"
-          >
+          <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
             <div class="organization-header">
               <span>{{ organization.name }}</span>
-              <n-button
-                icon="trash"
-                color="#f5222d"
-                @click="removeOrganization(orgIndex)"
-              >
+              <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
                 <span class="material-icons">delete</span>
               </n-button>
             </div>
             <div class="organization-items">
-              <div
-                v-for="(item, itemIndex) in organization.items"
-                :key="itemIndex"
-                class="selected-item"
-              >
-                <span
-                  >{{ item.description }} - Množství: {{ item.quantity }}</span
-                >
+              <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
+                <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
                 <n-input-number
                   v-model="item.quantity"
-                  @change="
-                    (newQuantity) =>
-                      updateOfferItemQuantity(orgIndex, itemIndex, newQuantity)
-                  "
+                  @change="(newQuantity) => updateOfferItemQuantity(orgIndex, itemIndex, newQuantity)"
                   :min="0"
                 />
-                <n-button
-                  icon="trash"
-                  type="error"
-                  color="#f5222d"
-                  @click="removeItemFromOfferCreation(orgIndex, itemIndex)"
-                >
+                <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
                   <span class="material-icons">delete</span>
                 </n-button>
               </div>
@@ -80,103 +59,82 @@
       </div>
     </template>
     <template #footer>
-      <n-button @click="createOffer" class="save-button"
-        >Vytvořit nabídku</n-button
-      >
+      <n-button @click="createOffer" class="save-button">Vytvořit nabídku</n-button>
       <n-button @click="closeModal" class="close-button">Zavřít</n-button>
     </template>
   </CustomModal>
 </template>
-  
-  <script>
+
+<script>
 import CustomModal from "../components/CustomModal.vue";
-import { getDefaultApiConfig } from "../utils/utils";
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import {
   NButton,
-  NDataTable,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  useMessage,
   NSelect,
-  NSpace,
 } from "naive-ui";
-import {
-  ItemApi,
-  OrganizationApi,
-  OfferApi,
-  CategoryApi,
-} from "../api/openapi/api";
 
 export default {
   components: {
     CustomModal,
     NButton,
-    NDataTable,
     NForm,
     NFormItem,
     NInput,
     NInputNumber,
-    useMessage,
     NSelect,
-    NSpace,
   },
   props: {
     showCreateOfferModal: Boolean,
     selectedItems: Array,
+    organizationOptions: Array,
   },
   emits: ["updateShowCreateOfferModal"],
   setup(props, { emit }) {
-    const organizationOptions = ref([]);
-    const selectedOrganization = ref(null);
     const offerInformations = ref({ title: "", description: "" });
     const offerData = ref({ organizations: [] });
-    const organizationApi = new OrganizationApi(getDefaultApiConfig());
+    const availableItems = ref([...props.selectedItems]);
+    const selectedOrganization = ref(null);
 
     watch(
-      () => props.showCreateOfferModal,
+      () => props.selectedItems,
       (newVal) => {
-        if (newVal) {
-          loadOrganizations();
-        }
-      }
+        availableItems.value = [...newVal];
+      },
+      { immediate: true, deep: true }
     );
 
-    const loadOrganizations = async () => {
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        try {
-          const response = await organizationApi.organizationOrganizationsGet({
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          organizationOptions.value = response.data.result.map((org) => ({
-            label: org.name,
-            value: org.id,
-          }));
-        } catch (error) {
-          console.error("Failed to load Organizations:", error);
-          emit("error", "Failed to load organizations");
-        }
-      } else {
-        emit("authentication-needed");
-      }
-    };
-
     const addOrganization = (orgId) => {
-      const org = organizationOptions.value.find((o) => o.value === orgId);
+      const org = props.organizationOptions.find((o) => o.value === orgId);
       if (org && !offerData.value.organizations.some((o) => o.id === orgId)) {
         offerData.value.organizations.push({
           id: orgId,
           name: org.label,
-          items: [...props.selectedItems],
+          items: [],
         });
       }
     };
 
     const removeOrganization = (index) => {
       offerData.value.organizations.splice(index, 1);
+    };
+
+    const addItemToOrganization = (item, itemIndex) => {
+      const org = offerData.value.organizations.find(
+        (org) => org.id === selectedOrganization.value
+      );
+      if (org) {
+        org.items.push(item);
+        availableItems.value.splice(itemIndex, 1);
+      }
+    };
+
+    const removeItemFromOrganization = (orgIndex, itemIndex) => {
+      const item = offerData.value.organizations[orgIndex].items.splice(itemIndex, 1)[0];
+      availableItems.value.push(item);
     };
 
     const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
@@ -188,7 +146,6 @@ export default {
     };
 
     const createOffer = () => {
-      // API call to create offer
       console.log("Offer created:", offerData.value);
       emit("updateShowCreateOfferModal", false);
     };
@@ -198,12 +155,14 @@ export default {
     };
 
     return {
-      organizationOptions,
-      selectedOrganization,
       offerInformations,
       offerData,
+      availableItems,
+      selectedOrganization,
       addOrganization,
       removeOrganization,
+      addItemToOrganization,
+      removeItemFromOrganization,
       updateOfferItemQuantity,
       createOffer,
       closeModal,
@@ -211,8 +170,33 @@ export default {
   },
 };
 </script>
-  
-  <style scoped>
+
+<style scoped>
+.available-items {
+  height: 20vh;
+  max-height: 20vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.item-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background-color: #f8f8f8;
+  padding: 10px;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .selected-organizations {
   height: 46vh;
   max-height: 46vh;
@@ -252,4 +236,3 @@ export default {
   padding-right: 5px;
 }
 </style>
-  
