@@ -23,35 +23,49 @@
             @change="addOrganization"
           />
         </n-form-item>
-        <div class="available-items">
-          <div v-for="(item, index) in availableItems" :key="index" class="item-card">
-            <div class="item-header">
-              <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
-              <n-button icon="add" type="primary" @click="addItemToOrganization(item, index)">
-                <span class="material-icons">add</span>
-              </n-button>
+        <div class="content-wrapper">
+          <div class="available-items">
+            <div class="section-header">Dostupné položky</div>
+            <div v-for="(item, index) in availableItems" :key="index" class="item-card">
+              <div class="item-header">
+                <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                <n-button icon="add" type="primary" @click="addItemToOrganization(item, index)">
+                  <span class="material-icons">add</span>
+                </n-button>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="selected-organizations">
-          <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
-            <div class="organization-header">
-              <span>{{ organization.name }}</span>
-              <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
-                <span class="material-icons">delete</span>
-              </n-button>
-            </div>
-            <div class="organization-items">
-              <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
-                <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
-                <n-input-number
-                  v-model="item.quantity"
-                  @change="(newQuantity) => updateOfferItemQuantity(orgIndex, itemIndex, newQuantity)"
-                  :min="0"
-                />
-                <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
+          <div class="selected-organizations">
+            <div class="section-header">Vybrané organizace</div>
+            <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
+              <div class="organization-header">
+                <span>{{ organization.name }}</span>
+                <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
                   <span class="material-icons">delete</span>
                 </n-button>
+              </div>
+              <div class="organization-items">
+                <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
+                  <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                  <n-input-number
+                    v-model="item.quantity"
+                    @change="(newQuantity) => updateOfferItemQuantity(orgIndex, itemIndex, newQuantity)"
+                    :min="0"
+                  />
+                  <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
+                    <span class="material-icons">delete</span>
+                  </n-button>
+                </div>
+                <div class="available-items-for-org">
+                  <div v-for="(item, itemIndex) in availableItems" :key="itemIndex" class="item-card">
+                    <div class="item-header">
+                      <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                      <n-button icon="add" type="primary" @click="assignItemToOrganization(orgIndex, item, itemIndex)">
+                        <span class="material-icons">add</span>
+                      </n-button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -67,10 +81,9 @@
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue";
 import {
   NButton,
-  NForm,
   NFormItem,
   NInput,
   NInputNumber,
@@ -81,7 +94,6 @@ export default {
   components: {
     CustomModal,
     NButton,
-    NForm,
     NFormItem,
     NInput,
     NInputNumber,
@@ -119,7 +131,10 @@ export default {
     };
 
     const removeOrganization = (index) => {
-      offerData.value.organizations.splice(index, 1);
+      const removedOrg = offerData.value.organizations.splice(index, 1)[0];
+      if (removedOrg) {
+        availableItems.value.push(...removedOrg.items);
+      }
     };
 
     const addItemToOrganization = (item, itemIndex) => {
@@ -135,6 +150,14 @@ export default {
     const removeItemFromOrganization = (orgIndex, itemIndex) => {
       const item = offerData.value.organizations[orgIndex].items.splice(itemIndex, 1)[0];
       availableItems.value.push(item);
+    };
+
+    const assignItemToOrganization = (orgIndex, item, itemIndex) => {
+      const org = offerData.value.organizations[orgIndex];
+      if (org) {
+        org.items.push(item);
+        availableItems.value.splice(itemIndex, 1);
+      }
     };
 
     const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
@@ -163,6 +186,7 @@ export default {
       removeOrganization,
       addItemToOrganization,
       removeItemFromOrganization,
+      assignItemToOrganization,
       updateOfferItemQuantity,
       createOffer,
       closeModal,
@@ -172,15 +196,20 @@ export default {
 </script>
 
 <style scoped>
+.content-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
 .available-items {
-  height: 20vh;
-  max-height: 20vh;
+  width: 30%;
+  height: 70vh;
+  max-height: 70vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
   background-color: #f8f8f8;
   padding: 10px;
-  margin-bottom: 10px;
 }
 
 .item-card {
@@ -198,8 +227,9 @@ export default {
 }
 
 .selected-organizations {
-  height: 46vh;
-  max-height: 46vh;
+  width: 70%;
+  height: 70vh;
+  max-height: 70vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
@@ -234,5 +264,14 @@ export default {
   padding-left: 10px;
   padding-top: 10px;
   padding-right: 5px;
+}
+
+.available-items-for-org {
+  min-height: 0;
+  height: 20vh;
+  max-height: 20vh;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+  margin-top: 10px;
 }
 </style>
