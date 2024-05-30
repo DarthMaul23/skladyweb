@@ -23,46 +23,48 @@
             @change="addOrganization"
           />
         </n-form-item>
+        <n-form-item label="Automatické rozdělení položek:">
+          <n-switch v-model="autoDistributeItems" />
+        </n-form-item>
         <div class="content-wrapper">
           <div class="available-items">
             <div class="section-header">Dostupné položky</div>
-            <div v-for="(item, index) in availableItems" :key="index" class="item-card">
-              <div class="item-header">
-                <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
-                <n-button icon="add" type="primary" @click="addItemToOrganization(item, index)">
-                  <span class="material-icons">add</span>
-                </n-button>
+            <div class="scrollable-content">
+              <div v-for="(item, index) in availableItems" :key="index" class="item-card">
+                <div class="item-header">
+                  <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                  <n-button icon="add" type="primary" @click="addItemToOrganization(item, index)">
+                    <span class="material-icons">add</span>
+                  </n-button>
+                </div>
               </div>
             </div>
           </div>
           <div class="selected-organizations">
             <div class="section-header">Vybrané organizace</div>
-            <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
-              <div class="organization-header">
-                <span>{{ organization.name }}</span>
-                <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
-                  <span class="material-icons">delete</span>
-                </n-button>
-              </div>
-              <div class="organization-items">
-                <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
-                  <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
-                  <n-input-number
-                    v-model="item.quantity"
-                    @change="(newQuantity) => updateOfferItemQuantity(orgIndex, itemIndex, newQuantity)"
-                    :min="0"
-                  />
-                  <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
+            <div class="scrollable-content">
+              <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
+                <div class="organization-header">
+                  <span>{{ organization.name }}</span>
+                  <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
                     <span class="material-icons">delete</span>
                   </n-button>
                 </div>
-                <div class="available-items-for-org">
-                  <div v-for="(item, itemIndex) in availableItems" :key="itemIndex" class="item-card">
-                    <div class="item-header">
-                      <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
-                      <n-button icon="add" type="primary" @click="assignItemToOrganization(orgIndex, item, itemIndex)">
-                        <span class="material-icons">add</span>
-                      </n-button>
+                <div class="organization-items">
+                  <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
+                    <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                    <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
+                      <span class="material-icons">delete</span>
+                    </n-button>
+                  </div>
+                  <div class="available-items-for-org">
+                    <div v-for="(item, itemIndex) in availableItems" :key="itemIndex" class="item-card">
+                      <div class="item-header">
+                        <span>{{ item.description }} - Množství: {{ item.quantity }}</span>
+                        <n-button icon="add" type="primary" @click="assignItemToOrganization(orgIndex, item, itemIndex)">
+                          <span class="material-icons">add</span>
+                        </n-button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -88,6 +90,7 @@ import {
   NInput,
   NInputNumber,
   NSelect,
+  NSwitch,
 } from "naive-ui";
 
 export default {
@@ -98,6 +101,7 @@ export default {
     NInput,
     NInputNumber,
     NSelect,
+    NSwitch,
   },
   props: {
     showCreateOfferModal: Boolean,
@@ -110,6 +114,7 @@ export default {
     const offerData = ref({ organizations: [] });
     const availableItems = ref([...props.selectedItems]);
     const selectedOrganization = ref(null);
+    const autoDistributeItems = ref(false);
 
     watch(
       () => props.selectedItems,
@@ -127,6 +132,9 @@ export default {
           name: org.label,
           items: [],
         });
+        if (autoDistributeItems.value) {
+          distributeItemsEvenly();
+        }
       }
     };
 
@@ -134,6 +142,9 @@ export default {
       const removedOrg = offerData.value.organizations.splice(index, 1)[0];
       if (removedOrg) {
         availableItems.value.push(...removedOrg.items);
+        if (autoDistributeItems.value) {
+          distributeItemsEvenly();
+        }
       }
     };
 
@@ -144,12 +155,18 @@ export default {
       if (org) {
         org.items.push(item);
         availableItems.value.splice(itemIndex, 1);
+        if (autoDistributeItems.value) {
+          distributeItemsEvenly();
+        }
       }
     };
 
     const removeItemFromOrganization = (orgIndex, itemIndex) => {
       const item = offerData.value.organizations[orgIndex].items.splice(itemIndex, 1)[0];
       availableItems.value.push(item);
+      if (autoDistributeItems.value) {
+        distributeItemsEvenly();
+      }
     };
 
     const assignItemToOrganization = (orgIndex, item, itemIndex) => {
@@ -157,14 +174,40 @@ export default {
       if (org) {
         org.items.push(item);
         availableItems.value.splice(itemIndex, 1);
+        if (autoDistributeItems.value) {
+          distributeItemsEvenly();
+        }
       }
     };
 
-    const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
-      const org = offerData.value.organizations[orgIndex];
-      const item = org.items[itemIndex];
-      if (item) {
-        item.quantity = newQuantity;
+    const distributeItemsEvenly = () => {
+      const categorizedItems = {};
+
+      // Categorize items by category and subcategory
+      availableItems.value.forEach(item => {
+        if (!categorizedItems[item.category]) {
+          categorizedItems[item.category] = {};
+        }
+        if (!categorizedItems[item.category][item.subcategory]) {
+          categorizedItems[item.category][item.subcategory] = [];
+        }
+        categorizedItems[item.category][item.subcategory].push(item);
+      });
+
+      // Clear current items in organizations
+      offerData.value.organizations.forEach(org => {
+        org.items = [];
+      });
+
+      // Distribute items evenly across organizations
+      for (const category in categorizedItems) {
+        for (const subcategory in categorizedItems[category]) {
+          const items = categorizedItems[category][subcategory];
+          items.forEach((item, index) => {
+            const orgIndex = index % offerData.value.organizations.length;
+            offerData.value.organizations[orgIndex].items.push(item);
+          });
+        }
       }
     };
 
@@ -182,12 +225,13 @@ export default {
       offerData,
       availableItems,
       selectedOrganization,
+      autoDistributeItems,
       addOrganization,
       removeOrganization,
       addItemToOrganization,
       removeItemFromOrganization,
       assignItemToOrganization,
-      updateOfferItemQuantity,
+      distributeItemsEvenly,
       createOffer,
       closeModal,
     };
@@ -203,13 +247,12 @@ export default {
 
 .available-items {
   width: 30%;
-  height: 70vh;
-  max-height: 70vh;
+  height: 48vh;
+  max-height: 48vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
   background-color: #f8f8f8;
-  padding: 10px;
 }
 
 .item-card {
@@ -228,13 +271,12 @@ export default {
 
 .selected-organizations {
   width: 70%;
-  height: 70vh;
-  max-height: 70vh;
+  height: 48vh;
+  max-height: 48vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
   background-color: #f8f8f8;
-  padding: 10px;
 }
 
 .organization-card {
@@ -268,10 +310,25 @@ export default {
 
 .available-items-for-org {
   min-height: 0;
-  height: 20vh;
-  max-height: 20vh;
   border-top: 1px solid #ccc;
   padding-top: 10px;
   margin-top: 10px;
+}
+
+.section-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: green;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: -10px;
+}
+
+.scrollable-content{
+  margin-top: 20px;
+  padding: 10px;
 }
 </style>
