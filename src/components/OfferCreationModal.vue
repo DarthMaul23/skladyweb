@@ -25,16 +25,14 @@
               placeholder="Vyberte organizaci"
               @change="addOrganization"
             />
-          </n-form-item>
-          <n-form-item label="Automatické rozdělení položek:">
-            <n-switch v-model="autoDistributeItems" @update:value="toggleAutoDistribution" />
+            <n-button @click="distributeItemsEvenly" class="distribute-button">Automaticky rozdělit položky</n-button>
           </n-form-item>
         </div>
         <div class="content-wrapper">
           <div class="available-items">
             <div class="section-header">Dostupné položky</div>
             <div class="scrollable-content">
-              <div v-for="(item, index) in availableItems" :key="index" class="item-card">
+              <div v-for="(item, index) in filteredAvailableItems" :key="index" class="item-card">
                 <div class="item-header">
                   <span>{{ item.name }}</span>
                   <span>{{ item.description }} - Množství: {{ item.quantity }} {{ item.unit }}</span>
@@ -125,11 +123,10 @@ export default {
     const availableItems = ref([...props.selectedItems]);
     const initialAvailableItems = ref([...props.selectedItems]); // Keep initial available items intact
     const selectedOrganization = ref(null);
-    const autoDistributeItems = ref(false);
 
     const filteredAvailableItems = computed(() => {
       const assignedItems = offerData.value.organizations.flatMap(org => org.items);
-      return availableItems.value.filter(item => !assignedItems.includes(item));
+      return initialAvailableItems.value.filter(item => !assignedItems.includes(item));
     });
 
     watch(
@@ -141,19 +138,6 @@ export default {
       { immediate: true, deep: true }
     );
 
-    watch(autoDistributeItems, (newVal) => {
-      if (newVal) {
-        distributeItemsEvenly();
-      }
-    });
-
-    const toggleAutoDistribution = () => {
-      autoDistributeItems.value = !autoDistributeItems.value;
-      if (autoDistributeItems.value) {
-        distributeItemsEvenly();
-      }
-    };
-
     const addOrganization = (orgId) => {
       const org = props.organizationOptions.find((o) => o.value === orgId);
       if (org && !offerData.value.organizations.some((o) => o.id === orgId)) {
@@ -162,9 +146,6 @@ export default {
           name: org.label,
           items: [],
         });
-        if (autoDistributeItems.value) {
-          distributeItemsEvenly();
-        }
       }
     };
 
@@ -172,7 +153,6 @@ export default {
       const removedOrg = offerData.value.organizations.splice(index, 1)[0];
       if (removedOrg) {
         availableItems.value.push(...removedOrg.items);
-        autoDistributeItems.value = false; // Turn off auto distribution
       }
     };
 
@@ -183,16 +163,12 @@ export default {
       if (org) {
         org.items.push(item);
         availableItems.value.splice(itemIndex, 1); // Remove item from availableItems list
-        if (autoDistributeItems.value) {
-          distributeItemsEvenly();
-        }
       }
     };
 
     const removeItemFromOrganization = (orgIndex, itemIndex) => {
       const item = offerData.value.organizations[orgIndex].items.splice(itemIndex, 1)[0];
       availableItems.value.push(item);
-      autoDistributeItems.value = false; // Turn off auto distribution
     };
 
     const assignItemToOrganization = (orgIndex, item, itemIndex) => {
@@ -200,9 +176,6 @@ export default {
       if (org) {
         org.items.push(item);
         availableItems.value.splice(itemIndex, 1); // Remove item from availableItems list
-        if (autoDistributeItems.value) {
-          distributeItemsEvenly();
-        }
       }
     };
 
@@ -215,7 +188,7 @@ export default {
       const categorizedItems = {};
 
       // Categorize items by category and subcategory
-      availableItems.value.forEach(item => {
+      initialAvailableItems.value.forEach(item => {
         if (!categorizedItems[item.category]) {
           categorizedItems[item.category] = {};
         }
@@ -260,8 +233,6 @@ export default {
       availableItems,
       filteredAvailableItems,
       selectedOrganization,
-      autoDistributeItems,
-      toggleAutoDistribution,
       addOrganization,
       removeOrganization,
       addItemToOrganization,
@@ -378,5 +349,11 @@ export default {
 .scrollable-content {
   margin-top: 20px;
   padding: 10px;
+}
+
+.distribute-button {
+  margin: 20px;
+  background-color: green;
+  color: white;
 }
 </style>
