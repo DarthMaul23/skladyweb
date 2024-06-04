@@ -132,6 +132,7 @@
       :showCreateOfferModal="showCreateOfferModal"
       :selectedItems="selectedItems"
       :organizationOptions="organizationOptions"
+      :deselectItem="deselectItem"
       @updateShowCreateOfferModal="showCreateOfferModal = $event"
     />
   </main>
@@ -547,14 +548,6 @@ export default {
       }
     };
 
-    const removeOrganization = (index) => {
-      selectedOrganizations.value.splice(index, 1);
-      offerData.value.organizations.splice(index, 1);
-      redistributeQuantitiesInOfferData();
-      distributeQuantitiesToOfferItems();
-      prepareOfferData();
-    };
-
     const isSelectedAnyItem = computed(() => {
       return selectedItems.value.length > 0;
     });
@@ -613,28 +606,6 @@ export default {
           });
         }
       });
-    };
-
-    const redistributeQuantitiesInOfferData = () => {
-      offerData.value.organizations.forEach((orgOffer) => {
-        orgOffer.items.forEach((itemOffer) => {
-          const correspondingItem = offerItems.value.find(
-            (item) => item.id === itemOffer.id
-          );
-          if (correspondingItem) {
-            let quantityPerOrg =
-              correspondingItem.selectedQuantity /
-              selectedOrganizations.value.length;
-            itemOffer.quantity = quantityPerOrg;
-          }
-        });
-        orgOffer.items = orgOffer.items.filter((itemOffer) =>
-          offerItems.value.some((item) => item.id === itemOffer.id)
-        );
-      });
-      offerData.value.organizations = offerData.value.organizations.filter(
-        (orgOffer) => orgOffer.items.length > 0
-      );
     };
 
     const createOffer = async () => {
@@ -817,7 +788,6 @@ export default {
       handlePageChange,
       findChildItemsByName,
       addOrganization,
-      removeOrganization,
       removeItemFromOfferCreation,
       distributeQuantitiesToOfferItems,
       backToList,
