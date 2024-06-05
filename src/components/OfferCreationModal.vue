@@ -11,10 +11,13 @@
       <div class="form-group">
         <div class="form-row">
           <n-form-item label="Nabídka:">
-            <n-input v-model="offerInformations.title" placeholder="Název nabídky" />
+            <n-input v-model="offerData.title" placeholder="Název nabídky" />
           </n-form-item>
           <n-form-item label="Popis:">
-            <n-input v-model="offerInformations.description" placeholder="Popis nabídky" />
+            <n-input
+              v-model="offerData.description"
+              placeholder="Popis nabídky"
+            />
           </n-form-item>
         </div>
         <div class="form-row">
@@ -25,19 +28,32 @@
               placeholder="Vyberte organizaci"
               @change="addOrganization"
             />
-            <n-button @click="distributeItemsEvenly" class="distribute-button">Automaticky rozdělit položky</n-button>
           </n-form-item>
+          <n-button @click="distributeItemsEvenly" class="distribute-button"
+            >Automaticky rozdělit položky</n-button
+          >
         </div>
         <div class="content-wrapper">
           <div class="available-items">
             <div class="section-header">Dostupné položky</div>
             <div class="scrollable-content">
-              <div v-for="(item, index) in filteredAvailableItems" :key="index" class="item-card">
+              <div
+                v-for="(item, index) in filteredAvailableItems"
+                :key="index"
+                class="item-card"
+              >
                 <div class="item-header">
                   <span>{{ item.name }}</span>
-                  <span>{{ item.description }} - Množství: {{ item.quantity }} {{ item.unit }}</span>
+                  <span
+                    >{{ item.description }} - Množství: {{ item.quantity }}
+                    {{ item.unit }}</span
+                  >
                   <div>
-                    <n-button icon="trash" type="error" @click="removeAvailableItem(index)">
+                    <n-button
+                      icon="trash"
+                      type="error"
+                      @click="removeAvailableItem(index)"
+                    >
                       <span class="material-icons">delete</span>
                     </n-button>
                   </div>
@@ -48,27 +64,60 @@
           <div class="selected-organizations">
             <div class="section-header">Vybrané organizace</div>
             <div class="scrollable-content">
-              <div v-for="(organization, orgIndex) in offerData.organizations" :key="orgIndex" class="organization-card">
+              <div
+                v-for="(organization, orgIndex) in offerData.organizations"
+                :key="orgIndex"
+                class="organization-card"
+              >
                 <div class="organization-header">
                   <span>{{ organization.name }}</span>
-                  <n-button icon="trash" color="#f5222d" @click="removeOrganization(orgIndex)">
+                  <n-button
+                    icon="trash"
+                    color="#f5222d"
+                    @click="removeOrganization(orgIndex)"
+                  >
                     <span class="material-icons">delete</span>
                   </n-button>
                 </div>
                 <div class="organization-items">
-                  <div v-for="(item, itemIndex) in organization.items" :key="itemIndex" class="selected-item">
+                  <div
+                    v-for="(item, itemIndex) in organization.items"
+                    :key="itemIndex"
+                    class="selected-item"
+                  >
                     <span>{{ item.name }}</span>
-                    <span>{{ item.description }} - Množství: {{ item.quantity }} {{ item.unit }}</span>
-                    <n-button icon="trash" type="error" color="#f5222d" @click="removeItemFromOrganization(orgIndex, itemIndex)">
+                    <span
+                      >{{ item.description }} - Množství: {{ item.quantity }}
+                      {{ item.unit }}</span
+                    >
+                    <n-button
+                      icon="trash"
+                      type="error"
+                      color="#f5222d"
+                      @click="removeItemFromOrganization(orgIndex, itemIndex)"
+                    >
                       <span class="material-icons">delete</span>
                     </n-button>
                   </div>
                   <div class="available-items-for-org">
-                    <div v-for="(item, itemIndex) in filteredAvailableItems" :key="itemIndex" class="item-card">
+                    <div
+                      v-for="(item, itemIndex) in filteredAvailableItems"
+                      :key="itemIndex"
+                      class="item-card"
+                    >
                       <div class="item-header">
                         <span>{{ item.name }}</span>
-                        <span>{{ item.description }} - Množství: {{ item.quantity }} {{ item.unit }}</span>
-                        <n-button icon="add" type="primary" @click="assignItemToOrganization(orgIndex, item, itemIndex)">
+                        <span
+                          >{{ item.description }} - Množství:
+                          {{ item.quantity }} {{ item.unit }}</span
+                        >
+                        <n-button
+                          icon="add"
+                          type="primary"
+                          @click="
+                            assignItemToOrganization(orgIndex, item, itemIndex)
+                          "
+                        >
                           <span class="material-icons">add</span>
                         </n-button>
                       </div>
@@ -82,12 +131,13 @@
       </div>
     </template>
     <template #footer>
-      <n-button @click="createOffer" class="save-button">Vytvořit nabídku</n-button>
+      <n-button @click="createOffer" class="save-button"
+        >Vytvořit nabídku</n-button
+      >
       <n-button @click="closeModal" class="close-button">Zavřít</n-button>
     </template>
   </CustomModal>
 </template>
-
 <script>
 import CustomModal from "../components/CustomModal.vue";
 import { ref, watch, computed } from "vue";
@@ -99,7 +149,8 @@ import {
   NSelect,
   NSwitch,
 } from "naive-ui";
-
+import { OfferApi } from "../api/openapi/api";
+import { getDefaultApiConfig } from "../utils/utils";
 export default {
   components: {
     CustomModal,
@@ -118,15 +169,19 @@ export default {
   },
   emits: ["updateShowCreateOfferModal"],
   setup(props, { emit }) {
-    const offerInformations = ref({ title: "", description: "" });
-    const offerData = ref({ organizations: [] });
+    const offerApi = new OfferApi(getDefaultApiConfig());
+    const offerData = ref({ title: "", description: "", organizations: [] });
     const availableItems = ref([...props.selectedItems]);
     const initialAvailableItems = ref([...props.selectedItems]); // Keep initial available items intact
     const selectedOrganization = ref(null);
 
     const filteredAvailableItems = computed(() => {
-      const assignedItems = offerData.value.organizations.flatMap(org => org.items);
-      return initialAvailableItems.value.filter(item => !assignedItems.includes(item));
+      const assignedItems = offerData.value.organizations.flatMap(
+        (org) => org.items
+      );
+      return initialAvailableItems.value.filter(
+        (item) => !assignedItems.includes(item)
+      );
     });
 
     watch(
@@ -167,7 +222,10 @@ export default {
     };
 
     const removeItemFromOrganization = (orgIndex, itemIndex) => {
-      const item = offerData.value.organizations[orgIndex].items.splice(itemIndex, 1)[0];
+      const item = offerData.value.organizations[orgIndex].items.splice(
+        itemIndex,
+        1
+      )[0];
       availableItems.value.push(item);
     };
 
@@ -188,7 +246,7 @@ export default {
       const categorizedItems = {};
 
       // Categorize items by category and subcategory
-      initialAvailableItems.value.forEach(item => {
+      initialAvailableItems.value.forEach((item) => {
         if (!categorizedItems[item.category]) {
           categorizedItems[item.category] = {};
         }
@@ -199,7 +257,7 @@ export default {
       });
 
       // Clear current items in organizations
-      offerData.value.organizations.forEach(org => {
+      offerData.value.organizations.forEach((org) => {
         org.items = [];
       });
 
@@ -219,6 +277,7 @@ export default {
 
     const createOffer = () => {
       console.log("Offer created:", offerData.value);
+      offerApi.offerPost(offerData.value);
       emit("updateShowCreateOfferModal", false);
     };
 
@@ -228,7 +287,6 @@ export default {
     };
 
     return {
-      offerInformations,
       offerData,
       availableItems,
       filteredAvailableItems,

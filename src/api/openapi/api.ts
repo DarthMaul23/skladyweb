@@ -150,6 +150,12 @@ export interface Item {
      * @memberof Item
      */
     'warehouse'?: Warehouse;
+    /**
+     * 
+     * @type {string}
+     * @memberof Item
+     */
+    'expirationDate'?: string | null;
 }
 /**
  * 
@@ -281,6 +287,12 @@ export interface NewItem {
      * @memberof NewItem
      */
     'unit'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewItem
+     */
+    'expirationDate'?: string | null;
 }
 /**
  * 
