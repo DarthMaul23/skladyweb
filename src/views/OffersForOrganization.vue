@@ -2,7 +2,7 @@
   <main id="offers-page">
     <div class="filter-container">
       <n-input
-        v-model:value="filters.searchQuery"
+        v-model="filters.searchQuery"
         placeholder="Nabídka, popis..."
         @update:value="filterOffers"
         class="filter-input"
@@ -45,10 +45,14 @@ export default {
     const filters = ref({ searchQuery: "" });
     const offers = ref([]);
     const filteredOffers = computed(() => {
-      return offers.value.filter(offer =>
-        offer.title.toLowerCase().includes(filters.value.searchQuery.toLowerCase()) ||
-        offer.description.toLowerCase().includes(filters.value.searchQuery.toLowerCase())
-      );
+      return offers.value.filter(offer => {
+        const title = offer.title || "";
+        const description = offer.description || "";
+        return (
+          title.toLowerCase().includes(filters.value.searchQuery.toLowerCase()) ||
+          description.toLowerCase().includes(filters.value.searchQuery.toLowerCase())
+        );
+      });
     });
     const isModalVisible = ref(false);
     const selectedOfferId = ref(null);
@@ -59,11 +63,7 @@ export default {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
-          const response = await offerApi.offerGetAllOffersPost(
-            {
-              Page: pageSettings.value.Page,
-              NoOfItems: pageSettings.value.NoOfItems,
-            },
+          const response = await offerApi.offerOrganizationOffersGet(
             {
               headers: { Authorization: `Bearer ${token}` },
             }
