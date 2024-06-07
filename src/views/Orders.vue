@@ -18,98 +18,28 @@
       @pageChanged="loadOrders"
     />
 
-    <custom-modal
+    <OrderDetailsModal
       :show="isModalVisible"
-      :title="modalTitle"
-      :header-bg-color="'green'"
-      :modal-width="'1200px'"
-      :modal-height="'auto'"
+      :orderId="selectedOrderId"
       @update:show="isModalVisible = $event"
-    >
-      <template #body>
-        <div v-if="selectedOrder">
-          <!-- Displaying order details here -->
-          <div class="offer-details">
-            <p class="detail-item">
-              <strong>Created by:</strong>
-              <span class="chip">{{ selectedOrder.organizationName }}</span>
-            </p>
-            <p class="detail-item">
-              <strong>Created on:</strong>
-              <span class="chip">{{
-                formatDate(selectedOrder.createdOn)
-              }}</span>
-            </p>
-            <!-- Additional fields can be added here -->
-          </div>
-          <div class="modal-split-container">
-            <!-- Timeline section -->
-            <div class="timeline-container">
-              <n-timeline size="large">
-                <n-timeline-item
-                  v-for="(stage, index) in stages"
-                  :key="index"
-                  :title="stage.title"
-                  :content="stage.content"
-                  :time="stage.time"
-                  :type="stage.type"
-                ></n-timeline-item>
-              </n-timeline>
-              <n-button
-                v-if="stages.length < allStages.length"
-                @click="addStage"
-                class="save-button"
-                >Next Step</n-button
-              >
-              <n-button @click="resetStages" class="close-button"
-                >Reset</n-button
-              >
-            </div>
-
-            <!-- Items table section -->
-            <div class="items-table-container">
-              <n-data-table
-                :columns="itemColumns"
-                :data="orderDetail.items"
-                bordered
-                :scroll-x="600"
-              />
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <n-button @click="closeModal" class="modal-close-button"
-          >Zavřít</n-button
-        >
-      </template>
-    </custom-modal>
+    />
   </main>
 </template>
 
 <script>
-import CustomModal from "../components/CustomModal.vue";
 import CustomTable from "../components/CustomTable.vue";
+import OrderDetailsModal from "../components/OrderDetailsModal.vue";
 import { ref, computed, onMounted, h, watch } from "vue";
-import {
-  NButton,
-  NInput,
-  NDataTable,
-  NTimeline,
-  NTimelineItem,
-} from "naive-ui";
+import { NButton, NInput } from "naive-ui";
 import { OrderApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
   components: {
-    CustomModal,
     CustomTable,
+    OrderDetailsModal,
     NButton,
     NInput,
-    NDataTable,
-    NTimeline,
-    NTimelineItem,
   },
   setup() {
     const orderApi = new OrderApi(getDefaultApiConfig());
@@ -117,29 +47,9 @@ export default {
     const filteredOrders = ref([]);
     const filters = ref({ searchQuery: "" });
     const isModalVisible = ref(false);
-    const modalTitle = ref("");
-    const selectedOrder = ref({});
-    const orderDetail = ref({});
+    const selectedOrderId = ref("");
     const totalPages = ref(0);
     const pageSettings = ref({ Page: 1, NoOfItems: 3 });
-    const stages = ref([
-      {
-        title: "Order Created",
-        content: "Created by: ",
-        time: "2024-04-03 20:46",
-        type: "success",
-      },
-      // Additional stages as required
-    ]);
-    const allStages = [
-      {
-        title: "Order Created",
-        content: "Created by: ",
-        time: "2024-04-03 20:46",
-        type: "success",
-      },
-      // Additional stages as required
-    ];
 
     const loadOrders = async () => {
       const token = localStorage.getItem("authToken");
@@ -148,28 +58,11 @@ export default {
           const response = await orderApi.orderOrganizationOrdersGet({
             headers: { Authorization: `Bearer ${token}` },
           });
-          orders.value = response.data; // Assuming the response structure matches your endpoint data
+          orders.value = response.data;
           filterOrders();
-          console.log(orders.value);
         } catch (error) {
           console.error("Failed to load offers:", error);
-          orders.value = []; // Reset to initial structure in case of error
-        }
-      }
-    };
-
-    const loadOrderDetail = async (orderId) => {
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        try {
-          const response = await orderApi.orderIdGet(orderId, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          orderDetail.value = response.data; // Assuming the response structure matches your endpoint data
-          console.log(orderDetail.value);
-        } catch (error) {
-          console.error("Failed to load offers:", error);
-          orderDetail.value = undefined; // Reset to initial structure in case of error
+          orders.value = [];
         }
       }
     };
@@ -184,19 +77,11 @@ export default {
       } else {
         filteredOrders.value = orders.value;
       }
-      console.log(filteredOrders.value);
     };
 
     const prepareOrderDetails = (order) => {
-      selectedOrder.value = order;
-      modalTitle.value = `Order Detail: ${order.key}`;
-      loadOrderDetail(order.id);
+      selectedOrderId.value = order.id;
       isModalVisible.value = true;
-    };
-
-    const closeModal = () => {
-      isModalVisible.value = false;
-      orderDetail.value = [];
     };
 
     watch(() => filters.value.searchQuery, filterOrders);
@@ -204,13 +89,12 @@ export default {
     const formatDate = (dateString) => {
       const date = new Date(dateString);
       const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // +1 because months are zero-indexed
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const year = date.getFullYear();
       return `${day}. ${month}. ${year}`;
     };
 
     const getRowNo = (row) => {
-      // Using data instead of filteredCategories since filteredCategories is not defined
       const rowNo =
         orders.value.indexOf(row) +
         1 +
@@ -225,15 +109,10 @@ export default {
       filteredOrders,
       filters,
       isModalVisible,
-      modalTitle,
-      selectedOrder,
-      orderDetail,
+      selectedOrderId,
       prepareOrderDetails,
-      closeModal,
       filterOrders,
       formatDate,
-      stages,
-      allStages,
       pageSettings,
       totalPages,
       columns: computed(() => [
@@ -258,122 +137,115 @@ export default {
 </script>
 
 <style scoped>
-.filter-input {
+#offers-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.filter-container {
   margin-bottom: 20px;
 }
 
-.offer-details {
-  background-color: #f0fdf4; /* Light green background */
-  border-left: 5px solid #4caf50; /* Green accent border */
-  padding: 16px;
+.filter-input {
+  width: 100%;
+  max-width: 600px;
+}
+
+.offers-table {
+  width: 100%;
   margin-bottom: 20px;
-  border-radius: 8px; /* Rounded corners for a modern look */
+}
+
+.item-table {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.modal-close-button,
+.modal-add-button {
+  margin-right: 10px;
+}
+
+.custom-modal {
+  --modal-content-padding: 20px;
+}
+
+.organization-header {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.organization-items {
+  margin-bottom: 10px;
+}
+
+.details-section {
+  flex-shrink: 0;
+}
+
+.organizations-section {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+.details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .detail-item {
-  margin-bottom: 12px; /* Space between details for clarity */
-  color: #333; /* Dark color for better readability */
-  line-height: 1.6; /* Spacing between lines */
+  background-color: #f9f9f9;
+  border-left: 5px solid #4caf50;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detail-item p {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
 }
 
 .detail-item strong {
-  color: green; /* Slightly darker green for emphasis */
+  font-weight: bold;
+  color: #2c3e50;
 }
 
-.modal-header-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.order-button,
-.reject-button {
-  flex-basis: 48%; /* Adjust based on design */
-}
-
-.offer-items {
-  margin-bottom: -30px;
-}
-
-.offer-items h3 {
-  background-color: green;
-  color: white;
-  padding: 5px;
-}
-
-h3 .material-icons {
-  vertical-align: middle; /* Align the icon with the middle of the text */
-  margin-right: 8px; /* Space between the icon and the text */
-}
-
-.items-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  max-height: 300px; /* Adjust based on your requirement */
-  overflow-y: auto; /* Enables vertical scrolling */
-  padding-right: 10px; /* Optional: for better scrollbar visibility */
-}
-
-.item-card {
-  background-color: #ffffff;
-  border: 2px solid #e8f5e9; /* Light green border */
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  overflow: hidden; /* Ensures the child elements do not overflow */
-}
-
-.card-header {
-  background-color: green; /* Green background */
-  color: white;
+.organization-item {
   display: flex;
   align-items: center;
-  padding: 10px;
-}
-
-.card-body {
-  padding: 20px;
-  background-color: #f9f9f9; /* Lighter shade for the body */
-}
-
-.card-body p {
-  margin: 10px 0; /* Spacing between paragraphs */
-}
-
-.card-body strong {
-  color: green; /* Green text for labels */
-}
-
-.modal-close-button {
-  background-color: red;
-  color: white;
+  gap: 10px;
 }
 
 .chip {
-  display: inline-block;
-  padding: 4px 18px; /* Adjust the padding to change the size */
-  background-color: green; /* Green background */
-  color: white; /* White text */
-  border-radius: 16px; /* Rounded corners for chip shape */
-  font-size: 14px; /* Font size, adjust as needed */
-  font-weight: bold; /* Font weight, adjust for boldness */
-  margin: 0 5px; /* Margin for spacing if you have multiple chips */
-}
-
-.modal-split-container {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 1em;
+  border-radius: 16px;
+  color: white;
+  font-size: 0.875em;
+  font-weight: bold;
+  margin: 0.5em 0;
 }
 
-.timeline-container {
-  flex: 1;
-  margin-right: 20px; /* Space between timeline and table */
+.confirmed {
+  background-color: #4caf50;
 }
 
-.items-table-container {
-  flex: 2;
-  overflow-x: auto; /* Allows horizontal scrolling if necessary */
+.pending {
+  background-color: #ffa500;
+}
+
+h3 {
+  margin: 0;
+}
+
+.item-table {
+  margin-top: 10px;
+  width: 100%;
 }
 </style>

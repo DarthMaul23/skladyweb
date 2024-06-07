@@ -653,7 +653,9 @@
             "description": "Success"
           }
         }
-      },
+      }
+    },
+    "/Offer/OfferDetail/{id}": {
       "get": {
         "tags": [
           "Offer"
@@ -677,7 +679,7 @@
         }
       }
     },
-    "/Offer/OfferDetail/{id}": {
+    "/Offer/OfferGroupDetail/{id}": {
       "get": {
         "tags": [
           "Offer"
@@ -1350,11 +1352,6 @@
           },
           "warehouse": {
             "$ref": "#/components/schemas/Warehouse"
-          },
-          "expirationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1454,11 +1451,6 @@
           },
           "unit": {
             "type": "string",
-            "nullable": true
-          },
-          "expirationDate": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         },

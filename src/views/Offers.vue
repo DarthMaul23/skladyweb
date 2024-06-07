@@ -18,75 +18,28 @@
       class="offers-table"
     />
 
-    <custom-modal
+    <OfferDetailsModal
       :show="isModalVisible"
-      :title="modalTitle"
-      :header-bg-color="'green'"
-      :modal-width="'1200px'"
-      :modal-height="'900px'"
+      :offerId="selectedOfferId"
       @update:show="isModalVisible = $event"
-    >
-      <template #body>
-        <div class="modal-body">
-          <div class="details-section">
-            <div class="detail-item">
-              <p>
-                <strong>Nabídka:</strong>
-                {{ selectedOfferDetails.offerGroup?.title }}
-              </p>
-            </div>
-            <div class="detail-item">
-              <p>
-                <strong>Vytvořeno dne:</strong>
-                {{ formatDate(selectedOfferDetails.offerGroup?.dateCreated) }}
-              </p>
-            </div>
-          </div>
-          <div class="details-container">
-            <div
-              v-for="organization in selectedOfferDetails.offers"
-              :key="organization.organization.id"
-              class="organizations-section"
-            >
-              <div class="organization-item">
-                <h3>{{ organization.organization.name }}</h3>
-                <div v-if="organization.orderId" class="chip confirmed">
-                  <span>Objednáno</span>
-                </div>
-                <div v-else class="chip pending">
-                  <span>Čekající</span>
-                </div>
-              </div>
-              <n-data-table
-                :columns="itemColumns"
-                :data="organization.items"
-                class="item-table"
-              ></n-data-table>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <n-button @click="closeModal" class="modal-close-button">Zavřít</n-button>
-      </template>
-    </custom-modal>
+    />
   </main>
 </template>
 
 <script>
-import CustomModal from "../components/CustomModal.vue";
-import CustomTable from "../components/CustomTable.vue"; // Assuming CustomTable is correctly set up to replace NDataTable
 import { ref, computed, onMounted, h } from "vue";
 import { NButton, NInput } from "naive-ui";
 import { OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
+import CustomTable from "../components/CustomTable.vue";
+import OfferDetailsModal from "../components/OfferDetailsModal.vue";
 
 export default {
   components: {
-    CustomModal,
-    CustomTable,
     NButton,
     NInput,
+    CustomTable,
+    OfferDetailsModal,
   },
   setup() {
     const offerApi = new OfferApi(getDefaultApiConfig());
@@ -99,8 +52,7 @@ export default {
       );
     });
     const isModalVisible = ref(false);
-    const modalTitle = ref("");
-    const selectedOfferDetails = ref({});
+    const selectedOfferId = ref(null);
     const totalPages = ref(0);
     const pageSettings = ref({ Page: 1, NoOfItems: 30 });
 
@@ -139,19 +91,15 @@ export default {
       loadOffers();
     };
 
-    const prepareOfferDetails = offer => {
-      selectedOfferDetails.value = offer;
-      modalTitle.value = `Detail nabídky: ${offer?.title}`;
+    const openOfferDetails = offerId => {
+      selectedOfferId.value = offerId;
       isModalVisible.value = true;
-    };
-
-    const closeModal = () => {
-      isModalVisible.value = false;
     };
 
     const formatDate = dateString => {
       const date = new Date(dateString);
-      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      return dateString;
+      // return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
     };
 
     onMounted(loadOffers);
@@ -161,18 +109,16 @@ export default {
       offers,
       filteredOffers,
       isModalVisible,
-      modalTitle,
-      selectedOfferDetails,
-      closeModal,
+      selectedOfferId,
       handlePageChange,
-      prepareOfferDetails,
+      openOfferDetails,
       formatDate,
       columns: [
         { title: "No.", key: "id", render: (row, index) => index + 1 },
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
         { title: "Vytvořeno dne", key: "dateCreated", render: formatDate },
-        { title: "Detail", key: "action", render: (row) => h(NButton, { onClick: () => prepareOfferDetails(row) }, "Detail") },
+        { title: "Detail", key: "action", render: (row) => h(NButton, { onClick: () => openOfferDetails(row.id) }, "Detail") },
       ],
       totalPages,
       pageSettings,
@@ -180,6 +126,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 /* General layout for the offers page */
 #offers-page {

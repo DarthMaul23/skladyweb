@@ -11,11 +11,14 @@
       <div class="form-group">
         <div class="form-row">
           <n-form-item label="Nabídka:">
-            <n-input v-model="offerData.title" placeholder="Název nabídky" />
+            <n-input
+              v-model="offerInformations.title"
+              placeholder="Název nabídky"
+            />
           </n-form-item>
           <n-form-item label="Popis:">
             <n-input
-              v-model="offerData.description"
+              v-model="offerInformations.description"
               placeholder="Popis nabídky"
             />
           </n-form-item>
@@ -170,7 +173,8 @@ export default {
   emits: ["updateShowCreateOfferModal"],
   setup(props, { emit }) {
     const offerApi = new OfferApi(getDefaultApiConfig());
-    const offerData = ref({ title: "", description: "", organizations: [] });
+    const offerInformations = ref({ title: "", description: "" });
+    const offerData = ref({ organizations: [] });
     const availableItems = ref([...props.selectedItems]);
     const initialAvailableItems = ref([...props.selectedItems]); // Keep initial available items intact
     const selectedOrganization = ref(null);
@@ -275,10 +279,44 @@ export default {
       }
     };
 
-    const createOffer = () => {
-      console.log("Offer created:", offerData.value);
-      offerApi.offerPost(offerData.value);
-      emit("updateShowCreateOfferModal", false);
+    const createOffer = async () => {
+      const newOfferModel = {
+        title: offerInformations.value.title,
+        description: offerInformations.value.description,
+        organizations: offerData.value.organizations.map((org) => ({
+          organizationId: org.id,
+          organization: org.name,
+          items: org.items.map((item) => ({
+            id: item.id,
+            description: item.description,
+            quantity: item.selectedQuantity,
+          })),
+        })),
+      };
+
+      try {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          const response = await offerApi.offerPost(
+            JSON.stringify(newOfferModel),
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+
+          const result = await response.json();
+          console.log("Offer created:", result);
+          emit("updateShowCreateOfferModal", false);
+        } else {
+          console.log("Error token auth!");
+        }
+      } catch (error) {
+        console.error("Error creating offer:", error);
+      }
     };
 
     const closeModal = () => {
@@ -291,6 +329,7 @@ export default {
       availableItems,
       filteredAvailableItems,
       selectedOrganization,
+      offerInformations,
       addOrganization,
       removeOrganization,
       addItemToOrganization,
