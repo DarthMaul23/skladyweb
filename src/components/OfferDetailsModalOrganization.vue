@@ -13,37 +13,47 @@
             <div class="detail-item">
               <p>
                 <strong>Nabídka:</strong>
-                {{ offerDetails.offerGroup?.title }}
+                {{ offerDetails.title }}
               </p>
             </div>
             <div class="detail-item">
               <p>
                 <strong>Vytvořeno dne:</strong>
-                {{ formatDate(offerDetails.offerGroup?.dateCreated) }}
+                {{ formatDate(offerDetails.dateCreated) }}
+              </p>
+            </div>
+            <div class="detail-item">
+              <p>
+                <strong>Organizace:</strong>
+                {{ offerDetails.organization?.name }}
               </p>
             </div>
           </div>
           <div class="scrollable-section">
-            <div
-              v-for="organization in offerDetails.offers"
-              :key="organization.organization.id"
-              class="organizations-section"
-            >
-              <div class="organization-item">
-                <h3>{{ organization.organization.name }}</h3>
-                <div v-if="organization.orderId" class="chip confirmed">
-                  <span>Objednáno</span>
-                </div>
-                <div v-else class="chip pending">
-                  <span>Čekající</span>
-                </div>
+            <div class="organization-item">
+              <h3>{{ offerDetails.organization?.name }}</h3>
+              <div v-if="offerDetails.orderId" class="chip confirmed">
+                <span>Objednáno</span>
               </div>
-              <n-data-table
-                :columns="itemColumns"
-                :data="organization.items"
-                class="item-table"
-              ></n-data-table>
+              <div v-else class="chip pending">
+                <span>Čekající</span>
+              </div>
             </div>
+            <n-data-table
+              :columns="itemColumns"
+              :data="offerDetails.items"
+              class="item-table"
+            ></n-data-table>
+          </div>
+          <div class="action-buttons">
+            <n-button class="order-button" @click="placeOrder" type="success">
+              <span class="material-icons">shopping_cart</span>
+              Objednat
+            </n-button>
+            <n-button class="reject-button" @click="declineOffer" type="error">
+              <span class="material-icons">cancel</span>
+              Odmítnout
+            </n-button>
           </div>
         </div>
       </template>
@@ -57,7 +67,7 @@
   import CustomModal from "../components/CustomModal.vue";
   import { ref, watch } from "vue";
   import { NButton, NDataTable } from "naive-ui";
-  import { OfferApi } from "../api/openapi/api";
+  import { OfferApi, OrderApi } from "../api/openapi/api";
   import { getDefaultApiConfig } from "../utils/utils";
   
   export default {
@@ -73,6 +83,7 @@
     emits: ["update:show"],
     setup(props, { emit }) {
       const offerApi = new OfferApi(getDefaultApiConfig());
+      const orderApi = new OrderApi(getDefaultApiConfig());
       const offerDetails = ref({});
       const modalTitle = ref("");
   
@@ -80,11 +91,11 @@
         const token = localStorage.getItem("authToken");
         if (token) {
           try {
-            const response = await offerApi.offerOfferGroupDetailIdGet(offerId, {
+            const response = await offerApi.offerOrganizationOffersGet(offerId, {
               headers: { Authorization: `Bearer ${token}` },
             });
             offerDetails.value = response.data;
-            modalTitle.value = `Detail nabídky: ${response.data.offerGroup?.title}`;
+            modalTitle.value = `Detail nabídky: ${response.data.title}`;
           } catch (error) {
             console.error("Failed to load offer details:", error);
           }
@@ -92,7 +103,6 @@
       };
   
       const handleClose = () => {
-        offerDetails.value = {};
         emit("update:show", false);
       };
   
@@ -101,17 +111,51 @@
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
       };
   
-      watch(() => props.offerId, (newOfferId) => {
-        if (newOfferId) {
-          loadOfferDetails(newOfferId);
+      const placeOrder = async () => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          try {
+            await orderApi.orderPost({ offerId: props.offerId }, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            handleClose();
+          } catch (error) {
+            console.error("Failed to place order:", error);
+          }
         }
-      }, { immediate: true });
+      };
+  
+      const declineOffer = async () => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          try {
+            await offerApi.offerDeclinePost({ offerId: props.offerId }, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            handleClose();
+          } catch (error) {
+            console.error("Failed to decline offer:", error);
+          }
+        }
+      };
+  
+      watch(
+        () => props.offerId,
+        (newOfferId) => {
+          if (newOfferId) {
+            loadOfferDetails(newOfferId);
+          }
+        },
+        { immediate: true }
+      );
   
       return {
         offerDetails,
         modalTitle,
         formatDate,
         handleClose,
+        placeOrder,
+        declineOffer,
         itemColumns: [
           { title: "Název položky", key: "name" },
           { title: "Popis", key: "description" },
@@ -160,19 +204,16 @@
   }
   
   .scrollable-section {
-    max-height: 600px; /* Adjust this value as needed */
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 10px;
-  }
-  
-  .organizations-section {
-    margin-top: 20px;
   }
   
   .organization-item {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
   }
   
   .chip {
@@ -201,6 +242,17 @@
   .item-table {
     margin-top: 10px;
     width: 100%;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .order-button,
+  .reject-button {
+    flex-basis: 48%;
   }
   
   .modal-close-button {

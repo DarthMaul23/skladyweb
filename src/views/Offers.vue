@@ -69,14 +69,13 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
+
+          // Assuming response.data is an array of offers
           if (Array.isArray(response.data)) {
-            offers.value = response.data; // Make sure the 'items' and 'totalPages' are handled if that's how your API response is structured
-            totalPages.value = response.data.totalPages; // This assumes totalPages is part of the response
+            offers.value = response.data;
+            totalPages.value = Math.ceil(response.data.length / pageSettings.value.NoOfItems);
           } else {
-            console.error(
-              "Received data is not in expected array format:",
-              response.data
-            );
+            console.error("Received data is not in expected array format:", response.data);
             offers.value = [];
           }
         } catch (error) {
@@ -98,8 +97,7 @@ export default {
 
     const formatDate = dateString => {
       const date = new Date(dateString);
-      return dateString;
-      // return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
     };
 
     onMounted(loadOffers);
