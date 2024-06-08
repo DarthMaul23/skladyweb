@@ -55,7 +55,7 @@ export default {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
-          const response = await orderApi.orderAllOrdersGet({
+          const response = await orderApi.orderOrganizationOrdersGet({
             headers: { Authorization: `Bearer ${token}` },
           });
           orders.value = response.data;

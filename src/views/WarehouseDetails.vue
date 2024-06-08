@@ -3,7 +3,6 @@
     <n-button color="green" @click="backToList">Zpět na seznam skladů</n-button>
     <div class="warehouse-details">
       <h2>Sklad: {{ warehouseDetails.name }}</h2>
-      <!-- Here you can insert additional details or management sections for your warehouse -->
     </div>
     <div class="filter-container">
       <n-input
@@ -33,7 +32,7 @@
       <n-button
         v-if="isSelectedAnyItem"
         color="green"
-        @click="openCreateOfferModal()"
+        @click="openCreateOfferModal"
         >Vytvořit nabídku</n-button
       >
     </div>
@@ -47,7 +46,6 @@
         @pageChanged="handlePageChange"
       />
     </div>
-    <!-- Custom Modal for Adding New Item -->
     <CustomModal
       :show="showAddItemModal"
       title="Naskladnit Položku"
@@ -104,8 +102,9 @@
                 {{ validationErrors.quantity }}
               </div>
             </n-form-item>
-            <n-form-item label="Jednotky:" required>
+            <n-form-item label="Výběr jednotek:" required>
               <n-select
+                width="200px"
                 v-model:value="newItemToBeStored.unit"
                 :options="unitOptions"
                 size="small"
@@ -117,7 +116,6 @@
                 :options="paletaOptions"
               />
             </n-form-item>
-
             <n-form-item label="Počet palet:" required>
               <n-input-number v-model:value="newItemToBeStored.count" min="1" />
               <div v-if="validationErrors.count" class="error-msg">
@@ -131,7 +129,9 @@
         </div>
         <div v-if="listOfNewItemsToBeStored.length > 0">
           <h3>
-            Seznam položek k naskladnění ({{ listOfNewItemsToBeStored.length }}
+            Seznam položek k naskladnění ({{
+              listOfNewItemsToBeStored.length
+            }}
             položek):
           </h3>
           <div class="items-container">
@@ -164,119 +164,34 @@
       <template #footer>
         <n-button
           v-if="listOfNewItemsToBeStored.length > 0"
-          @click="storeItems()"
+          @click="storeItems"
           class="save-button"
-          >Naskladnit vše</n-button
         >
+          Naskladnit vše
+        </n-button>
         <n-button @click="showAddItemModal = false" class="close-button"
           >Zavřít</n-button
         >
       </template>
     </CustomModal>
-    <!--Modal for creation of new offer-->
-    <!-- CustomModal for Offer Creation -->
-    <CustomModal
-      :show="showCreateOfferModal"
-      title="Vytvořit nabídku"
-      :header-bg-color="'green'"
-      :modal-width="'80%'"
-      :modal-height="'80%'"
-      @update:show="showCreateOfferModal = $event"
-    >
-      <template #body>
-        <div class="form-group">
-          <n-form-item label="Nabídka:">
-            <n-input
-              v-model:value="offerInformations.title"
-              placeholder="Popis položky"
-            />
-          </n-form-item>
-
-          <n-form-item label="Popis:">
-            <n-input
-              v-model:value="offerInformations.description"
-              placeholder="Popis položky"
-            />
-          </n-form-item>
-          <!-- Organization selection -->
-          <n-form-item label="Organizace:" required>
-            <n-select
-              v-model:value="selectedOrganization"
-              :options="organizationOptions"
-              placeholder="Vyberte organizaci"
-              @update:value="addOrganization"
-            />
-          </n-form-item>
-          <!-- Display selected organizations and their items -->
-          <div class="selected-organizations">
-            <div
-              v-for="(organization, orgIndex) in offerData.organizations"
-              :key="orgIndex"
-              class="organization-card"
-            >
-              <div class="organization-header">
-                <span>{{ organization.organization }}</span>
-                <n-button
-                  icon="trash"
-                  color="#f5222d"
-                  @click="removeOrganization(orgIndex)"
-                >
-                  <span class="material-icons">delete</span>
-                </n-button>
-              </div>
-              <div class="organization-items">
-                <div
-                  v-for="(item, itemIndex) in organization.items"
-                  :key="itemIndex"
-                  class="selected-item"
-                >
-                  <span>{{ item.description }} - Množství:</span>
-                  <n-input-number
-                    :value="item.quantity"
-                    @update:value="
-                      (newQuantity) =>
-                        updateOfferItemQuantity(
-                          orgIndex,
-                          itemIndex,
-                          newQuantity
-                        )
-                    "
-                    :min="0"
-                  />
-                  <n-button
-                    icon="trash"
-                    type="error"
-                    color="#f5222d"
-                    @click="removeItemFromOfferCreation(orgIndex, itemIndex)"
-                  >
-                    <span class="material-icons">delete</span>
-                  </n-button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <n-button @click="createOffer()" class="save-button"
-          >Vytvořit nabídku</n-button
-        >
-        <n-button @click="showCreateOfferModal = false" class="close-button"
-          >Zavřít</n-button
-        >
-      </template>
-    </CustomModal>
+    <OfferCreationModal
+      :showCreateOfferModal="showCreateOfferModal"
+      :selectedItems="selectedItems"
+      :organizationOptions="organizationOptions"
+      :deselectItem="deselectItem"
+      @updateShowCreateOfferModal="showCreateOfferModal = $event"
+    />
   </main>
 </template>
 
 <script>
 import CustomModal from "../components/CustomModal.vue";
+import OfferCreationModal from "../components/OfferCreationModal.vue";
 import { debounce } from "lodash";
 import { ref, onMounted, h, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   NButton,
-  NDataTable,
   NForm,
   NFormItem,
   NInput,
@@ -296,10 +211,10 @@ import CustomTable from "../components/CustomTable.vue";
 
 export default {
   components: {
+    OfferCreationModal,
     CustomModal,
     CustomTable,
     NButton,
-    NDataTable,
     NForm,
     NFormItem,
     NInput,
@@ -309,12 +224,12 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const route = useRoute(); // Correctly initialized
+    const route = useRoute();
     const itemApi = new ItemApi(getDefaultApiConfig());
     const categoryApi = new CategoryApi(getDefaultApiConfig());
     const organizationApi = new OrganizationApi(getDefaultApiConfig());
     const offerApi = new OfferApi(getDefaultApiConfig());
-    const message = useMessage(); // Correctly initialized
+    const message = useMessage();
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
     const showCreateOfferModal = ref(false);
@@ -338,12 +253,11 @@ export default {
       units: "",
     });
 
-    // Reactive states
     const searchQuery = ref("");
     const selectedCategories = ref([]);
     const selectedSubcategories = ref([]);
-    const categoryOptions = ref([]); // Populate this based on your API
-    const subcategoryOptions = ref([]); // Populate this based on your API
+    const categoryOptions = ref([]);
+    const subcategoryOptions = ref([]);
 
     const listOfNewItemsToBeStored = ref([]);
 
@@ -382,10 +296,9 @@ export default {
 
     const columns = [
       {
-        title: "No", // Title for the record number column
+        title: "No",
         key: "recordNumber",
         render: (row, index) => {
-          // Calculate record number based on current page and index
           return (
             (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems +
             index +
@@ -462,13 +375,12 @@ export default {
       loadOrganizations();
       fetchSubcategories();
     });
-    // Debounce function to delay execution
+
     const debouncedLoadWarehouseDetails = debounce(() => {
       loadWarehouseDetails();
     }, 300);
 
     const loadWarehouseDetails = async () => {
-      console.log(selectedCategories.value);
       const token = localStorage.getItem("authToken");
       if (token) {
         const payload = {
@@ -494,7 +406,6 @@ export default {
           warehouseDetails.value = response.data.result.warehouse;
           items.value = response.data.result.items;
           totalPages.value = response.data.result.totalPages;
-          //getCategoriesOfItems(items.value);
         } catch (error) {
           console.error("Failed to load warehouse details:", error);
           message.error("Failed to load warehouse details");
@@ -507,14 +418,12 @@ export default {
     const handleCategoryChange = (newValues) => {
       pageSettings.value.Page = 1;
       selectedCategories.value = newValues;
-      console.log(selectedCategories.value);
       loadWarehouseDetails();
     };
 
     const handleSubcategoryChange = (newValues) => {
       pageSettings.value.Page = 1;
       selectedSubcategories.value = newValues;
-      console.log(selectedSubcategories.value);
       loadWarehouseDetails();
     };
 
@@ -527,8 +436,6 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             });
           organizationCategoriesAndSubcategories.value = response.data.result;
-
-          // Map the categories for the selection
           categoriesOptions.value = response.data.result.map((cat) => ({
             value: cat.category.id,
             label: cat.category.name,
@@ -552,7 +459,6 @@ export default {
           const response = await organizationApi.organizationOrganizationsGet({
             headers: { Authorization: `Bearer ${token}` },
           });
-          // Map response data to organizationOptions
           organizationOptions.value = response.data.result.map((org) => ({
             label: org.name,
             value: org.id,
@@ -565,28 +471,6 @@ export default {
         router.push("/login");
       }
     };
-    /*
-    const getCategoriesOfItems = (items) => {
-      categoriesOptions.value = items.map((item) => ({
-        label: item.name,
-        value: item.name,
-      }));
-      return categoriesOptions; // return the new array to be used elsewhere
-    };
-
-    const getSubcategoriesOfItems = (items) => {
-      subcategoriesOptions.value = items.map((item) => ({
-        label: item.name,
-        value: item.name,
-      }));
-      return categoriesOptions; // return the new array to be used elsewhere
-    };
-    */
-    const getQuanitity = (item) => {
-      var quantity = item.unit / selectedOrganizations.length;
-
-      return 5; // return the new array to be used elsewhere
-    };
 
     const addItem = async () => {
       const token = localStorage.getItem("authToken");
@@ -596,7 +480,6 @@ export default {
         newItem.value.subcategoryName &&
         newItem.value.quantity != null
       ) {
-        // Ensure mandatory fields are filled
         try {
           const response = await itemApi.itemAddNewItemPost(
             route.params.id,
@@ -606,8 +489,8 @@ export default {
             }
           );
           message.success("Položka byla úspěšně naskladněna");
-          warehouseDetails.value = response.data.result.warehouse; // Adjust according to your API response
-          items.value = response.data.result.items; // Adjust according to your API response
+          warehouseDetails.value = response.data.result.warehouse;
+          items.value = response.data.result.items;
 
           showAddItemModal.value = false;
           newItem.value = {
@@ -620,7 +503,7 @@ export default {
             count: 1,
             units: "kg",
           };
-          loadWarehouseDetails(); // Refresh warehouse details
+          loadWarehouseDetails();
         } catch (error) {
           console.error("Failed to add item:", error);
           message.error("Vyskytla s echyba. Položku se nepodařilo naskaldnit.");
@@ -631,8 +514,6 @@ export default {
     };
 
     const openCreateOfferModal = () => {
-      offerItems.value = JSON.parse(JSON.stringify(selectedItems.value)); // Deep copy selected items
-      distributeQuantitiesToOfferItems(); // Distribute quantities for the copied items
       showCreateOfferModal.value = true;
     };
 
@@ -641,29 +522,26 @@ export default {
     };
 
     const backToList = () => {
-      router.push("/"); // Change this as needed
+      router.push("/");
     };
 
     const toggleExpand = (row) => {
-      const key = row.name; // Use the name as the key
+      const key = row.name;
       const index = expandedRowKeys.value.indexOf(key);
       if (index >= 0) {
-        expandedRowKeys.value.splice(index, 1); // If already expanded, collapse it
+        expandedRowKeys.value.splice(index, 1);
       } else {
-        expandedRowKeys.value.push(key); // Otherwise, expand it
+        expandedRowKeys.value.push(key);
       }
       findChildItemsByName(row.name);
     };
 
     const findChildItemsByName = (name) => {
-      //console.log(name);
       const item = items.value.find((item) => item.name === name);
-      //console.log(item);
       return item ? item.items : [];
     };
 
     const selectItem = (item) => {
-      // Add item with selected quantity
       selectedItems.value.push({
         ...item,
         selectedQuantity: item.quantity,
@@ -679,12 +557,7 @@ export default {
       }
     };
 
-    const validateForm = () => {
-      // Function to validate the new item form inputs
-    };
-
     const renderExpandButton = (row) => {
-      // Make sure 'row' has the required properties before trying to access them
       return h(
         NButton,
         {
@@ -699,7 +572,6 @@ export default {
     };
 
     const addOrganization = (value) => {
-      // Add organization to selectedOrganizations...
       const selectedOrg = organizationOptions.value.find(
         (org) => org.value === value
       );
@@ -715,44 +587,16 @@ export default {
         offerData.value.organizations[orgIndex] &&
         offerData.value.organizations[orgIndex].items[itemIndex]
       ) {
-        // Remove the item from the specific organization's items array
         offerData.value.organizations[orgIndex].items.splice(itemIndex, 1);
-
-        // If you want to remove the organization itself when it has no items left, you can do:
         if (offerData.value.organizations[orgIndex].items.length === 0) {
           offerData.value.organizations.splice(orgIndex, 1);
         }
       }
-      //distributeQuantities();
-    };
-
-    const removeOrganization = (index) => {
-      // Remove organization from selectedOrganizations...
-      selectedOrganizations.value.splice(index, 1);
-      offerData.value.organizations.splice(index, 1);
-      redistributeQuantitiesInOfferData();
-      distributeQuantitiesToOfferItems();
-      prepareOfferData();
     };
 
     const isSelectedAnyItem = computed(() => {
       return selectedItems.value.length > 0;
     });
-
-    const updateItemQuantity = (item, itemIndex, newQuantity) => {
-      // Update the item quantity
-      item.quantity = newQuantity;
-
-      // Further actions like redistributing quantities among other items
-      // can go here...
-      // console.log(item.quantity);
-
-      // Force update if needed due to Vue's reactivity caveats with arrays
-      selectedItems.value[itemIndex] = { ...item };
-
-      // Optionally, if you're dealing with quantities across multiple organizations
-      distributeQuantities(); // Some function to handle redistribution
-    };
 
     const updateOfferItemQuantity = (orgIndex, itemIndex, newQuantity) => {
       if (
@@ -761,85 +605,29 @@ export default {
       ) {
         offerData.value.organizations[orgIndex].items[itemIndex].quantity =
           newQuantity;
-        // Trigger Vue reactivity for nested changes
         offerData.value.organizations = [...offerData.value.organizations];
       }
-      //console.log(offerData.value.organizations);
     };
 
     const distributeQuantitiesToOfferItems = () => {
-      const totalQuantityPerItem = offerItems.value.map((item) => ({
+      const totalQuantityPerItem = selectedItems.value.map((item) => ({
         ...item,
-        quantity: item.selectedQuantity / selectedOrganizations.value.length,
+        quantity: item.quantity / selectedOrganizations.value.length,
       }));
       offerItems.value = totalQuantityPerItem;
     };
 
-    const distributeQuantities = () => {
-      // Loop through each item
-      selectedItems.value.forEach((item, itemIndex) => {
-        // Total quantity to distribute
-        let totalQuantity = item.selectedQuantity;
-
-        // Count organizations that haven't had their quantity manually set for this item
-        let orgsToDistribute = selectedOrganizations.value.length;
-
-        // Subtract quantities already set manually and reduce orgsToDistribute accordingly
-        selectedOrganizations.value.forEach((org, orgIndex) => {
-          if (
-            item.manualQuantities &&
-            item.manualQuantities[orgIndex] !== undefined
-          ) {
-            totalQuantity -= item.manualQuantities[orgIndex];
-            orgsToDistribute--;
-          }
-        });
-
-        // New quantity per organization, avoid division by zero
-        const quantityPerOrg =
-          orgsToDistribute > 0 ? totalQuantity / orgsToDistribute : 0;
-
-        // Assign this equally divided quantity to all organizations for this item
-        selectedOrganizations.value.forEach((org, orgIndex) => {
-          // If manual quantity for this org and item hasn't been set, distribute evenly
-          if (
-            !item.manualQuantities ||
-            item.manualQuantities[orgIndex] === undefined
-          ) {
-            // Initialize the item's quantity distribution if it doesn't exist
-            if (!item.quantitiesPerOrg) item.quantitiesPerOrg = [];
-            item.quantitiesPerOrg[orgIndex] = quantityPerOrg;
-          } // If there's a manual quantity, it's already accounted for, so we don't change it here
-        });
-
-        // Update the item with new distributed quantities (to trigger reactivity)
-        selectedItems.value[itemIndex] = { ...item };
-      });
-
-      // Since we potentially modified objects deeply, ensure Vue reacts to changes
-      selectedItems.value = [...selectedItems.value];
-      //console.log(selectedItems.value);
-    };
-
     const prepareOfferData = () => {
-      // Reset offerData if you want to rebuild it from scratch each time this function is called
-      // offerData.value = [];
-
       selectedOrganizations.value.forEach((organization) => {
-        // Find if the organization already exists in offerData
         let orgOfferIndex = offerData.value.organizations.findIndex(
           (orgOffer) => orgOffer.organization === organization.label
         );
-
-        // If the organization does not exist, create a new one
         if (orgOfferIndex === -1) {
           let orgOffer = {
             OrganizationId: organization.value,
             organization: organization.label,
             items: [],
           };
-
-          // Loop through each of the selected items to populate new orgOffer
           offerItems.value.forEach((item) => {
             let quantityPerOrg =
               item.selectedQuantity / selectedOrganizations.value.length;
@@ -850,11 +638,8 @@ export default {
             };
             orgOffer.items.push(itemOffer);
           });
-
-          // Add the new organization offer to offerData
           offerData.value.organizations.push(orgOffer);
         } else {
-          // If the organization already exists, update its items
           let orgOffer = offerData.value.organizations[orgOfferIndex];
           orgOffer.items = offerItems.value.map((item) => {
             let quantityPerOrg =
@@ -869,51 +654,22 @@ export default {
       });
     };
 
-    const redistributeQuantitiesInOfferData = () => {
-      // Iterate over each organization in the offerData
-      offerData.value.organizations.forEach((orgOffer) => {
-        // For each organization, iterate over its items
-        orgOffer.items.forEach((itemOffer) => {
-          // Find the corresponding item from the offerItems
-          const correspondingItem = offerItems.value.find(
-            (item) => item.id === itemOffer.id
-          );
-
-          if (correspondingItem) {
-            // Recalculate the quantity per organization based on the updated selectedQuantity
-            let quantityPerOrg =
-              correspondingItem.selectedQuantity /
-              selectedOrganizations.value.length;
-
-            // Update the item's quantity in the orgOffer
-            itemOffer.quantity = quantityPerOrg;
-          }
-        });
-
-        // Remove items that no longer exist in offerItems (if any)
-        orgOffer.items = orgOffer.items.filter((itemOffer) =>
-          offerItems.value.some((item) => item.id === itemOffer.id)
-        );
-      });
-
-      // Remove any organizations that no longer have any items
-      offerData.value.organizations = offerData.value.organizations.filter(
-        (orgOffer) => orgOffer.items.length > 0
-      );
-    };
-
     const createOffer = async () => {
       const token = localStorage.getItem("authToken");
       if (token && offerData.value.organizations.length > 0) {
-        // Ensure mandatory fields are filled
         try {
           offerData.value.title = offerInformations.value.title;
           offerData.value.description = offerInformations.value.description;
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log(response.status);
+          if (response.status === 200 || response.status === 201) {
+            // Assuming 200 or 201 is the success status code
+            selectedItems.value = [];
+          }
           message.success("Nabídka byla úspěšně vytvořena");
-          loadWarehouseDetails(); // Refresh warehouse details
+          await loadWarehouseDetails();
         } catch (error) {
           console.error("Failed to create offer:", error);
           message.error("Vyskytla se chyba. Nabídku se nepodařilo vytvořit.");
@@ -923,9 +679,7 @@ export default {
       }
     };
 
-    // Method to add items to the list based on the 'count' property
     const addToListForStorageCreation = () => {
-      // Validate that all necessary fields have been filled out
       if (
         newItemToBeStored.value.categoryId &&
         newItemToBeStored.value.subcategoryId &&
@@ -934,9 +688,6 @@ export default {
         newItemToBeStored.value.unit &&
         newItemToBeStored.value.count > 0
       ) {
-        // Make sure count and other fields are validated
-
-        // Loop based on the 'count' value
         for (let i = 0; i < newItemToBeStored.value.count; i++) {
           let quantity =
             newItemToBeStored.value.paletaOption == "palety"
@@ -952,33 +703,21 @@ export default {
             paletaOption: newItemToBeStored.value.paletaOption,
           };
 
-          // Add the new item to the list
           listOfNewItemsToBeStored.value.push(itemToAdd);
         }
-
-        // Reset newItemToBeStored after adding
-        /* Object.keys(newItemToBeStored.value).forEach((key) => {
-          newItemToBeStored.value[key] =
-            key === "quantity" || key === "count" ? 1 : "";
-        });
-        */
       } else {
         message.warning("Please fill in all the fields.");
       }
     };
 
-    // Method to remove item from the list
     const removeItemFromStorageCreation = (index) => {
       listOfNewItemsToBeStored.value.splice(index, 1);
     };
 
-    // Method to store all items in the list
     const storeItems = async () => {
       const token = localStorage.getItem("authToken");
       if (token && listOfNewItemsToBeStored.value.length > 0) {
-        // Assuming your API can handle batch storing, or you might need to iterate and store items individually
         try {
-          // You need to adjust this according to your API's requirements
           const response = await itemApi.itemAddNewItemPost(
             route.params.id,
             listOfNewItemsToBeStored.value,
@@ -987,9 +726,9 @@ export default {
             }
           );
           message.success("Všechny položky byly úspěšně naskladněny");
-          listOfNewItemsToBeStored.value = []; // Clear the list after storing
-          showAddItemModal.value = false; // Close the modal
-          loadWarehouseDetails(); // Refresh the warehouse details if necessary
+          listOfNewItemsToBeStored.value = [];
+          showAddItemModal.value = false;
+          loadWarehouseDetails();
         } catch (error) {
           console.error("Failed to store items:", error);
           message.error("Nepodařilo se naskladnit položky.");
@@ -999,12 +738,10 @@ export default {
       }
     };
 
-    // Function to fetch categories
     const fetchCategories = async () => {
       const token = localStorage.getItem("authToken");
       if (token) {
         try {
-          // Assuming getCategoriesOptions is your API method to fetch categories
           const response = await categoryApi.categoryGetCategoriesOptionsGet({
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -1039,18 +776,6 @@ export default {
       }
     };
 
-    /*
-    watch(
-      () => pageSettings.value.Page,
-      (newPage, oldPage) => {
-        if (newPage !== oldPage) {
-          loadWarehouseDetails();
-        }
-      }
-    );
-    */
-
-    // Function to fetch subcategories for a selected category
     const fetchSubcategoriesById = async (categoryId) => {
       const token = localStorage.getItem("authToken");
       if (token) {
@@ -1078,17 +803,6 @@ export default {
       loadWarehouseDetails();
     };
 
-    /*
-    watch(
-      () => pageSettings.value.Page,
-      (newPage, oldPage) => {
-        if (newPage !== oldPage) {
-          console.log(newPage);
-          loadWarehouseDetails();
-        }
-      }
-    );
-      */
     return {
       pageSettings,
       totalPages,
@@ -1120,51 +834,37 @@ export default {
       offerData,
       offerInformations,
       debouncedLoadWarehouseDetails,
-      updateItemQuantity,
       selectItem,
       deselectItem,
-      // getCategoriesOfItems,
-      // getSubcategoriesOfItems,
       handlePageChange,
       findChildItemsByName,
       addOrganization,
-      removeOrganization,
       removeItemFromOfferCreation,
-      distributeQuantities,
-      getQuanitity,
-      rowKey,
-      loadOrganizations,
-      childRowKey,
-      addItem,
-      openCreateOfferModal,
       distributeQuantitiesToOfferItems,
-      closeModal,
       backToList,
       toggleExpand,
       loadWarehouseDetails,
       updateOfferItemQuantity,
-      validateForm,
       createOffer,
       prepareOfferData,
       handleCategoryChange,
       handleSubcategoryChange,
-      // handleCreateCategory,
-      // handleCreateSubcategory,
       loadOrganizationCategoriesAndSubcategories,
-      organizationCategoriesAndSubcategories,
       addToListForStorageCreation,
       removeItemFromStorageCreation,
       storeItems,
+      openCreateOfferModal,
     };
   },
 };
 </script>
+
 <style scoped>
 #warehousedetail-page {
   display: flex;
   flex-direction: column;
-  max-height: 100vh; /* Prevent it from exceeding the viewport height */
-  overflow: auto; /* Allow scrolling within this container if content overflows */
+  max-height: 100vh;
+  overflow: auto;
 }
 .warehouse-details {
   margin-bottom: 20px;
@@ -1180,7 +880,6 @@ export default {
   margin-top: 5px;
 }
 .save-button {
-  background-color: 6, 15, 46;
   background-color: green;
   color: white;
 }
@@ -1201,21 +900,18 @@ export default {
 }
 
 .scrollable-content {
-  max-height: calc(
-    70% - 220px
-  ); /* Adjust based on your header and action bar height */
+  max-height: calc(70% - 220px);
   overflow-y: auto;
 }
 
 .selected-organizations {
-  height: 45vh;
-  max-height: 45vh;
+  height: 48vh;
+  max-height: 48vh;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;
-  margin-bottom: 1rem;
   background-color: #f8f8f8;
-  padding: 10px; /* Optional: adds some padding inside the scrollable area */
+  padding: 10px;
 }
 
 .organization-card {
@@ -1248,18 +944,18 @@ export default {
 }
 
 .items-container {
-  gap: 10px; /* space between cards */
-  max-height: 300px; /* Adjust based on your preference */
-  overflow-y: auto; /* Enables vertical scrolling */
-  padding-right: 5px; /* To avoid content being too tight to the scrollbar */
-  margin-bottom: 20px; /* Extra space at the bottom, if needed */
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 5px;
+  margin-bottom: 20px;
 }
 
 .item-card {
   background-color: rgb(253, 253, 253);
   border-radius: 10px;
-  overflow: hidden; /* Ensures the header's rounded corners */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* subtle shadow for depth */
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
 }
 
@@ -1273,7 +969,7 @@ export default {
 }
 
 .item-header h4 {
-  margin: 0; /* Removes default margin */
+  margin: 0;
 }
 
 .item-content {
@@ -1282,40 +978,37 @@ export default {
 
 .item-content h4 {
   margin: 0;
-  color: #333; /* darker text for better readability */
+  color: #333;
 }
 
 .item-content p {
   margin: 5px 0;
-  color: #666; /* slightly lighter text for less emphasis */
+  color: #666;
 }
 
 .remove-button {
   background-color: red;
   color: white;
-  border: none; /* Remove border */
+  border: none;
 }
 
 .remove-button:hover {
   background-color: rgb(245, 45, 45);
   color: white;
-  border: none; /* Remove border */
+  border: none;
 }
 .filter-container {
   display: flex;
-  align-items: center; /* Keeps items vertically aligned in the center */
-  gap: 10px; /* Spacing between each element */
-  margin-bottom: 10px; /* Space below the container */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-/* Giving more space to the input field */
 .filter-input {
-  flex: 3 1 300px; /* Allows the input to grow and starts with a base width of 300px */
+  flex: 3 1 300px;
 }
 
-/* Adjusting select fields to be a bit smaller than the input */
 .n-select {
-  flex: 2 1 200px; /* Starts with a base width of 200px and can grow */
+  flex: 2 1 200px;
 }
-
 </style>

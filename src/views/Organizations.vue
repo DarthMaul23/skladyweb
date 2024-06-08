@@ -1,9 +1,9 @@
 <template>
-  <main id="offers-page">
+  <main id="organizations-page">
     <div class="filter-container">
       <n-input placeholder="Search..." class="filter-input" />
     </div>
-    <n-button @click="() => (isModal2Visible = true)"
+    <n-button @click="() => (isModal2Visible = true)" class="add-organization-button"
       >Přidat Novou Organizaci</n-button
     >
     <n-data-table
@@ -26,24 +26,32 @@
       :show="isModal2Visible"
       :title="'Vytvořit Novou Organizaci'"
       :header-bg-color="'green'"
-      :modal-width="'1200px'"
+      :modal-width="'600px'"
       :modal-height="'auto'"
       @update:show="isModal2Visible = $event"
     >
       <template #body>
         <div class="modal-content">
           <n-form>
-            <n-form-item label="Název organizace">
+            <n-form-item label="Název organizace" class="form-item">
               <n-input
                 v-model:value="newOrganization.Name"
                 placeholder="Název organizace"
+                class="input-field"
               />
+              <div v-if="validationErrors.Name" class="error-msg">
+                {{ validationErrors.Name }}
+              </div>
             </n-form-item>
-            <n-form-item label="Lokalita">
+            <n-form-item label="Lokalita" class="form-item">
               <n-input
                 v-model:value="newOrganization.Location"
                 placeholder="Lokalita"
+                class="input-field"
               />
+              <div v-if="validationErrors.Location" class="error-msg">
+                {{ validationErrors.Location }}
+              </div>
             </n-form-item>
           </n-form>
         </div>
@@ -84,12 +92,12 @@
       </template>
     </custom-modal>
   </main>
-</template>  
-  <script>
+</template>
+
+<script>
 import CustomModal from "../components/CustomModal.vue";
-import OrderTimeline from "../components/OrderTimeline.vue";
-import { ref, computed, onMounted, h, watch } from "vue";
-import { NButton, NInput, NDataTable, NPagination } from "naive-ui";
+import { ref, onMounted, h, watch } from "vue";
+import { NButton, NInput, NDataTable, NPagination, NForm, NFormItem } from "naive-ui";
 import { OrganizationApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
@@ -99,11 +107,12 @@ export default {
     NButton,
     NInput,
     NDataTable,
-    OrderTimeline,
     NPagination,
+    NForm,
+    NFormItem,
   },
   setup() {
-    const organizationApi = new OrganizationApi(getDefaultApiConfig()); // Initialize API (add params as needed)
+    const organizationApi = new OrganizationApi(getDefaultApiConfig());
     const data = ref([]);
     const isModalVisible = ref(false);
     const isModal2Visible = ref(false);
@@ -112,6 +121,8 @@ export default {
       Name: "",
       Location: "",
     });
+
+    const validationErrors = ref({});
 
     const pageSettings = ref({
       Page: 1,
@@ -129,16 +140,15 @@ export default {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-          data.value = response.data.result; // Assuming the response structure matches your endpoint data
+          data.value = response.data.result;
         } catch (error) {
-          console.error("Failed to load offers:", error);
-          data.value = []; // Reset to initial structure in case of error
+          console.error("Failed to load organizations:", error);
+          data.value = [];
         }
       }
     };
 
     const createNewOrganization = async () => {
-      // Assuming authToken is always available for simplicity
       const token = localStorage.getItem("authToken");
       try {
         await organizationApi.organizationCreateOrganizationPost(
@@ -147,12 +157,11 @@ export default {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        newOrganization.value = { Name: "", Location: "" }; // Reset form
-        isModal2Visible.value = false; // Close modal explicitly
-        await loadOrganizations(); // Reload the list
+        newOrganization.value = { Name: "", Location: "" };
+        isModal2Visible.value = false;
+        await loadOrganizations();
       } catch (error) {
         console.error("Failed to create organization:", error);
-        // Consider setting an error state or displaying a message to the user here
       }
     };
 
@@ -166,7 +175,7 @@ export default {
       () => pageSettings.value.Page,
       (newPage, oldPage) => {
         if (newPage !== oldPage) {
-			loadOrganizations();
+          loadOrganizations();
         }
       }
     );
@@ -180,6 +189,7 @@ export default {
       selectedOrderDetails,
       closeModal,
       pageSettings,
+      validationErrors,
       columns: [
         { title: "Organiazce", key: "name" },
         { title: "Lokalita", key: "location" },
@@ -194,99 +204,40 @@ export default {
   },
 };
 </script>
-  <style scoped>
+
+<style scoped>
+.filter-container {
+  margin-bottom: 20px;
+}
+
+.add-organization-button {
+  background-color: #0f9213;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.organizations-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 .modal-content {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
 }
 
-.offer-details {
-  background-color: #f0fdf4; /* Light green background */
-  border-left: 5px solid #4caf50; /* Green accent border */
-  padding: 16px;
-  margin-bottom: 20px;
-  border-radius: 8px; /* Rounded corners for a modern look */
-}
-
-.detail-item {
-  margin-bottom: 12px; /* Space between details for clarity */
-  color: #333; /* Dark color for better readability */
-  line-height: 1.6; /* Spacing between lines */
-}
-
-.detail-item strong {
-  color: green; /* Slightly darker green for emphasis */
-}
-
-.modal-header-buttons {
-  display: flex;
-  justify-content: space-between;
+.form-item {
   margin-bottom: 20px;
 }
 
-.order-button,
-.reject-button {
-  flex-basis: 48%; /* Adjust based on design */
+.input-field {
+  width: 100%;
 }
 
-.offer-items {
-  margin-bottom: -30px;
-}
-
-.offer-items h3 {
-  background-color: green;
-  color: white;
-  padding: 5px;
-}
-
-h3 .material-icons {
-  vertical-align: middle; /* Align the icon with the middle of the text */
-  margin-right: 8px; /* Space between the icon and the text */
-}
-
-.items-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  max-height: 300px; /* Adjust based on your requirement */
-  overflow-y: auto; /* Enables vertical scrolling */
-  padding-right: 10px; /* Optional: for better scrollbar visibility */
-}
-
-.item-card {
-  background-color: #ffffff;
-  border: 2px solid #e8f5e9; /* Light green border */
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  overflow: hidden; /* Ensures the child elements do not overflow */
-}
-
-.card-header {
-  background-color: green; /* Green background */
-  color: white;
-  display: flex;
-  align-items: center;
-  padding: 10px;
-}
-
-.item-icon {
-  margin-right: 10px;
-}
-
-.card-body {
-  padding: 20px;
-  background-color: #f9f9f9; /* Lighter shade for the body */
-}
-
-.card-body p {
-  margin: 10px 0; /* Spacing between paragraphs */
-}
-
-.card-body strong {
-  color: green; /* Green text for labels */
+.error-msg {
+  color: #ff4d4f;
+  margin-top: 5px;
 }
 
 .modal-add-button {
@@ -298,16 +249,4 @@ h3 .material-icons {
   background-color: red;
   color: white;
 }
-
-.chip {
-  display: inline-block;
-  padding: 4px 18px; /* Adjust the padding to change the size */
-  background-color: green; /* Green background */
-  color: white; /* White text */
-  border-radius: 16px; /* Rounded corners for chip shape */
-  font-size: 14px; /* Font size, adjust as needed */
-  font-weight: bold; /* Font weight, adjust for boldness */
-  margin: 0 5px; /* Margin for spacing if you have multiple chips */
-}
 </style>
-	

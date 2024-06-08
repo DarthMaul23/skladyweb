@@ -2,129 +2,59 @@
   <main id="offers-page">
     <div class="filter-container">
       <n-input
-        v-model:value="filters.searchQuery"
+        v-model="filters.searchQuery"
         placeholder="Nabídka, popis..."
-        @update:value="filterOffers"
+        @input="filterOffers"
         class="filter-input"
       />
     </div>
 
-    <n-data-table
-      :columns="columns"
+    <CustomTable
       :data="filteredOffers"
-      class="offers-table"
+      :columns="columns"
       :pagination="pageSettings"
       :noPages="totalPages"
       @pageChanged="handlePageChange"
-    >
-      <template v-slot:action="{ row }">
-        <n-button @click="prepareOfferDetails(row)">Details</n-button>
-      </template>
-    </n-data-table>
-    <custom-modal
+      class="offers-table"
+    />
+
+    <OfferDetailsModal
       :show="isModalVisible"
-      :title="modalTitle"
-      :header-bg-color="'green'"
-      :modal-width="'1200px'"
-      :modal-height="'900px'"
+      :offerId="selectedOfferId"
       @update:show="isModalVisible = $event"
-    >
-      <template #body>
-        <div class="modal-body">
-          <div class="details-section">
-            <div class="detail-item">
-              <p>
-                <strong>Nabídka:</strong>
-                {{ selectedOfferDetails.offerGroup.title }}
-              </p>
-            </div>
-            <div class="detail-item">
-              <p>
-                <strong>Vytvořeno dne:</strong>
-                {{ formatDate(selectedOfferDetails.offerGroup.dateCreated) }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="details-container">
-          <div class="organizations-section">
-            <div
-              v-for="organization in selectedOfferDetails.offers"
-              :key="organization.organization.id"
-            >
-              <div class="organization-item">
-                <h3>{{ organization.organization.name }}</h3>
-                <div v-if="organization.orderId" class="chip confirmed">
-                  <span>Objednáno</span>
-                  <!--<h2>{{ organization.orderId }}</h2>-->
-                </div>
-                <div v-else class="chip pending">
-                  <span>Čekající</span>
-                </div>
-              </div>
-              <n-data-table
-                :columns="itemColumns"
-                :data="organization.items"
-                class="item-table"
-              ></n-data-table>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <n-button @click="closeModal" class="modal-close-button"
-          >Zavřít</n-button
-        >
-      </template>
-    </custom-modal>
+    />
   </main>
 </template>
+
 <script>
-import CustomModal from "../components/CustomModal.vue";
 import { ref, computed, onMounted, h } from "vue";
-import { NButton, NInput, NDataTable } from "naive-ui";
+import { NButton, NInput } from "naive-ui";
 import { OfferApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
+import CustomTable from "../components/CustomTable.vue";
+import OfferDetailsModal from "../components/OfferDetailsModal.vue";
 
 export default {
   components: {
-    CustomModal,
     NButton,
     NInput,
-    NDataTable,
+    CustomTable,
+    OfferDetailsModal,
   },
   setup() {
     const offerApi = new OfferApi(getDefaultApiConfig());
     const filters = ref({ searchQuery: "" });
     const offers = ref([]);
+    const filteredOffers = computed(() => {
+      return offers.value.filter(offer =>
+        offer.title.toLowerCase().includes(filters.value.searchQuery.toLowerCase()) ||
+        offer.description.toLowerCase().includes(filters.value.searchQuery.toLowerCase())
+      );
+    });
     const isModalVisible = ref(false);
-    const modalTitle = ref("");
-    const showDetailModal = ref(false);
-    const selectedOfferDetails = ref({});
-    const itemColumns = [
-      { title: "Kategorie", key: "name" },
-      { title: "Položka", key: "description" },
-      { title: "Množství", key: "quantity" },
-      { title: "Jednotky", key: "unit" },
-    ];
-
+    const selectedOfferId = ref(null);
     const totalPages = ref(0);
     const pageSettings = ref({ Page: 1, NoOfItems: 30 });
-
-    const filteredOffers = computed(() =>
-      offers.value.filter(
-        (offer) =>
-          offer.title
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase()) ||
-          offer.description
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase()) ||
-          offer.userId
-            .toLowerCase()
-            .includes(filters.value.searchQuery.toLowerCase())
-      )
-    );
 
     const loadOffers = async () => {
       const token = localStorage.getItem("authToken");
@@ -139,14 +69,13 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
+
+          // Assuming response.data is an array of offers
           if (Array.isArray(response.data)) {
-            offers.value = response.data; // Make sure the 'items' and 'totalPages' are handled if that's how your API response is structured
-            totalPages.value = response.data.totalPages; // This assumes totalPages is part of the response
+            offers.value = response.data;
+            totalPages.value = Math.ceil(response.data.length / pageSettings.value.NoOfItems);
           } else {
-            console.error(
-              "Received data is not in expected array format:",
-              response.data
-            );
+            console.error("Received data is not in expected array format:", response.data);
             offers.value = [];
           }
         } catch (error) {
@@ -156,71 +85,46 @@ export default {
       }
     };
 
-    onMounted(loadOffers);
-
-    const handlePageChange = (newPage) => {
+    const handlePageChange = newPage => {
       pageSettings.value.Page = newPage;
       loadOffers();
     };
 
-    const prepareOfferDetails = async (offer) => {
-      const token = localStorage.getItem("authToken");
-      const data = await offerApi.offerIdGet(offer.id, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      selectedOfferDetails.value = data.data;
-      modalTitle.value = `Detail nabídky: ${offer.title}`;
-      showDetailModal.value = true;
+    const openOfferDetails = offerId => {
+      selectedOfferId.value = offerId;
       isModalVisible.value = true;
     };
 
-    const closeModal = () => {
-      isModalVisible.value = false;
-      showDetailModal.value = false;
+    const formatDate = dateString => {
+      const date = new Date(dateString);
+      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
     };
 
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // +1 because months are zero-indexed
-      const year = date.getFullYear();
-      return `${day}. ${month}. ${year}`;
-    };
+    onMounted(loadOffers);
 
     return {
       filters,
       offers,
       filteredOffers,
-      selectedOfferDetails,
       isModalVisible,
-      modalTitle,
-      itemColumns,
-      showDetailModal,
-      totalPages,
-      pageSettings,
-      closeModal,
-      prepareOfferDetails,
+      selectedOfferId,
       handlePageChange,
+      openOfferDetails,
       formatDate,
       columns: [
+        { title: "No.", key: "id", render: (row, index) => index + 1 },
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
-        {
-          title: "Vytvořeno dne",
-          key: "dateCreated",
-          render: (order) => formatDate(order.dateCreated),
-        },
-        {
-          title: "Detail",
-          key: "action",
-          render: (row) =>
-            h(NButton, { onClick: () => prepareOfferDetails(row) }, "Detail"),
-        },
+        { title: "Vytvořeno dne", key: "dateCreated", render: (row) => formatDate(row.dateCreated) },
+        { title: "Detail", key: "action", render: (row) => h(NButton, { onClick: () => openOfferDetails(row.id) }, "Detail") },
       ],
+      totalPages,
+      pageSettings,
     };
   },
 };
 </script>
+
 <style scoped>
 /* General layout for the offers page */
 #offers-page {
@@ -333,11 +237,11 @@ export default {
 }
 
 .confirmed {
-  background-color: #4CAF50; /* Green background for confirmed orders */
+  background-color: #4caf50; /* Green background for confirmed orders */
 }
 
 .pending {
-  background-color: #FFA500; /* Orange background for pending orders */
+  background-color: #ffa500; /* Orange background for pending orders */
 }
 
 h3 {

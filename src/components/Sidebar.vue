@@ -3,7 +3,7 @@
     <div class="logo">
       <!--<img :src="logoURL" alt="Vue" />-->
     </div>
-    <div v-if="showAdminLinks" class="menu">
+    <div v-if="showSuperAdminLinks" class="menu">
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
         <span v-if="isExpanded" class="text">Sklady</span>
@@ -37,16 +37,48 @@
         <span v-if="isExpanded" class="text">Dodavatelé</span>
       </router-link>
     </div>
-    <div v-if="showOrgLinks" class="menu">
+    <div v-if="showAdminLinks" class="menu">
       <router-link to="/" class="button">
         <span class="material-icons">warehouse</span>
         <span v-if="isExpanded" class="text">Sklady</span>
       </router-link>
-      <router-link to="/offersfororganization" class="button">
+      <router-link to="/offers" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Nabídky</span>
       </router-link>
       <router-link to="/orders" class="button">
+        <span class="material-icons">inbox</span>
+        <span v-if="isExpanded" class="text">Objednávky</span>
+      </router-link>
+      <router-link to="/categories" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Kategorie</span>
+      </router-link>
+      <router-link to="/subcategories" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Podkategorie</span>
+      </router-link>
+      <router-link to="/Organizations" class="button">
+        <span class="material-icons">house</span>
+        <span v-if="isExpanded" class="text">Organizace</span>
+      </router-link>
+      <router-link to="/users" class="button">
+        <span class="material-icons">group</span>
+        <span v-if="isExpanded" class="text">Uživatelé</span>
+      </router-link>
+    </div>
+    <div v-if="showOrgLinks" class="menu">
+      <!--
+        <router-link to="/" class="button">
+        <span class="material-icons">warehouse</span>
+        <span v-if="isExpanded" class="text">Sklady</span>
+      </router-link>
+      -->
+      <router-link to="/offersfororganization" class="button">
+        <span class="material-icons">inbox</span>
+        <span v-if="isExpanded" class="text">Nabídky</span>
+      </router-link>
+      <router-link to="/organizationOrders" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Objednávky</span>
       </router-link>
@@ -61,6 +93,11 @@ const props = defineProps({
 });
 
 const userRole = ref(localStorage.getItem('role'));
+
+// Computed properties to determine which menu items to show
+const showSuperAdminLinks = computed(() => {
+  return userRole.value === 'superadmin';
+});
 
 // Computed properties to determine which menu items to show
 const showAdminLinks = computed(() => {
