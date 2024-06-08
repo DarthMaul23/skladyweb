@@ -13,13 +13,13 @@
             <div class="detail-item">
               <p>
                 <strong>Nabídka:</strong>
-                {{ offerDetails.title }}
+                {{ offerDetails.offerGroupTitle }}
               </p>
             </div>
             <div class="detail-item">
               <p>
                 <strong>Vytvořeno dne:</strong>
-                {{ formatDate(offerDetails.dateCreated) }}
+                {{ formatDate(offerDetails.createdOn) }}
               </p>
             </div>
             <div class="detail-item">
@@ -32,7 +32,7 @@
           <div class="scrollable-section">
             <div class="organization-item">
               <h3>{{ offerDetails.organization?.name }}</h3>
-              <div v-if="offerDetails.orderId" class="chip confirmed">
+              <div v-if="offerDetails.ordered" class="chip confirmed">
                 <span>Objednáno</span>
               </div>
               <div v-else class="chip pending">
@@ -45,7 +45,7 @@
               class="item-table"
             ></n-data-table>
           </div>
-          <div class="action-buttons">
+          <div class="action-buttons" v-if="!offerDetails.ordered">
             <n-button class="order-button" @click="placeOrder" type="success">
               <span class="material-icons">shopping_cart</span>
               Objednat
@@ -91,11 +91,11 @@
         const token = localStorage.getItem("authToken");
         if (token) {
           try {
-            const response = await offerApi.offerOrganizationOffersGet(offerId, {
+            const response = await offerApi.offerOrganzationOfferDetailIdGet(offerId, {
               headers: { Authorization: `Bearer ${token}` },
             });
-            offerDetails.value = response.data;
-            modalTitle.value = `Detail nabídky: ${response.data.title}`;
+            offerDetails.value = response.data.offer; // Access the 'offer' object within the response
+            modalTitle.value = `Detail nabídky: ${response.data.offer.title}`;
           } catch (error) {
             console.error("Failed to load offer details:", error);
           }
@@ -115,7 +115,7 @@
         const token = localStorage.getItem("authToken");
         if (token) {
           try {
-            await orderApi.orderPost({ offerId: props.offerId }, {
+            await orderApi.orderPost( props.offerId, {
               headers: { Authorization: `Bearer ${token}` },
             });
             handleClose();
@@ -129,7 +129,7 @@
         const token = localStorage.getItem("authToken");
         if (token) {
           try {
-            await offerApi.offerDeclinePost({ offerId: props.offerId }, {
+            await offerApi.offerDeclinePost(props.offerId, {
               headers: { Authorization: `Bearer ${token}` },
             });
             handleClose();

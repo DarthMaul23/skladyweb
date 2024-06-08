@@ -46,8 +46,8 @@ export default {
     const offers = ref([]);
     const filteredOffers = computed(() => {
       return offers.value.filter(offer => {
-        const title = offer.title || "";
-        const description = offer.description || "";
+        const title = offer.offerGroupTitle || "";
+        const description = offer.offerGroupDescription || "";
         return (
           title.toLowerCase().includes(filters.value.searchQuery.toLowerCase()) ||
           description.toLowerCase().includes(filters.value.searchQuery.toLowerCase())
@@ -69,7 +69,15 @@ export default {
             }
           );
           if (Array.isArray(response.data)) {
-            offers.value = response.data; // Store the received array directly
+            const flattenedOffers = response.data.flatMap(group => 
+              group.offers.map(offer => ({
+                ...offer,
+                offerGroupTitle: group.offerGroup.title,
+                offerGroupDescription: group.offerGroup.description,
+                dateCreated: group.offerGroup.dateCreated
+              }))
+            );
+            offers.value = flattenedOffers;
             totalPages.value = response.totalPages || 1; // Ensure totalPages is set correctly
           } else {
             console.error("Received data is not in expected array format:", response.data);
@@ -110,9 +118,9 @@ export default {
       formatDate,
       columns: [
         { title: "No.", key: "id", render: (row, index) => index + 1 },
-        { title: "Nabídka", key: "title" },
-        { title: "Popis", key: "description" },
-        { title: "Vytvořeno dne", key: "dateCreated", render: formatDate },
+        { title: "Nabídka", key: "offerGroupTitle" },
+        { title: "Popis", key: "offerGroupDescription" },
+        { title: "Vytvořeno dne", key: "dateCreated", render: (row) => formatDate(row.dateCreated) },
         { title: "Detail", key: "action", render: (row) => h(NButton, { onClick: () => openOfferDetails(row.id) }, "Detail") },
       ],
       totalPages,

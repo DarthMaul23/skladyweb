@@ -12,13 +12,13 @@
         <div class="form-row">
           <n-form-item label="Nabídka:">
             <n-input
-              v-model="offerInformations.title"
+              v-model:value="offerTitle"
               placeholder="Název nabídky"
             />
           </n-form-item>
           <n-form-item label="Popis:">
             <n-input
-              v-model="offerInformations.description"
+              v-model:value="offerDescription"
               placeholder="Popis nabídky"
             />
           </n-form-item>
@@ -173,7 +173,8 @@ export default {
   emits: ["updateShowCreateOfferModal"],
   setup(props, { emit }) {
     const offerApi = new OfferApi(getDefaultApiConfig());
-    const offerInformations = ref({ title: "", description: "" });
+    const offerTitle = ref("");
+    const offerDescription = ref("");
     const offerData = ref({ organizations: [] });
     const availableItems = ref([...props.selectedItems]);
     const initialAvailableItems = ref([...props.selectedItems]); // Keep initial available items intact
@@ -281,8 +282,8 @@ export default {
 
     const createOffer = async () => {
       const newOfferModel = {
-        title: offerInformations.value.title,
-        description: offerInformations.value.description,
+        title: offerTitle.value,
+        description: offerDescription.value,
         organizations: offerData.value.organizations.map((org) => ({
           organizationId: org.id,
           organization: org.name,
@@ -303,8 +304,11 @@ export default {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-
-          if (!response.ok) {
+          
+          if (response.status === 200 || response.status === 201) {
+            props.selectedItems.value = [];
+            emit("updateShowCreateOfferModal", false);
+          }else{
             throw new Error("Network response was not ok");
           }
 
@@ -329,7 +333,8 @@ export default {
       availableItems,
       filteredAvailableItems,
       selectedOrganization,
-      offerInformations,
+      offerDescription,
+      offerTitle,
       addOrganization,
       removeOrganization,
       addItemToOrganization,

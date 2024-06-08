@@ -5,7 +5,11 @@
       <h2>Sklad: {{ warehouseDetails.name }}</h2>
     </div>
     <div class="filter-container">
-      <n-input placeholder="Hledat položku" v-model="searchQuery" class="filter-input" />
+      <n-input
+        placeholder="Hledat položku"
+        v-model="searchQuery"
+        class="filter-input"
+      />
       <n-select
         v-model="selectedCategories"
         :options="categoriesOptions"
@@ -22,8 +26,15 @@
       />
     </div>
     <div class="actions">
-      <n-button color="green" @click="showAddItemModal = true">+ Naskladnit položku</n-button>
-      <n-button v-if="isSelectedAnyItem" color="green" @click="openCreateOfferModal">Vytvořit nabídku</n-button>
+      <n-button color="green" @click="showAddItemModal = true"
+        >+ Naskladnit položku</n-button
+      >
+      <n-button
+        v-if="isSelectedAnyItem"
+        color="green"
+        @click="openCreateOfferModal"
+        >Vytvořit nabídku</n-button
+      >
     </div>
     <div class="scrollable-content">
       <CustomTable
@@ -50,10 +61,12 @@
               <n-select
                 v-model:value="newItemToBeStored.categoryId"
                 :options="categoriesOptions"
-                @update:value="(value) => {
-                  newItemToBeStored.categoryId = value;
-                  newItemToBeStored.subcategoryId = '';
-                }"
+                @update:value="
+                  (value) => {
+                    newItemToBeStored.categoryId = value;
+                    newItemToBeStored.subcategoryId = '';
+                  }
+                "
                 filterable
                 placeholder="Select a category"
               />
@@ -70,7 +83,10 @@
               </div>
             </n-form-item>
             <n-form-item label="Položka:">
-              <n-input v-model:value="newItemToBeStored.description" placeholder="Popis položky" />
+              <n-input
+                v-model:value="newItemToBeStored.description"
+                placeholder="Popis položky"
+              />
               <div v-if="validationErrors.description" class="error-msg">
                 {{ validationErrors.description }}
               </div>
@@ -78,7 +94,10 @@
           </n-space>
           <n-space align="center">
             <n-form-item label="Množství:" required>
-              <n-input-number v-model:value="newItemToBeStored.quantity" min="1" />
+              <n-input-number
+                v-model:value="newItemToBeStored.quantity"
+                min="1"
+              />
               <div v-if="validationErrors.quantity" class="error-msg">
                 {{ validationErrors.quantity }}
               </div>
@@ -92,7 +111,10 @@
               />
             </n-form-item>
             <n-form-item label="Možnosti hmotnosti palety:" required>
-              <n-select v-model:value="newItemToBeStored.paletaOption" :options="paletaOptions" />
+              <n-select
+                v-model:value="newItemToBeStored.paletaOption"
+                :options="paletaOptions"
+              />
             </n-form-item>
             <n-form-item label="Počet palet:" required>
               <n-input-number v-model:value="newItemToBeStored.count" min="1" />
@@ -100,32 +122,56 @@
                 {{ validationErrors.count }}
               </div>
             </n-form-item>
-            <n-button @click="addToListForStorageCreation" class="save-button">Přidat k naskladnění</n-button>
+            <n-button @click="addToListForStorageCreation" class="save-button"
+              >Přidat k naskladnění</n-button
+            >
           </n-space>
         </div>
         <div v-if="listOfNewItemsToBeStored.length > 0">
-          <h3>Seznam položek k naskladnění ({{ listOfNewItemsToBeStored.length }} položek):</h3>
+          <h3>
+            Seznam položek k naskladnění ({{
+              listOfNewItemsToBeStored.length
+            }}
+            položek):
+          </h3>
           <div class="items-container">
-            <div v-for="(item, index) in listOfNewItemsToBeStored" :key="index" class="item-card">
+            <div
+              v-for="(item, index) in listOfNewItemsToBeStored"
+              :key="index"
+              class="item-card"
+            >
               <div class="item-header">
                 <h4>{{ item.description }}</h4>
-                <n-button size="small" class="remove-button" @click="removeItemFromStorageCreation(index)">
+                <n-button
+                  size="small"
+                  class="remove-button"
+                  @click="removeItemFromStorageCreation(index)"
+                >
                   <span class="material-icons">delete_outline</span>
                 </n-button>
               </div>
               <div class="item-content">
                 <p>Množství: {{ item.quantity }} {{ item.unit }}</p>
-                <p>Kategorie: {{ item.categoryName }} > {{ item.subcategoryName }}</p>
+                <p>
+                  Kategorie: {{ item.categoryName }} >
+                  {{ item.subcategoryName }}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </template>
       <template #footer>
-        <n-button v-if="listOfNewItemsToBeStored.length > 0" @click="storeItems" class="save-button">
+        <n-button
+          v-if="listOfNewItemsToBeStored.length > 0"
+          @click="storeItems"
+          class="save-button"
+        >
           Naskladnit vše
         </n-button>
-        <n-button @click="showAddItemModal = false" class="close-button">Zavřít</n-button>
+        <n-button @click="showAddItemModal = false" class="close-button"
+          >Zavřít</n-button
+        >
       </template>
     </CustomModal>
     <OfferCreationModal
@@ -178,12 +224,12 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const route = useRoute(); 
+    const route = useRoute();
     const itemApi = new ItemApi(getDefaultApiConfig());
     const categoryApi = new CategoryApi(getDefaultApiConfig());
     const organizationApi = new OrganizationApi(getDefaultApiConfig());
     const offerApi = new OfferApi(getDefaultApiConfig());
-    const message = useMessage(); 
+    const message = useMessage();
     const showDetails = ref(false);
     const showAddItemModal = ref(false);
     const showCreateOfferModal = ref(false);
@@ -210,8 +256,8 @@ export default {
     const searchQuery = ref("");
     const selectedCategories = ref([]);
     const selectedSubcategories = ref([]);
-    const categoryOptions = ref([]); 
-    const subcategoryOptions = ref([]); 
+    const categoryOptions = ref([]);
+    const subcategoryOptions = ref([]);
 
     const listOfNewItemsToBeStored = ref([]);
 
@@ -250,7 +296,7 @@ export default {
 
     const columns = [
       {
-        title: "No", 
+        title: "No",
         key: "recordNumber",
         render: (row, index) => {
           return (
@@ -617,8 +663,13 @@ export default {
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log(response.status);
+          if (response.status === 200 || response.status === 201) {
+            // Assuming 200 or 201 is the success status code
+            selectedItems.value = [];
+          }
           message.success("Nabídka byla úspěšně vytvořena");
-          loadWarehouseDetails();
+          await loadWarehouseDetails();
         } catch (error) {
           console.error("Failed to create offer:", error);
           message.error("Vyskytla se chyba. Nabídku se nepodařilo vytvořit.");

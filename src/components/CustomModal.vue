@@ -90,12 +90,14 @@ export default {
   padding: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 160px);
+  flex-grow: 1;
 }
 
 .modal-footer {
   padding: 20px;
   text-align: right;
   border-top: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 button {

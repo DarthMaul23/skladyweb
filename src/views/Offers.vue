@@ -115,7 +115,7 @@ export default {
         { title: "No.", key: "id", render: (row, index) => index + 1 },
         { title: "Nabídka", key: "title" },
         { title: "Popis", key: "description" },
-        { title: "Vytvořeno dne", key: "dateCreated", render: formatDate },
+        { title: "Vytvořeno dne", key: "dateCreated", render: (row) => formatDate(row.dateCreated) },
         { title: "Detail", key: "action", render: (row) => h(NButton, { onClick: () => openOfferDetails(row.id) }, "Detail") },
       ],
       totalPages,

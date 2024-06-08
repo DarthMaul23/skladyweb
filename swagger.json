@@ -715,7 +715,7 @@
         }
       }
     },
-    "/Offer/OrganzationOfferGroupDetail/{id}": {
+    "/Offer/OrganzationOfferDetail/{id}": {
       "get": {
         "tags": [
           "Offer"
@@ -894,6 +894,70 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Order/AllOrders": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Order/UpdateOrderStatus": {
+      "post": {
+        "tags": [
+          "Order"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
@@ -1344,6 +1408,10 @@
             "type": "string",
             "nullable": true
           },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
           "category": {
             "$ref": "#/components/schemas/Category"
           },
@@ -1609,6 +1677,10 @@
             "type": "string",
             "format": "date-time"
           },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
           "validUntil": {
             "type": "string",
             "format": "date-time",
@@ -1738,6 +1810,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "orderStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
           "organization": {
             "$ref": "#/components/schemas/Organization"
           },
@@ -1773,6 +1849,10 @@
           "organizationId": {
             "type": "string",
             "format": "uuid"
+          },
+          "orderStatus": {
+            "type": "integer",
+            "format": "int32"
           },
           "organizationName": {
             "type": "string",

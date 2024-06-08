@@ -1,27 +1,17 @@
 <template>
   <main id="warehouses-page">
-    <div class="actions" v-if="!showDetails">
-      <n-button @click="showModal = true">Přidat nový sklad</n-button>
-    </div>
+      <n-button @click="showModal = true" class="add-warehouse-button">Přidat nový sklad</n-button>
     <div v-if="!showDetails">
-      <n-data-table :columns="columns" :data="warehouses">
+      <n-data-table :columns="columns" :data="warehouses" class="warehouses-table">
         <template v-slot:action="{ row }">
-          <n-button size="small" @click="showWarehouseDetails(row)"
-            >Detail</n-button
-          >
-          <n-button
-            size="small"
-            text
-            color="red"
-            @click="deleteWarehouse(row.id)"
-            >Odstranit</n-button
-          >
+          <n-button size="small" @click="showWarehouseDetails(row)">Detail</n-button>
+          <n-button size="small" text color="red" @click="deleteWarehouse(row.id)">Odstranit</n-button>
         </template>
       </n-data-table>
     </div>
     <div v-if="showDetails">
-      <n-button @click="backToList">Back to List</n-button>
-      <h2>{{ selectedWarehouse.name }} - Details</h2>
+      <n-button @click="backToList" class="back-button">Zpět na seznam</n-button>
+      <h2>{{ selectedWarehouse.name }} - Detaily</h2>
       <!-- Additional warehouse details and item management here -->
     </div>
     <!-- Custom Modal for Adding New Warehouse -->
@@ -29,29 +19,19 @@
       :show="showModal"
       title="Vytvořit nový sklad"
       :headerBgColor="'green'"
-      :modalWidth="'400px'"
+      :modalWidth="'500px'"
       :modalHeight="'auto'"
       @update:show="handleModalVisibility"
     >
       <template #body>
         <div class="form-group">
           <n-form-item label="Název:" required>
-            <n-input
-              v-model:value="newWarehouse.name"
-              placeholder="Název skladu"
-            />
-            <div v-if="validationErrors.name" class="error-msg">
-              {{ validationErrors.name }}
-            </div>
+            <n-input v-model:value="newWarehouse.name" placeholder="Název skladu" />
+            <div v-if="validationErrors.name" class="error-msg">{{ validationErrors.name }}</div>
           </n-form-item>
           <n-form-item label="Lokace:" required>
-            <n-input
-              v-model:value="newWarehouse.location"
-              placeholder="Lokace skladu"
-            />
-            <div v-if="validationErrors.location" class="error-msg">
-              {{ validationErrors.location }}
-            </div>
+            <n-input v-model:value="newWarehouse.location" placeholder="Lokace skladu" />
+            <div v-if="validationErrors.location" class="error-msg">{{ validationErrors.location }}</div>
           </n-form-item>
         </div>
       </template>
@@ -62,16 +42,17 @@
     </CustomModal>
   </main>
 </template>
+
 <script>
 import CustomModal from "../components/CustomModal.vue";
-import { ref, computed, h, onMounted } from "vue";
-import { useRouter } from 'vue-router';
-import { NButton } from "naive-ui";
+import { ref, onMounted, h } from "vue";
+import { useRouter } from "vue-router";
+import { NButton, NInput, NDataTable, NFormItem } from "naive-ui";
 import { WarehouseApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 
 export default {
-  components: { CustomModal },
+  components: { CustomModal, NButton, NInput, NDataTable, NFormItem },
   setup() {
     const router = useRouter();
     const warehouseApi = new WarehouseApi(getDefaultApiConfig());
@@ -83,7 +64,6 @@ export default {
     const columns = [
       { title: "Sklad", key: "name" },
       { title: "Lokalita", key: "location" },
-      // Ensure 'action' matches the slot name in the template
       {
         title: "Akce",
         key: "action",
@@ -101,7 +81,7 @@ export default {
             h(
               NButton,
               {
-                onClick: () => deleteCategory(row.id),
+                onClick: () => deleteWarehouse(row.id),
                 size: "small",
                 style: "margin-left: 8px;",
                 type: "error",
@@ -122,8 +102,8 @@ export default {
         let token = localStorage.getItem("authToken");
         const response = await warehouseApi.warehouseGetWarehousesGet({
           headers: { Authorization: `Bearer ${token}` },
-        }); // Adjust this call to your actual API method
-        warehouses.value = response.data.result; // Adjust according to the response structure
+        });
+        warehouses.value = response.data.result;
       } catch (error) {
         console.error("Failed to fetch warehouses:", error);
       }
@@ -141,20 +121,17 @@ export default {
       if (validateForm()) {
         try {
           let token = localStorage.getItem("authToken");
-          // Note: First argument is the newWarehouse model, followed by options for headers
           const response = await warehouseApi.warehouseCreateWarehousePost(
-            newWarehouse.value, // The new warehouse data to be sent as the request body
+            newWarehouse.value,
             {
-              headers: { Authorization: `Bearer ${token}` }, // Options including headers
+              headers: { Authorization: `Bearer ${token}` },
             }
           );
           showModal.value = false;
           resetForm();
-          // Refresh the warehouses list
           fetchWarehouses();
         } catch (error) {
           console.error("Failed to add warehouse:", error);
-          // Handle error appropriately
         }
       }
     };
@@ -184,10 +161,8 @@ export default {
     };
 
     const showWarehouseDetails = (warehouse) => {
-      console.log(warehouse);
       selectedWarehouse.value = warehouse;
-      //showDetails.value = true;
-      router.push({ name: 'WarehouseDetails', params: { id: warehouse.id } });
+      router.push({ name: "WarehouseDetails", params: { id: warehouse.id } });
     };
 
     const backToList = () => {
@@ -216,6 +191,19 @@ export default {
 <style scoped>
 .actions {
   margin-bottom: 20px;
+  text-align: center;
+}
+
+.add-warehouse-button {
+  background-color: #128315;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.warehouses-table {
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .form-group {
@@ -235,5 +223,11 @@ export default {
 .close-button {
   background-color: #f5222d;
   color: white;
+}
+
+.back-button {
+  background-color: #4caf50;
+  color: white;
+  margin-bottom: 20px;
 }
 </style>
