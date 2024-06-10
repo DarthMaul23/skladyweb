@@ -30,6 +30,7 @@
               :options="organizationOptions"
               placeholder="Vyberte organizaci"
               @change="addOrganization"
+              style="min-width: 200px; width: 100%;"
             />
           </n-form-item>
           <n-button @click="distributeItemsEvenly" class="distribute-button"
