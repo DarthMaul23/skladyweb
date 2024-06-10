@@ -122,6 +122,12 @@
                 {{ validationErrors.count }}
               </div>
             </n-form-item>
+            <n-form-item label="Expirace:">
+              <n-switch v-model:value="newItemToBeStored.hasExpiration" />
+            </n-form-item>
+            <n-form-item v-if="newItemToBeStored.hasExpiration" label="Datum expirace:">
+              <n-date-picker v-model:value="newItemToBeStored.expirationDate" />
+            </n-form-item>
             <n-button @click="addToListForStorageCreation" class="save-button"
               >Přidat k naskladnění</n-button
             >
@@ -156,6 +162,7 @@
                   Kategorie: {{ item.categoryName }} >
                   {{ item.subcategoryName }}
                 </p>
+                <p v-if="item.expiration">Expirace: {{ formatDate(item.expirationDate) }}</p>
               </div>
             </div>
           </div>
@@ -199,6 +206,8 @@ import {
   useMessage,
   NSelect,
   NSpace,
+  NSwitch,
+  NDatePicker,
 } from "naive-ui";
 import {
   ItemApi,
@@ -221,6 +230,8 @@ export default {
     NInputNumber,
     NSelect,
     NSpace,
+    NSwitch,
+    NDatePicker,
   },
   setup() {
     const router = useRouter();
@@ -251,6 +262,8 @@ export default {
       description: "",
       quantity: 1,
       units: "",
+      hasExpiration: false,
+      expirationDate: null,
     });
 
     const searchQuery = ref("");
@@ -635,6 +648,10 @@ export default {
               id: item.id,
               description: item.description,
               quantity: quantityPerOrg,
+              expiration: item.expiration,
+              expirationDate: item.expirationDate
+                ? item.expirationDate.toISOString().split("T")[0]
+                : null,
             };
             orgOffer.items.push(itemOffer);
           });
@@ -648,6 +665,10 @@ export default {
               id: item.id,
               description: item.description,
               quantity: quantityPerOrg,
+              expiration: item.expiration,
+              expirationDate: item.expirationDate
+                ? item.expirationDate.toISOString().split("T")[0]
+                : null,
             };
           });
         }
@@ -701,6 +722,10 @@ export default {
             quantity: quantity,
             unit: newItemToBeStored.value.unit,
             paletaOption: newItemToBeStored.value.paletaOption,
+            expiration: newItemToBeStored.value.hasExpiration,
+            expirationDate: newItemToBeStored.value.hasExpiration
+              ? new Date(newItemToBeStored.value.expirationDate).toISOString().split("T")[0]
+              : null,
           };
 
           listOfNewItemsToBeStored.value.push(itemToAdd);
@@ -803,6 +828,14 @@ export default {
       loadWarehouseDetails();
     };
 
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}. ${month}. ${year}`;
+    };
+
     return {
       pageSettings,
       totalPages,
@@ -854,6 +887,7 @@ export default {
       removeItemFromStorageCreation,
       storeItems,
       openCreateOfferModal,
+      formatDate,
     };
   },
 };

@@ -81,6 +81,70 @@ export interface Category {
 /**
  * 
  * @export
+ * @interface DateOnly
+ */
+export interface DateOnly {
+    /**
+     * 
+     * @type {number}
+     * @memberof DateOnly
+     */
+    'year'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DateOnly
+     */
+    'month'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DateOnly
+     */
+    'day'?: number;
+    /**
+     * 
+     * @type {DayOfWeek}
+     * @memberof DateOnly
+     */
+    'dayOfWeek'?: DayOfWeek;
+    /**
+     * 
+     * @type {number}
+     * @memberof DateOnly
+     */
+    'dayOfYear'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DateOnly
+     */
+    'dayNumber'?: number;
+}
+
+
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const DayOfWeek = {
+    NUMBER_0: 0,
+    NUMBER_1: 1,
+    NUMBER_2: 2,
+    NUMBER_3: 3,
+    NUMBER_4: 4,
+    NUMBER_5: 5,
+    NUMBER_6: 6
+} as const;
+
+export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
+
+
+/**
+ * 
+ * @export
  * @interface Item
  */
 export interface Item {
@@ -287,6 +351,18 @@ export interface NewItem {
      * @memberof NewItem
      */
     'unit'?: string | null;
+    /**
+     * 
+     * @type {DateOnly}
+     * @memberof NewItem
+     */
+    'expiration'?: DateOnly;
+    /**
+     * 
+     * @type {number}
+     * @memberof NewItem
+     */
+    'expirationDate'?: number | null;
 }
 /**
  * 
