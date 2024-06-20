@@ -353,16 +353,16 @@ export interface NewItem {
     'unit'?: string | null;
     /**
      * 
+     * @type {boolean}
+     * @memberof NewItem
+     */
+    'expiration'?: boolean | null;
+    /**
+     * 
      * @type {DateOnly}
      * @memberof NewItem
      */
-    'expiration'?: DateOnly;
-    /**
-     * 
-     * @type {number}
-     * @memberof NewItem
-     */
-    'expirationDate'?: number | null;
+    'expirationDate'?: DateOnly;
 }
 /**
  * 

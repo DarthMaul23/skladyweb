@@ -1566,12 +1566,11 @@
             "nullable": true
           },
           "expiration": {
-            "$ref": "#/components/schemas/DateOnly"
+            "type": "boolean",
+            "nullable": true
           },
           "expirationDate": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "$ref": "#/components/schemas/DateOnly"
           }
         },
         "additionalProperties": false

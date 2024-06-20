@@ -125,7 +125,10 @@
             <n-form-item label="Expirace:">
               <n-switch v-model:value="newItemToBeStored.hasExpiration" />
             </n-form-item>
-            <n-form-item v-if="newItemToBeStored.hasExpiration" label="Datum expirace:">
+            <n-form-item
+              v-if="newItemToBeStored.hasExpiration"
+              label="Datum expirace:"
+            >
               <n-date-picker v-model:value="newItemToBeStored.expirationDate" />
             </n-form-item>
             <n-button @click="addToListForStorageCreation" class="save-button"
@@ -135,9 +138,7 @@
         </div>
         <div v-if="listOfNewItemsToBeStored.length > 0">
           <h3>
-            Seznam položek k naskladnění ({{
-              listOfNewItemsToBeStored.length
-            }}
+            Seznam položek k naskladnění ({{ listOfNewItemsToBeStored.length }}
             položek):
           </h3>
           <div class="items-container">
@@ -162,7 +163,9 @@
                   Kategorie: {{ item.categoryName }} >
                   {{ item.subcategoryName }}
                 </p>
-                <p v-if="item.expiration">Expirace: {{ formatDate(item.expirationDate) }}</p>
+                <p v-if="item.expiration">
+                  Expirace: {{ formatDate(item.expirationDate) }}
+                </p>
               </div>
             </div>
           </div>
@@ -208,6 +211,7 @@ import {
   NSpace,
   NSwitch,
   NDatePicker,
+  NTag,
 } from "naive-ui";
 import {
   ItemApi,
@@ -232,6 +236,7 @@ export default {
     NSpace,
     NSwitch,
     NDatePicker,
+    NTag,
   },
   setup() {
     const router = useRouter();
@@ -325,6 +330,29 @@ export default {
       { title: "Podkategorie", key: "subcategoryName" },
       { title: "Množství", key: "quantity" },
       { title: "Jednotky", key: "unit" },
+      {
+        title: "Expirace",
+        key: "expirationDate",
+        render: (row) => {
+          return row.expirationDate
+            ? h(
+                NTag,
+                {
+                  type: "error",
+                  bordered: false,
+                },
+                formatDate(row.expirationDate)
+              )
+            : h(
+                NTag,
+                {
+                  type: "info",
+                  bordered: false,
+                },
+                "Nemá expiraci"
+              );
+        },
+      },
       {
         title: "Akce",
         key: "action",
@@ -724,7 +752,9 @@ export default {
             paletaOption: newItemToBeStored.value.paletaOption,
             expiration: newItemToBeStored.value.hasExpiration,
             expirationDate: newItemToBeStored.value.hasExpiration
-              ? new Date(newItemToBeStored.value.expirationDate).toISOString().split("T")[0]
+              ? new Date(newItemToBeStored.value.expirationDate)
+                  .toISOString()
+                  .split("T")[0]
               : null,
           };
 
