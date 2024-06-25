@@ -184,6 +184,11 @@
         >
       </template>
     </CustomModal>
+    <ItemDetailsModal
+      :show="showItemDetail"
+      :itemId="selectedItemId"
+      @update:show="showItemDetail = $event"
+    />
     <OfferCreationModal
       :showCreateOfferModal="showCreateOfferModal"
       :selectedItems="selectedItems"
@@ -197,6 +202,7 @@
 <script>
 import CustomModal from "../components/CustomModal.vue";
 import OfferCreationModal from "../components/OfferCreationModal.vue";
+import ItemDetailsModal from "../components/ItemDetailsModal.vue";
 import { debounce } from "lodash";
 import { ref, onMounted, h, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -212,6 +218,7 @@ import {
   NSwitch,
   NDatePicker,
   NTag,
+  NTabs,
 } from "naive-ui";
 import {
   ItemApi,
@@ -225,6 +232,7 @@ import CustomTable from "../components/CustomTable.vue";
 export default {
   components: {
     OfferCreationModal,
+    ItemDetailsModal,
     CustomModal,
     CustomTable,
     NButton,
@@ -237,6 +245,7 @@ export default {
     NSwitch,
     NDatePicker,
     NTag,
+    NTabs
   },
   setup() {
     const router = useRouter();
@@ -271,6 +280,9 @@ export default {
       expirationDate: null,
     });
 
+    const selectedItemId = ref(null);
+    const showItemDetail = ref(false);
+
     const searchQuery = ref("");
     const selectedCategories = ref([]);
     const selectedSubcategories = ref([]);
@@ -300,6 +312,11 @@ export default {
     const pageSettings = ref({
       Page: 1,
       NoOfItems: 30,
+    });
+
+    const sortSettings = ref({
+      sortBy: null,
+      sortOrder: null,
     });
 
     const itemMasterColumns = [
@@ -354,7 +371,7 @@ export default {
         },
       },
       {
-        title: "Akce",
+        title: "Vybrat",
         key: "action",
         render: (row) => {
           const isSelected = selectedItems.value.some(
@@ -370,6 +387,28 @@ export default {
               },
             },
             () => (isSelected ? "Zrušit výber" : "Vybrat")
+          );
+        },
+        maxWidth: 100,
+      },
+      {
+        title: "Detail",
+        key: "action",
+        render: (row) => {
+          const isSelected = selectedItems.value.some(
+            (item) => item.id === row.id
+          );
+          return h(
+            NButton,
+            {
+              size: "small",
+              type: "success",
+              onClick: () => {
+                selectedItemId.value = row.id;
+                showItemDetail.value = true;
+              },
+            },
+            () => "Detail"
           );
         },
         maxWidth: 100,
@@ -465,6 +504,14 @@ export default {
     const handleSubcategoryChange = (newValues) => {
       pageSettings.value.Page = 1;
       selectedSubcategories.value = newValues;
+      loadWarehouseDetails();
+    };
+
+    const handleSortChange = (sortInfo) => {
+      console.log("sorting");
+      sortSettings.value.sortBy = sortInfo.sortBy;
+      sortSettings.value.sortOrder = sortInfo.sortOrder;
+      console.log(sortSettings.value);
       loadWarehouseDetails();
     };
 
@@ -712,7 +759,6 @@ export default {
           const response = await offerApi.offerPost(offerData.value, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          console.log(response.status);
           if (response.status === 200 || response.status === 201) {
             // Assuming 200 or 201 is the success status code
             selectedItems.value = [];
@@ -897,6 +943,8 @@ export default {
       offerData,
       offerInformations,
       debouncedLoadWarehouseDetails,
+      selectedItemId,
+      showItemDetail,
       selectItem,
       deselectItem,
       handlePageChange,
@@ -917,6 +965,7 @@ export default {
       removeItemFromStorageCreation,
       storeItems,
       openCreateOfferModal,
+      handleSortChange,
       formatDate,
     };
   },

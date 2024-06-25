@@ -204,6 +204,12 @@ export interface Item {
     'createdOn'?: string;
     /**
      * 
+     * @type {DateOnly}
+     * @memberof Item
+     */
+    'expirationDate'?: DateOnly;
+    /**
+     * 
      * @type {Category}
      * @memberof Item
      */
@@ -308,6 +314,25 @@ export interface NewCategory {
      * @memberof NewCategory
      */
     'description'?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface NewComment
+ */
+export interface NewComment {
+    /**
+     * 
+     * @type {string}
+     * @memberof NewComment
+     */
+    'offerId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof NewComment
+     */
+    'commentText'?: string | null;
 }
 /**
  * 
@@ -574,6 +599,12 @@ export interface Offer {
      * @memberof Offer
      */
     'isDelivery'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Offer
+     */
+    'isDeleted'?: boolean;
     /**
      * 
      * @type {OfferGroup}
@@ -1879,6 +1910,181 @@ export class CategoryApi extends BaseAPI {
 
 
 /**
+ * CommentsApi - axios parameter creator
+ * @export
+ */
+export const CommentsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} offerId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        commentsOfferIdGet: async (offerId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'offerId' is not null or undefined
+            assertParamExists('commentsOfferIdGet', 'offerId', offerId)
+            const localVarPath = `/Comments/{offerId}`
+                .replace(`{${"offerId"}}`, encodeURIComponent(String(offerId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {NewComment} [newComment] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        commentsPost: async (newComment?: NewComment, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Comments`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(newComment, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CommentsApi - functional programming interface
+ * @export
+ */
+export const CommentsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CommentsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} offerId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async commentsOfferIdGet(offerId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.commentsOfferIdGet(offerId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CommentsApi.commentsOfferIdGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {NewComment} [newComment] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async commentsPost(newComment?: NewComment, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.commentsPost(newComment, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['CommentsApi.commentsPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CommentsApi - factory interface
+ * @export
+ */
+export const CommentsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CommentsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {string} offerId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        commentsOfferIdGet(offerId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.commentsOfferIdGet(offerId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {NewComment} [newComment] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        commentsPost(newComment?: NewComment, options?: any): AxiosPromise<void> {
+            return localVarFp.commentsPost(newComment, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * CommentsApi - object-oriented interface
+ * @export
+ * @class CommentsApi
+ * @extends {BaseAPI}
+ */
+export class CommentsApi extends BaseAPI {
+    /**
+     * 
+     * @param {string} offerId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CommentsApi
+     */
+    public commentsOfferIdGet(offerId: string, options?: RawAxiosRequestConfig) {
+        return CommentsApiFp(this.configuration).commentsOfferIdGet(offerId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {NewComment} [newComment] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CommentsApi
+     */
+    public commentsPost(newComment?: NewComment, options?: RawAxiosRequestConfig) {
+        return CommentsApiFp(this.configuration).commentsPost(newComment, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * ItemApi - axios parameter creator
  * @export
  */
@@ -1945,6 +2151,43 @@ export const ItemApiAxiosParamCreator = function (configuration?: Configuration)
 
             // authentication Bearer required
             await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [itemId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemGetItemDetailPost: async (itemId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Item/GetItemDetail`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (itemId !== undefined) {
+                localVarQueryParameter['itemId'] = itemId;
+            }
 
 
     
@@ -2078,6 +2321,18 @@ export const ItemApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} [itemId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async itemGetItemDetailPost(itemId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ResponseObject>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.itemGetItemDetailPost(itemId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['ItemApi.itemGetItemDetailPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
          * @param {string} warehouseId 
          * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
          * @param {*} [options] Override http request option.
@@ -2133,6 +2388,15 @@ export const ItemApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
+         * @param {string} [itemId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        itemGetItemDetailPost(itemId?: string, options?: any): AxiosPromise<ResponseObject> {
+            return localVarFp.itemGetItemDetailPost(itemId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {string} warehouseId 
          * @param {ItemSearchPageSettings} [itemSearchPageSettings] 
          * @param {*} [options] Override http request option.
@@ -2182,6 +2446,17 @@ export class ItemApi extends BaseAPI {
      */
     public itemGetCategoriesAndSubcategoriesPost(options?: RawAxiosRequestConfig) {
         return ItemApiFp(this.configuration).itemGetCategoriesAndSubcategoriesPost(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [itemId] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ItemApi
+     */
+    public itemGetItemDetailPost(itemId?: string, options?: RawAxiosRequestConfig) {
+        return ItemApiFp(this.configuration).itemGetItemDetailPost(itemId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2325,6 +2600,43 @@ export class LoginApi extends BaseAPI {
  */
 export const OfferApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @param {string} [offerId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerCancelOfferPost: async (offerId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Offer/CancelOffer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            if (offerId !== undefined) {
+                localVarQueryParameter['offerId'] = offerId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @param {PageSettings} [pageSettings] 
@@ -2625,6 +2937,18 @@ export const OfferApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} [offerId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async offerCancelOfferPost(offerId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.offerCancelOfferPost(offerId, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['OfferApi.offerCancelOfferPost']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+        /**
+         * 
          * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2731,6 +3055,15 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
     return {
         /**
          * 
+         * @param {string} [offerId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        offerCancelOfferPost(offerId?: string, options?: any): AxiosPromise<void> {
+            return localVarFp.offerCancelOfferPost(offerId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {PageSettings} [pageSettings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2811,6 +3144,17 @@ export const OfferApiFactory = function (configuration?: Configuration, basePath
  * @extends {BaseAPI}
  */
 export class OfferApi extends BaseAPI {
+    /**
+     * 
+     * @param {string} [offerId] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OfferApi
+     */
+    public offerCancelOfferPost(offerId?: string, options?: RawAxiosRequestConfig) {
+        return OfferApiFp(this.configuration).offerCancelOfferPost(offerId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {PageSettings} [pageSettings] 

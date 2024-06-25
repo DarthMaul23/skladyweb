@@ -69,26 +69,7 @@
               </div>
             </n-tab-pane>
             <n-tab-pane name="comments" tab="Komentáře">
-              <div class="comments-section">
-                <div
-                  v-for="(comment, index) in comments"
-                  :key="index"
-                  class="comment-item"
-                >
-                  <h3>{{ comment.author }}</h3>
-                  <p>{{ comment.comment }}</p>
-                  <p>{{ formatDate(comment.createDate) }}</p>
-                </div>
-                <n-input
-                  v-model:value="newComment"
-                  type="textarea"
-                  placeholder="Přidat komentář..."
-                  rows="4"
-                />
-                <n-button @click="addComment" class="save-button"
-                  >Přidat komentář</n-button
-                >
-              </div>
+              <comments-section :offer-id="orderDetail.offerId" />
             </n-tab-pane>
           </n-tabs>
         </div>
@@ -103,6 +84,7 @@
   
   <script>
   import CustomModal from "../components/CustomModal.vue";
+  import CommentsSection from './CommentsSectionComponent.vue';
   import { ref, watch, computed } from "vue";
   import { NButton, NDataTable, NTabs, NTabPane, NInput } from "naive-ui";
   import { OrderApi } from "../api/openapi/api";
@@ -111,6 +93,7 @@
   export default {
     components: {
       CustomModal,
+      CommentsSection,
       NButton,
       NDataTable,
       NTabs,
@@ -273,6 +256,7 @@
   }
   
   .order-details-section {
+    padding:-10px;
     display: flex;
     justify-content: space-between;
   }
@@ -280,8 +264,8 @@
   .offer-details {
     background-color: #f0fdf4;
     border-left: 5px solid #4caf50;
-    padding: 16px;
-    margin-bottom: 20px;
+    padding: 5px;
+    margin-bottom: 10px;
     border-radius: 8px;
     display: flex;
     width: 100%;
@@ -295,7 +279,7 @@
   }
   
   .detail-item strong {
-    color: green;
+    color: #008000;
   }
   
   .modal-split-container {
