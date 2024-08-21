@@ -2595,6 +2595,113 @@ export class LoginApi extends BaseAPI {
 
 
 /**
+ * NotificationsApi - axios parameter creator
+ * @export
+ */
+export const NotificationsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} type 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        notificationsGetNotificationsTypeGet: async (type: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'type' is not null or undefined
+            assertParamExists('notificationsGetNotificationsTypeGet', 'type', type)
+            const localVarPath = `/Notifications/GetNotifications/{type}`
+                .replace(`{${"type"}}`, encodeURIComponent(String(type)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * NotificationsApi - functional programming interface
+ * @export
+ */
+export const NotificationsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = NotificationsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} type 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async notificationsGetNotificationsTypeGet(type: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.notificationsGetNotificationsTypeGet(type, options);
+            const index = configuration?.serverIndex ?? 0;
+            const operationBasePath = operationServerMap['NotificationsApi.notificationsGetNotificationsTypeGet']?.[index]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * NotificationsApi - factory interface
+ * @export
+ */
+export const NotificationsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = NotificationsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {string} type 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        notificationsGetNotificationsTypeGet(type: string, options?: any): AxiosPromise<void> {
+            return localVarFp.notificationsGetNotificationsTypeGet(type, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * NotificationsApi - object-oriented interface
+ * @export
+ * @class NotificationsApi
+ * @extends {BaseAPI}
+ */
+export class NotificationsApi extends BaseAPI {
+    /**
+     * 
+     * @param {string} type 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NotificationsApi
+     */
+    public notificationsGetNotificationsTypeGet(type: string, options?: RawAxiosRequestConfig) {
+        return NotificationsApiFp(this.configuration).notificationsGetNotificationsTypeGet(type, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * OfferApi - axios parameter creator
  * @export
  */

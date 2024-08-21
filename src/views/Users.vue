@@ -22,13 +22,13 @@
     />
     -->
     <CustomTable
-    :data="filteredUsers"
-    :columns="columns"
-    :pagination="pageSettings"
-    :noPages="totalPages"
-    @detailClicked="prepareUserDetails"
-    @pageChanged="loadUsers"
-  />
+      :data="filteredUsers"
+      :columns="columns"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @detailClicked="prepareUserDetails"
+      @pageChanged="loadUsers"
+    />
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
@@ -86,29 +86,34 @@
             <n-skeleton height="40px" round />
             <n-skeleton height="40px" circle />
           </n-space>
-          <!--
-            <p><strong>ID:</strong> {{ selectedUserDetails.UserGroup.id }}</p>
-          <p><strong>Title:</strong> {{ selectedUserDetails.title }}</p>
-          <p>
-            <strong>Description:</strong> {{ selectedUserDetails.description }}
-          </p>
-          <p>
-            <strong>Date Created:</strong>
-            {{ selectedUserDetails.UserGroup.dateCreated }}
-          </p>
-          <p>
-            <strong>User ID:</strong>
-            {{ selectedUserDetails.UserGroup.userId }}
-          </p>
-          <div v-for="organizations in selectedUserDetails.Users">
-            {{ organizations.organization.name }}
-            <n-data-table
-              :columns="itemColumns"
-              :data="organizations.items"
-              class="item-table"
-            ></n-data-table>
+          <div v-else>
+            <n-descriptions bordered>
+              <n-descriptions-item label="ID">
+                {{ selectedUserDetails.id }}
+              </n-descriptions-item>
+              <n-descriptions-item label="E-mail">
+                {{ selectedUserDetails.email }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Jméno">
+                {{ selectedUserDetails.firstName }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Příjmení">
+                {{ selectedUserDetails.lastName }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Organizace">
+                {{ selectedUserDetails.organization?.name }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Lokace organizace">
+                {{ selectedUserDetails.organization?.location }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Oprávnění">
+                {{ selectedUserDetails.right?.name }}
+              </n-descriptions-item>
+              <n-descriptions-item label="Klíč oprávnění">
+                {{ selectedUserDetails.right?.key }}
+              </n-descriptions-item>
+            </n-descriptions>
           </div>
-          -->
         </div>
       </template>
       <template #footer>
@@ -136,10 +141,12 @@ import {
   NSpace,
   NSkeleton,
   NPagination,
+  NDescriptions,
+  NDescriptionsItem,
 } from "naive-ui";
 import { UserApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import CustomTable from '../components/CustomTable.vue';
+import CustomTable from "../components/CustomTable.vue";
 
 export default {
   components: {
@@ -154,6 +161,8 @@ export default {
     NSpace,
     NSkeleton,
     NPagination,
+    NDescriptions,
+    NDescriptionsItem,
   },
   setup() {
     const userApi = new UserApi(getDefaultApiConfig());
@@ -299,13 +308,13 @@ export default {
       console.log(loadingDetails.value);
       // Set the selected offer details to be displayed in the modal
       const token = localStorage.getItem("authToken");
-      /*
-      const data = await offerApi.offerIdGet(offer.id, {
+      
+      const data = await userApi.userIdGet(user.id, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log(data.data);
       selectedOfferDetails.value = data.data; // Store the selected offer details
-      */
+      
       // Update the modal title to reflect that this is about viewing offer details
       modalTitle.value = `Detail uživatele: ${user.firstName} ${user.lastName}`;
 
@@ -317,10 +326,13 @@ export default {
     };
 
     const getRowNo = (row) => {
-      const rowNo = filteredUsers.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
+      const rowNo =
+        filteredUsers.value.indexOf(row) +
+        1 +
+        (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
       console.log(rowNo.value);
       return rowNo.value;
-    }
+    };
 
     const columns = ref([
       {

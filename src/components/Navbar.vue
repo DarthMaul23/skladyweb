@@ -33,6 +33,8 @@ const toggleMenu = () => {
 };
 const Logout = () => {
   store.logout();
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('role');
   router.push("/login");
 };
 </script>

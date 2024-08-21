@@ -58,15 +58,24 @@ export default {
       try {
         // Pass the loginModel directly to the loginPost method
         const response = await loginApi.loginPost(loginModel);
-        localStorage.setItem('authToken', response.data!.token!);
-        store.login({ username: username.value});
-        localStorage.setItem('role', response.data!.right!.key);
-        router.push("/"); // Redirect to home
+        console.log(response);
+        if (response.status === 200 && response.data && response.data.token) {
+          localStorage.setItem("authToken", response.data!.token!);
+          const user = {
+            username: username.value,
+            role: response.data.right.key,
+            isLoggedIn: true,
+          };
+          store.login(user);
+          localStorage.setItem("role", response.data!.right!.key);
+          router.push("/"); // Redirect to home
+        } else {
+          message.error("Nesprávné přihlašovací údaje!");
+        }
       } catch (e) {
         // Make sure to catch the error correctly
         console.error("Login failed:", e);
         message.error("Nesprávné přihlašovací údaje!");
-        
       }
     };
 
