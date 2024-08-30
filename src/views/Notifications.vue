@@ -1,20 +1,20 @@
 <template>
   <div class="notifications-container">
-    <h1>Notifications</h1>
+    <h1>Oznámení</h1>
     <n-tabs type="line" animated>
-      <n-tab-pane name="OfferCreated" tab="Offer Created">
+      <n-tab-pane name="OfferCreated" tab="Nabídky - vytvořené">
         <NotificationList type="OfferCreated" />
       </n-tab-pane>
-      <n-tab-pane name="OrderCreated" tab="Order Created">
-        <NotificationList type="OrderCreated" />
-      </n-tab-pane>
-      <n-tab-pane name="OfferComment" tab="Offer Comment">
+      <n-tab-pane name="OfferComment" tab="Nabídky - komentáře">
         <NotificationList type="OfferComment" />
       </n-tab-pane>
-      <n-tab-pane name="OrderComment" tab="Order Comment">
+      <n-tab-pane name="OrderCreated" tab="Objednávky - vytvořené">
+        <NotificationList type="OrderCreated" />
+      </n-tab-pane>
+      <n-tab-pane name="OrderComment" tab="Obejndávky - komentáře">
         <NotificationList type="OrderComment" />
       </n-tab-pane>
-      <n-tab-pane name="OrderShipped" tab="Order Shipped">
+      <n-tab-pane name="OrderShipped" tab="Obejndávky - expedované">
         <NotificationList type="OrderShipped" />
       </n-tab-pane>
     </n-tabs>

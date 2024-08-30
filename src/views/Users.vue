@@ -80,40 +80,9 @@
           </n-form-item>
         </div>
         <div v-if="showDetailModal">
-          <n-space v-if="loadingDetails" vertical>
-            <n-skeleton height="40px" width="33%" />
-            <n-skeleton height="40px" width="66%" :sharp="false" />
-            <n-skeleton height="40px" round />
-            <n-skeleton height="40px" circle />
-          </n-space>
-          <div v-else>
-            <n-descriptions bordered>
-              <n-descriptions-item label="ID">
-                {{ selectedUserDetails.id }}
-              </n-descriptions-item>
-              <n-descriptions-item label="E-mail">
-                {{ selectedUserDetails.email }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Jméno">
-                {{ selectedUserDetails.firstName }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Příjmení">
-                {{ selectedUserDetails.lastName }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Organizace">
-                {{ selectedUserDetails.organization?.name }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Lokace organizace">
-                {{ selectedUserDetails.organization?.location }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Oprávnění">
-                {{ selectedUserDetails.right?.name }}
-              </n-descriptions-item>
-              <n-descriptions-item label="Klíč oprávnění">
-                {{ selectedUserDetails.right?.key }}
-              </n-descriptions-item>
-            </n-descriptions>
-          </div>
+          <n-spin :show="loadingDetails">
+          </n-spin>
+          <UserDetailsCard :userId="selectedUserId" :rightsOptions="rightsOptions" :organizationsOptions="organizationsOptions" />
         </div>
       </template>
       <template #footer>
@@ -147,11 +116,13 @@ import {
 import { UserApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
 import CustomTable from "../components/CustomTable.vue";
+import UserDetailsCard from "../components/UserDetailsCard.vue";
 
 export default {
   components: {
     CustomModal,
     CustomTable,
+    UserDetailsCard,
     NButton,
     NInput,
     NDataTable,
@@ -169,6 +140,7 @@ export default {
     const data = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
+    const selectedUserId = ref(undefined);
     const showAddModal = ref(false);
     const showDetailModal = ref(false);
     const loadingDetails = ref(false);
@@ -217,6 +189,7 @@ export default {
       isModalVisible.value = false;
       modalTitle.value = "";
       showAddModal.value = false;
+      showDetailModal.value = false;
     };
 
     // Function to add a new user
@@ -303,26 +276,28 @@ export default {
     });
 
     const prepareUserDetails = async (user) => {
-      console.log(user);
       loadingDetails.value = true;
-      console.log(loadingDetails.value);
-      // Set the selected offer details to be displayed in the modal
-      const token = localStorage.getItem("authToken");
-      
-      const data = await userApi.userIdGet(user.id, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log(data.data);
-      selectedOfferDetails.value = data.data; // Store the selected offer details
-      
-      // Update the modal title to reflect that this is about viewing offer details
-      modalTitle.value = `Detail uživatele: ${user.firstName} ${user.lastName}`;
-
-      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
-      showDetailModal.value = true;
-
-      // Finally, making the modal visible
-      isModalVisible.value = true;
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await userApi.userIdGet(user.id, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("API response:", response); // Debug: Log the entire response
+        console.log(response.data.result.id);
+        if (response.data && response.data.result) {
+          selectedUserId.value = response.data.result.id;
+          console.log("selectedUserDetails set to:", selectedUserId.value); // Debug: Log the set value
+        } else {
+          console.error("Unexpected API response structure:", response);
+        }
+        modalTitle.value = `Detail uživatele`;
+        showDetailModal.value = true;
+        isModalVisible.value = true;
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      } finally {
+        loadingDetails.value = false;
+      }
     };
 
     const getRowNo = (row) => {
@@ -378,6 +353,7 @@ export default {
       isModalVisible,
       showAddModal,
       showDetailModal,
+      selectedUserId,
       showAddUserModal,
       prepareUserDetails,
       hideAddUserModal,
