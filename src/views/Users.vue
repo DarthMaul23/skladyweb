@@ -80,9 +80,12 @@
           </n-form-item>
         </div>
         <div v-if="showDetailModal">
-          <n-spin :show="loadingDetails">
-          </n-spin>
-          <UserDetailsCard :userId="selectedUserId" :rightsOptions="rightsOptions" :organizationsOptions="organizationsOptions" />
+          <n-spin :show="loadingDetails"> </n-spin>
+          <UserDetailsCard
+            :userId="selectedUserId"
+            :rightsOptions="rightsOptions"
+            :organizationsOptions="organizationsOptions"
+          />
         </div>
       </template>
       <template #footer>
@@ -157,7 +160,7 @@ export default {
     const totalPages = ref(0);
     const pageSettings = ref({
       Page: 1,
-      NoOfItems: 2,
+      NoOfItems: 20,
     });
 
     const rights = ref([]);
@@ -300,20 +303,20 @@ export default {
       }
     };
 
-    const getRowNo = (row) => {
-      const rowNo =
-        filteredUsers.value.indexOf(row) +
-        1 +
-        (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
-      console.log(rowNo.value);
-      return rowNo.value;
+    const getRowNo = (row, index) => {
+      return (
+        index + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems
+      );
     };
 
     const columns = ref([
       {
         title: "No",
-        key: "no",
-        render: (row) => getRowNo(row),
+        key: "rowNumber",
+        width: 60,
+        render: (row, index) => {
+          return h("span", getRowNo(row, index));
+        },
       },
       { title: "E-mail", key: "email" },
       { title: "Jméno", key: "firstName" },

@@ -16,9 +16,6 @@
             </div>
           </n-space>
           <n-space>
-            <n-tag :bordered="false" type="info" size="small">
-              ID: {{ selectedUserDetails.id }}
-            </n-tag>
             <n-button v-if="!editMode" @click="enableEditMode">Upravit</n-button>
             <n-button v-else @click="saveChanges" type="primary">Uložit</n-button>
             <n-button v-if="editMode" @click="cancelEdit">Zrušit úpravy</n-button>
@@ -84,14 +81,6 @@
             <n-space vertical :size="4">
               <span class="label">Oprávnění</span>
               <span>{{ selectedUserDetails.right?.name }}</span>
-            </n-space>
-          </n-gi>
-          <n-gi>
-            <n-space vertical :size="4">
-              <span class="label">ID Oprávnění</span>
-              <n-tag size="small" :bordered="false" type="warning">
-                {{ selectedUserDetails.right?.id }}
-              </n-tag>
             </n-space>
           </n-gi>
         </n-grid>
