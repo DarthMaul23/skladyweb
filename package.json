@@ -3,15 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "apigen": "npx openapi-generator-cli generate -i swagger.json -g typescript-axios -o ./src/api/openapi",
+    "apigen": "openapi-generator-cli generate -i swagger.json -g typescript-axios -o ./src/api/openapi",
     "pregenerate-dev-api": "curl -k https://localhost:7292/swagger/v1/swagger.json > swagger.json",
     "pregenerate-prod-api": "curl -k https://template-test-api.azurewebsites.net/swagger/v1/swagger.json > swagger.json",
     "dev": "npm run pregenerate-dev-api && npm run apigen && vite --host",
-    "prod": "npm run pregenerate-prod-api && npm run apigen && vite --host",
-    "build": "vite build",
+    "prod-setup": "npm run pregenerate-prod-api && npm run apigen",
+    "prod": "npm run prod-setup && vite --host",
+    "build": "npm run prod-setup && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@openapitools/openapi-generator-cli": "^2.13.5",
     "axios": "^1.6.7",
     "lodash.debounce": "^4.0.8",
     "superagent": "^8.1.2",
@@ -28,6 +30,12 @@
     "@vicons/tabler": "^0.12.0",
     "@vitejs/plugin-vue": "^2.2.0",
     "naive-ui": "^2.37.3",
+    "@openapitools/openapi-generator-cli": "^2.13.5",
+    "axios": "^1.6.7",
+    "lodash.debounce": "^4.0.8",
+    "superagent": "^8.1.2",
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.12",
     "sass": "^1.49.8",
     "vite": "^2.8.0"
   }

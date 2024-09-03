@@ -51,6 +51,10 @@ const router = createRouter({
 			path: '/users',
 			component: () => import('../views/Users.vue')
 		},
+		{
+			path: '/notifications',
+			component: () => import('../views/Notifications.vue')
+		},
 	],
 })
 

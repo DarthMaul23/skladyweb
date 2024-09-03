@@ -236,6 +236,61 @@
         }
       }
     },
+    "/Comments": {
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewComment"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewComment"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewComment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Comments/{offerId}": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "parameters": [
+          {
+            "name": "offerId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Item/GetWarehouseItems/{warehouseId}": {
       "post": {
         "tags": [
@@ -376,6 +431,46 @@
         }
       }
     },
+    "/Item/GetItemDetail": {
+      "post": {
+        "tags": [
+          "Item"
+        ],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Item/UpdateExistingItem/{itemId}": {
       "put": {
         "tags": [
@@ -469,6 +564,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Notifications/GetNotifications/{type}": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success"
@@ -726,6 +844,29 @@
             "in": "path",
             "required": true,
             "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/Offer/CancelOffer": {
+      "post": {
+        "tags": [
+          "Offer"
+        ],
+        "parameters": [
+          {
+            "name": "offerId",
+            "in": "query",
+            "style": "form",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1111,6 +1252,30 @@
         }
       }
     },
+    "/User/GetUserDetail/{userId}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/User/UsersAndUserCreationData": {
       "post": {
         "tags": [
@@ -1189,6 +1354,37 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/User/UpdateUser": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -1456,6 +1652,9 @@
             "type": "string",
             "format": "date-time"
           },
+          "expirationDate": {
+            "$ref": "#/components/schemas/DateOnly"
+          },
           "category": {
             "$ref": "#/components/schemas/Category"
           },
@@ -1538,6 +1737,20 @@
         },
         "additionalProperties": false
       },
+      "NewComment": {
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "commentText": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "NewItem": {
         "type": "object",
         "properties": {
@@ -1566,12 +1779,11 @@
             "nullable": true
           },
           "expiration": {
-            "$ref": "#/components/schemas/DateOnly"
+            "type": "boolean",
+            "nullable": true
           },
           "expirationDate": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "$ref": "#/components/schemas/DateOnly"
           }
         },
         "additionalProperties": false
@@ -1739,6 +1951,9 @@
             "nullable": true
           },
           "isDelivery": {
+            "type": "boolean"
+          },
+          "isDeleted": {
             "type": "boolean"
           },
           "offerGroup": {
@@ -2142,6 +2357,40 @@
           "lastName": {
             "minLength": 1,
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "organization": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "right": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false

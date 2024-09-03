@@ -8,6 +8,10 @@
         <span class="material-icons">warehouse</span>
         <span v-if="isExpanded" class="text">Sklady</span>
       </router-link>
+      <router-link to="/notifications" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Oznámení</span>
+      </router-link>
       <router-link to="/offers" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Nabídky</span>
@@ -42,6 +46,10 @@
         <span class="material-icons">warehouse</span>
         <span v-if="isExpanded" class="text">Sklady</span>
       </router-link>
+      <router-link to="/notifications" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Oznámení</span>
+      </router-link>
       <router-link to="/offers" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Nabídky</span>
@@ -74,6 +82,10 @@
         <span v-if="isExpanded" class="text">Sklady</span>
       </router-link>
       -->
+      <router-link to="/notifications" class="button">
+        <span class="material-icons">settings</span>
+        <span v-if="isExpanded" class="text">Oznámení</span>
+      </router-link>
       <router-link to="/offersfororganization" class="button">
         <span class="material-icons">inbox</span>
         <span v-if="isExpanded" class="text">Nabídky</span>
@@ -121,7 +133,6 @@ aside {
   width: calc(2rem + 32px);
   overflow: hidden;
   min-height: calc(100% - 60px);
-  padding: 1rem;
 
   transition: 0.2s ease-in-out;
 
@@ -185,7 +196,7 @@ aside {
       text-decoration: none;
 
       transition: 0.2s ease-in-out;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 2rem;
 
       .material-icons {
         font-size: 2rem;

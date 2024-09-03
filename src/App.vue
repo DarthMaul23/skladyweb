@@ -1,32 +1,55 @@
 <template>
   <n-message-provider>
-    <div class="app">
-      <Navbar @toggle-sidebar="handleIsExpanded" v-if="store.user" />
-      <div class="content-wrapper">
-        <transition name="slide">
-          <Sidebar v-if="store.user" :is-expanded="isSidebarExpanded" />
-        </transition>
-        <div class="main-content">
-          <router-view />
+    <div class="app-container">
+      <template v-if="store.user?.isLoggedIn">
+        <Navbar @toggle-sidebar="toggleSidebar" class="navbar" />
+        <div class="content-container">
+          <Sidebar :is-expanded="isSidebarExpanded" class="sidebar" />
+          <main class="main-content" :class="{ 'sidebar-expanded': isSidebarExpanded }">
+            <router-view />
+          </main>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <main class="main-content login-content">
+          <router-view />
+        </main>
+      </template>
     </div>
   </n-message-provider>
 </template>
-  <script setup>
-import { ref } from "vue";
-import { store } from "./store/store";
+
+<script setup>
+import { ref, onMounted, watch } from "vue";
+import { NMessageProvider } from "naive-ui";
 import Sidebar from "./components/Sidebar.vue";
 import Navbar from "./components/Navbar.vue";
-import { NMessageProvider } from "naive-ui";
+import { store } from "./store/store";
+import { useRouter } from "vue-router";
 
-const isSidebarExpanded = ref(true);
+const router = useRouter();
+const isSidebarExpanded = ref(localStorage.getItem("is_expanded") === "true");
 
-const handleIsExpanded = (newState) => {
+const toggleSidebar = (newState) => {
   isSidebarExpanded.value = newState;
+  localStorage.setItem("is_expanded", newState.toString());
 };
+
+onMounted(() => {
+  const savedState = localStorage.getItem("is_expanded");
+  if (savedState !== null) {
+    isSidebarExpanded.value = savedState === "true";
+  }
+});
+
+watch(() => store.user?.isLoggedIn, (newValue) => {
+  console.log("Login state changed:", newValue);
+  if (!newValue) {
+    router.push("/login");
+  }
+});
 </script>
-  <style lang="scss">
+<style lang="scss">
 :root {
   --primary: #06732e;
   --primary-alt: #bfbfbf;
@@ -34,7 +57,8 @@ const handleIsExpanded = (newState) => {
   --dark: #06732e;
   --dark-alt: #ffffff;
   --light: #f1f5f9;
-  --sidebar-width: 200px;
+  --sidebar-width: 240px;
+  --navbar-height: 60px;
 }
 
 * {
@@ -48,41 +72,70 @@ body {
   background: var(--light);
 }
 
-.app {
+.app-container {
   display: flex;
   flex-direction: column;
-  min-height: 80vh;
+  height: 100vh;
 }
 
-.content-wrapper {
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--navbar-height);
+  z-index: 1000;
+}
+
+.content-container {
   display: flex;
-  flex: 1; /* Ensure it fills the available space */
+  flex: 1;
+  padding-top: var(--navbar-height);
 }
 
 .sidebar {
-  width: var(--sidebar-width);
-  /* If you want the sidebar to be scrollable on its own, you can add:
-	overflow-y: auto;
-	*/
-}
+  width: calc(2rem + 32px);
+  height: calc(100vh - var(--navbar-height));
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  z-index: 999;
+  transition: width 0.2s ease-in-out;
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-100%);
+  &.is-expanded {
+    width: var(--sidebar-width);
+  }
 }
 
 .main-content {
   flex: 1;
-  overflow-y: auto; /* Only the main content is scrollable */
-  padding: 2.5rem;
-  padding-top: 4.5rem;
-  height: calc(100vh); /* Adjust based on your navbar height */
-  width: 100%;
+  margin-left: calc(2rem + 32px);
+  padding: 2rem;
+  transition: margin-left 0.2s ease-in-out;
+  overflow-y: auto;
+  height: calc(100vh - var(--navbar-height));
+
+  &.sidebar-expanded {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+.login-content {
+  margin-left: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    z-index: 999;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
 }
 </style>
-  

@@ -22,13 +22,13 @@
     />
     -->
     <CustomTable
-    :data="filteredUsers"
-    :columns="columns"
-    :pagination="pageSettings"
-    :noPages="totalPages"
-    @detailClicked="prepareUserDetails"
-    @pageChanged="loadUsers"
-  />
+      :data="filteredUsers"
+      :columns="columns"
+      :pagination="pageSettings"
+      :noPages="totalPages"
+      @detailClicked="prepareUserDetails"
+      @pageChanged="loadUsers"
+    />
     <custom-modal
       :show="isModalVisible"
       :title="modalTitle"
@@ -80,35 +80,12 @@
           </n-form-item>
         </div>
         <div v-if="showDetailModal">
-          <n-space v-if="loadingDetails" vertical>
-            <n-skeleton height="40px" width="33%" />
-            <n-skeleton height="40px" width="66%" :sharp="false" />
-            <n-skeleton height="40px" round />
-            <n-skeleton height="40px" circle />
-          </n-space>
-          <!--
-            <p><strong>ID:</strong> {{ selectedUserDetails.UserGroup.id }}</p>
-          <p><strong>Title:</strong> {{ selectedUserDetails.title }}</p>
-          <p>
-            <strong>Description:</strong> {{ selectedUserDetails.description }}
-          </p>
-          <p>
-            <strong>Date Created:</strong>
-            {{ selectedUserDetails.UserGroup.dateCreated }}
-          </p>
-          <p>
-            <strong>User ID:</strong>
-            {{ selectedUserDetails.UserGroup.userId }}
-          </p>
-          <div v-for="organizations in selectedUserDetails.Users">
-            {{ organizations.organization.name }}
-            <n-data-table
-              :columns="itemColumns"
-              :data="organizations.items"
-              class="item-table"
-            ></n-data-table>
-          </div>
-          -->
+          <n-spin :show="loadingDetails"> </n-spin>
+          <UserDetailsCard
+            :userId="selectedUserId"
+            :rightsOptions="rightsOptions"
+            :organizationsOptions="organizationsOptions"
+          />
         </div>
       </template>
       <template #footer>
@@ -136,15 +113,19 @@ import {
   NSpace,
   NSkeleton,
   NPagination,
+  NDescriptions,
+  NDescriptionsItem,
 } from "naive-ui";
 import { UserApi } from "../api/openapi/api";
 import { getDefaultApiConfig } from "../utils/utils";
-import CustomTable from '../components/CustomTable.vue';
+import CustomTable from "../components/CustomTable.vue";
+import UserDetailsCard from "../components/UserDetailsCard.vue";
 
 export default {
   components: {
     CustomModal,
     CustomTable,
+    UserDetailsCard,
     NButton,
     NInput,
     NDataTable,
@@ -154,12 +135,15 @@ export default {
     NSpace,
     NSkeleton,
     NPagination,
+    NDescriptions,
+    NDescriptionsItem,
   },
   setup() {
     const userApi = new UserApi(getDefaultApiConfig());
     const data = ref([]);
     const isModalVisible = ref(false);
     const modalTitle = ref("");
+    const selectedUserId = ref(undefined);
     const showAddModal = ref(false);
     const showDetailModal = ref(false);
     const loadingDetails = ref(false);
@@ -176,7 +160,7 @@ export default {
     const totalPages = ref(0);
     const pageSettings = ref({
       Page: 1,
-      NoOfItems: 2,
+      NoOfItems: 20,
     });
 
     const rights = ref([]);
@@ -208,6 +192,7 @@ export default {
       isModalVisible.value = false;
       modalTitle.value = "";
       showAddModal.value = false;
+      showDetailModal.value = false;
     };
 
     // Function to add a new user
@@ -294,39 +279,44 @@ export default {
     });
 
     const prepareUserDetails = async (user) => {
-      console.log(user);
       loadingDetails.value = true;
-      console.log(loadingDetails.value);
-      // Set the selected offer details to be displayed in the modal
-      const token = localStorage.getItem("authToken");
-      /*
-      const data = await offerApi.offerIdGet(offer.id, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log(data.data);
-      selectedOfferDetails.value = data.data; // Store the selected offer details
-      */
-      // Update the modal title to reflect that this is about viewing offer details
-      modalTitle.value = `Detail uživatele: ${user.firstName} ${user.lastName}`;
-
-      // Resetting any states as needed, for example, hiding 'add new offer' form inside the modal
-      showDetailModal.value = true;
-
-      // Finally, making the modal visible
-      isModalVisible.value = true;
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await userApi.userIdGet(user.id, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("API response:", response); // Debug: Log the entire response
+        console.log(response.data.result.id);
+        if (response.data && response.data.result) {
+          selectedUserId.value = response.data.result.id;
+          console.log("selectedUserDetails set to:", selectedUserId.value); // Debug: Log the set value
+        } else {
+          console.error("Unexpected API response structure:", response);
+        }
+        modalTitle.value = `Detail uživatele`;
+        showDetailModal.value = true;
+        isModalVisible.value = true;
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      } finally {
+        loadingDetails.value = false;
+      }
     };
 
-    const getRowNo = (row) => {
-      const rowNo = filteredUsers.value.indexOf(row) + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems;
-      console.log(rowNo.value);
-      return rowNo.value;
-    }
+    const getRowNo = (row, index) => {
+      return (
+        index + 1 + (pageSettings.value.Page - 1) * pageSettings.value.NoOfItems
+      );
+    };
 
     const columns = ref([
       {
         title: "No",
-        key: "no",
-        render: (row) => getRowNo(row),
+        key: "rowNumber",
+        width: 60,
+        render: (row, index) => {
+          return h("span", getRowNo(row, index));
+        },
       },
       { title: "E-mail", key: "email" },
       { title: "Jméno", key: "firstName" },
@@ -366,6 +356,7 @@ export default {
       isModalVisible,
       showAddModal,
       showDetailModal,
+      selectedUserId,
       showAddUserModal,
       prepareUserDetails,
       hideAddUserModal,
